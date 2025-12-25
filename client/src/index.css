@@ -97,8 +97,11 @@
     @apply bg-background text-foreground font-sans antialiased;
     background-image: 
       radial-gradient(circle at 50% 0%, hsl(var(--secondary) / 0.15), transparent 40%),
-      radial-gradient(circle at 0% 100%, hsl(var(--primary) / 0.1), transparent 30%);
+      radial-gradient(circle at 0% 100%, hsl(var(--primary) / 0.1), transparent 30%),
+      url('/attached_assets/generated_images/neon_green_cyberpunk_abstract_grid_background.png');
     background-attachment: fixed;
+    background-size: cover;
+    background-position: top center;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight;

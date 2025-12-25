@@ -1,19 +1,13 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, CheckCircle2, ArrowUpDown } from "lucide-react";
-import gridBg from "@assets/generated_images/neon_green_cyberpunk_abstract_grid_background.png";
+import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, CheckCircle2 } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 container mx-auto px-4 text-center">
-        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/80 to-background"></div>
-          <img src={gridBg} alt="Grid Background" className="w-full h-full object-cover object-top" />
-        </div>
-        
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
