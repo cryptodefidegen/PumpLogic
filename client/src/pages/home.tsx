@@ -25,44 +25,44 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            First of its kind on Solana
+            Built for Solana Creators
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold font-display tracking-tighter leading-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
-            Programmable liquidity <br /> for Pump.fun tokens
+            Smart fee routing <br /> for token creators
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            The only AI-powered fee engine that automatically routes creator fees into market making, buybacks, liquidity, and revenue.
+            Automate your token fee distribution with intelligent allocation across trading, burns, liquidity pools, and creator rewards.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
             <Link href="/app">
               <Button size="lg" className="h-14 px-8 text-lg bg-primary text-black hover:bg-primary/90 rounded-full font-bold">
-                Launch App <ArrowRight className="ml-2 h-5 w-5" />
+                Get Started <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-white/20 hover:bg-white/5 rounded-full">
-              Join Telegram
+              View Docs
             </Button>
           </div>
           
           <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto border-t border-white/5 mt-12">
             <div>
               <div className="text-3xl font-bold font-mono text-white">4</div>
-              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Fee Channels</div>
+              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Distribution Paths</div>
             </div>
             <div>
-              <div className="text-3xl font-bold font-mono text-white">24/7</div>
-              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Automation</div>
+              <div className="text-3xl font-bold font-mono text-white">100%</div>
+              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">On-Chain</div>
             </div>
             <div>
               <div className="text-3xl font-bold font-mono text-white">AI</div>
-              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Optimized</div>
+              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Powered</div>
             </div>
             <div>
-              <div className="text-3xl font-bold font-mono text-white">$12M+</div>
-              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Volume Processed</div>
+              <div className="text-3xl font-bold font-mono text-white">Instant</div>
+              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Execution</div>
             </div>
           </div>
         </motion.div>
@@ -72,30 +72,30 @@ export default function Home() {
       <section className="py-24 bg-black/50 border-y border-white/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-sm font-mono text-primary uppercase tracking-widest mb-2">How it works</h2>
-            <h3 className="text-3xl md:text-4xl font-bold font-display text-white">Four strategic channels</h3>
+            <h2 className="text-sm font-mono text-primary uppercase tracking-widest mb-2">The Process</h2>
+            <h3 className="text-3xl md:text-4xl font-bold font-display text-white">Four allocation categories</h3>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FeatureCard 
               icon={<TrendingUp className="h-8 w-8 text-primary" />}
               title="Market Making"
-              desc="RSI-timed trades create depth and stabilize price action automatically."
+              desc="Allocate funds to enhance trading depth and maintain healthy order books."
             />
             <FeatureCard 
               icon={<RefreshCw className="h-8 w-8 text-secondary" />}
               title="Buyback & Burn"
-              desc="Automatic buybacks with permanent burns. Deflationary by design."
+              desc="Reduce circulating supply through strategic token repurchases and burns."
             />
             <FeatureCard 
               icon={<Zap className="h-8 w-8 text-blue-400" />}
               title="Liquidity Pool"
-              desc="Auto-add to LP with permanent locks. Deeper liquidity over time."
+              desc="Strengthen your token's liquidity by contributing to decentralized pools."
             />
             <FeatureCard 
               icon={<Coins className="h-8 w-8 text-yellow-400" />}
               title="Creator Revenue"
-              desc="Direct revenue stream to fund development and growth."
+              desc="Receive a portion of fees to support ongoing project development."
             />
           </div>
         </div>
@@ -106,12 +106,12 @@ export default function Home() {
         <div className="max-w-4xl mx-auto bg-gradient-to-br from-primary/10 to-secondary/10 border border-white/10 rounded-3xl p-12 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent"></div>
           
-          <h2 className="text-4xl font-bold font-display mb-6">Ready to launch?</h2>
-          <p className="text-xl text-muted-foreground mb-8">Fair launch. No presale. No team allocation. Just technology.</p>
+          <h2 className="text-4xl font-bold font-display mb-6">Take control of your fees</h2>
+          <p className="text-xl text-muted-foreground mb-8">Connect your wallet and start optimizing your token's fee distribution today.</p>
           
           <Link href="/app">
             <Button size="lg" className="h-14 px-8 text-lg bg-primary text-black hover:bg-primary/90 rounded-full font-bold shadow-[0_0_20px_rgba(0,255,157,0.3)]">
-              Start Now <Rocket className="ml-2 h-5 w-5" />
+              Open Dashboard <Rocket className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>
