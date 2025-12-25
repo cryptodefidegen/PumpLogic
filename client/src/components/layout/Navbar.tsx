@@ -1,25 +1,45 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Rocket } from "lucide-react";
+import { Wallet, Menu, X, Rocket, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
+import { useToast } from "@/hooks/use-toast";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [location] = useLocation();
   const { isConnected, walletAddress, connect, disconnect } = useWallet();
+  const { toast } = useToast();
 
   const toggleMenu = () => setIsOpen(!isOpen);
   
   const handleWalletClick = async () => {
     if (isConnected) {
       disconnect();
+      toast({
+        title: "Wallet Disconnected",
+        description: "Your wallet has been disconnected.",
+      });
     } else {
+      setIsLoading(true);
       try {
         await connect();
+        toast({
+          title: "Wallet Connected",
+          description: "Your wallet has been connected successfully!",
+          className: "bg-primary text-black font-bold"
+        });
       } catch (error) {
         console.error("Failed to connect wallet:", error);
+        toast({
+          variant: "destructive",
+          title: "Connection Failed",
+          description: "Failed to connect wallet. Please try again.",
+        });
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -58,15 +78,20 @@ export function Navbar() {
             variant={isConnected ? "outline" : "default"} 
             className={cn("font-mono text-xs", isConnected ? "border-primary text-primary hover:bg-primary/10" : "bg-primary text-black hover:bg-primary/90")}
             onClick={handleWalletClick}
+            disabled={isLoading}
             data-testid="button-connect-wallet"
           >
-            <Wallet className="mr-2 h-4 w-4" />
-            {isConnected ? walletAddress : "Connect Wallet"}
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Wallet className="mr-2 h-4 w-4" />
+            )}
+            {isLoading ? "Connecting..." : isConnected ? walletAddress : "Connect Wallet"}
           </Button>
         </div>
 
         {/* Mobile Menu Button */}
-        <button className="md:hidden text-white" onClick={toggleMenu}>
+        <button className="md:hidden text-white" onClick={toggleMenu} data-testid="button-mobile-menu">
           {isOpen ? <X /> : <Menu />}
         </button>
       </div>
@@ -81,8 +106,23 @@ export function Navbar() {
             <Link href="/app" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               App
             </Link>
-            <Button className="w-full bg-primary text-black" onClick={() => { handleWalletClick(); setIsOpen(false); }}>
-              {isConnected ? "Disconnect" : "Connect Wallet"}
+            <Button 
+              className="w-full bg-primary text-black" 
+              onClick={() => { handleWalletClick(); setIsOpen(false); }}
+              disabled={isLoading}
+              data-testid="button-mobile-connect"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <Wallet className="mr-2 h-4 w-4" />
+                  {isConnected ? "Disconnect" : "Connect Wallet"}
+                </>
+              )}
             </Button>
           </div>
         </div>
