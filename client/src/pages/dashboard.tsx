@@ -4,21 +4,33 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Wallet, Activity, Zap, Play, Pause, Save, RotateCw, Copy, Check, Info, AlertTriangle, ArrowRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@/contexts/WalletContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllocation, saveAllocation, getTransactions, getAutomationConfig, updateAutomationConfig, runOptimizer } from "@/lib/api";
-import { useLocation } from "wouter";
+import { 
+  getAllocation, 
+  saveAllocation, 
+  getTransactions, 
+  getAutomationConfig, 
+  updateAutomationConfig, 
+  runOptimizer,
+  getWalletBalance,
+  getDestinationWallets,
+  saveDestinationWallets,
+  createDistribution,
+  recordTransaction
+} from "@/lib/api";
+import { Transaction } from "@solana/web3.js";
 
 export default function Dashboard() {
   const { toast } = useToast();
   const { user, isConnected, connect } = useWallet();
-  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   
   const [allocations, setAllocations] = useState({
@@ -28,6 +40,15 @@ export default function Dashboard() {
     revenue: 25
   });
   const [analyzing, setAnalyzing] = useState(false);
+  const [distributionAmount, setDistributionAmount] = useState("");
+  const [isDistributing, setIsDistributing] = useState(false);
+  const [showWalletConfig, setShowWalletConfig] = useState(false);
+  const [destWallets, setDestWallets] = useState({
+    marketMakingWallet: "",
+    buybackWallet: "",
+    liquidityWallet: "",
+    revenueWallet: ""
+  });
 
   // Fetch allocation data
   const { data: allocationData } = useQuery({
@@ -50,6 +71,21 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  // Fetch wallet balance (using the real connected wallet)
+  const { data: balanceData } = useQuery({
+    queryKey: ['balance', user?.walletAddress],
+    queryFn: () => getWalletBalance(user!.walletAddress),
+    enabled: !!user && user.walletAddress.length > 20,
+    refetchInterval: 30000,
+  });
+
+  // Fetch destination wallets
+  const { data: destinationData } = useQuery({
+    queryKey: ['destinationWallets', user?.id],
+    queryFn: () => getDestinationWallets(user!.id),
+    enabled: !!user,
+  });
+
   // Update local state when allocation data loads
   useEffect(() => {
     if (allocationData) {
@@ -61,6 +97,18 @@ export default function Dashboard() {
       });
     }
   }, [allocationData]);
+
+  // Update destination wallets state when data loads
+  useEffect(() => {
+    if (destinationData) {
+      setDestWallets({
+        marketMakingWallet: destinationData.marketMakingWallet || "",
+        buybackWallet: destinationData.buybackWallet || "",
+        liquidityWallet: destinationData.liquidityWallet || "",
+        revenueWallet: destinationData.revenueWallet || "",
+      });
+    }
+  }, [destinationData]);
 
   // Save allocation mutation
   const saveMutation = useMutation({
@@ -106,10 +154,37 @@ export default function Dashboard() {
       });
       queryClient.invalidateQueries({ queryKey: ['allocation', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['transactions', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['automation', user?.id] });
       toast({
         title: "Analysis Complete",
-        description: "AI has optimized allocations based on current market volatility.",
+        description: "AI has optimized allocations based on current network conditions.",
         className: "bg-black border-primary text-white"
+      });
+    },
+  });
+
+  // Save destination wallets mutation
+  const saveDestWalletsMutation = useMutation({
+    mutationFn: () => saveDestinationWallets(user!.id, {
+      marketMakingWallet: destWallets.marketMakingWallet || null,
+      buybackWallet: destWallets.buybackWallet || null,
+      liquidityWallet: destWallets.liquidityWallet || null,
+      revenueWallet: destWallets.revenueWallet || null,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['destinationWallets', user?.id] });
+      setShowWalletConfig(false);
+      toast({
+        title: "Wallets Saved",
+        description: "Your destination wallets have been configured.",
+        className: "bg-primary text-black font-bold"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: error.message || "Failed to save destination wallets",
       });
     },
   });
@@ -135,14 +210,84 @@ export default function Dashboard() {
 
   const runAnalysis = async () => {
     setAnalyzing(true);
-    setTimeout(() => {
-      optimizerMutation.mutate();
+    try {
+      await optimizerMutation.mutateAsync();
+    } finally {
       setAnalyzing(false);
-    }, 2000);
+    }
   };
 
   const handleAutomationToggle = (checked: boolean) => {
     automationMutation.mutate(checked);
+  };
+
+  const handleDistribute = async () => {
+    const amount = parseFloat(distributionAmount);
+    if (!amount || amount <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Amount",
+        description: "Please enter a valid amount to distribute."
+      });
+      return;
+    }
+
+    if (!destinationData?.marketMakingWallet || !destinationData?.buybackWallet ||
+        !destinationData?.liquidityWallet || !destinationData?.revenueWallet) {
+      toast({
+        variant: "destructive",
+        title: "Configure Wallets First",
+        description: "Please configure all destination wallets before distributing."
+      });
+      setShowWalletConfig(true);
+      return;
+    }
+
+    if (!window.solana) {
+      toast({
+        variant: "destructive",
+        title: "Phantom Required",
+        description: "Please install Phantom wallet to execute transactions."
+      });
+      return;
+    }
+
+    setIsDistributing(true);
+    try {
+      // Create distribution transaction
+      const { transaction, breakdown } = await createDistribution(
+        user!.id,
+        user!.walletAddress,
+        amount
+      );
+
+      // Deserialize and sign with Phantom
+      const txBuffer = Uint8Array.from(atob(transaction), c => c.charCodeAt(0));
+      const tx = Transaction.from(txBuffer);
+      const { signature } = await window.solana.signAndSendTransaction(tx);
+
+      // Record transaction
+      await recordTransaction(user!.id, signature, amount, breakdown);
+
+      queryClient.invalidateQueries({ queryKey: ['transactions', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['balance', user?.walletAddress] });
+
+      toast({
+        title: "Distribution Complete",
+        description: `Successfully distributed ${amount} SOL across all channels.`,
+        className: "bg-primary text-black font-bold"
+      });
+
+      setDistributionAmount("");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Distribution Failed",
+        description: error.message || "Failed to execute distribution."
+      });
+    } finally {
+      setIsDistributing(false);
+    }
   };
 
   // Redirect if not connected
@@ -152,12 +297,12 @@ export default function Dashboard() {
         <Card className="bg-card border-white/5 max-w-md w-full mx-4">
           <CardHeader>
             <CardTitle className="text-white text-center">Connect Your Wallet</CardTitle>
-            <CardDescription className="text-center">You need to connect your wallet to access the dashboard</CardDescription>
+            <CardDescription className="text-center">Connect your Phantom wallet to access the dashboard</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
             <Button onClick={connect} className="bg-primary text-black hover:bg-primary/90" data-testid="button-connect-dashboard">
               <Wallet className="mr-2 h-4 w-4" />
-              Connect Wallet
+              Connect Phantom
             </Button>
           </CardContent>
         </Card>
@@ -174,7 +319,7 @@ export default function Dashboard() {
           <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
           <div className="text-sm text-yellow-200/80">
             <strong className="text-yellow-500 block mb-1">IMPORTANT SECURITY NOTICE</strong>
-            Your private key is processed locally to sign transactions but is <span className="text-white font-bold">NEVER STORED</span>. Keys are wiped on disconnect. Only use a dedicated fee wallet. DYOR.
+            Transactions are signed by your Phantom wallet. Your private key <span className="text-white font-bold">NEVER</span> leaves your wallet. Only use a dedicated fee wallet. DYOR.
           </div>
         </div>
 
@@ -185,6 +330,15 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Manage your programmable liquidity engine</p>
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowWalletConfig(true)}
+              className="border-white/10"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Configure Wallets
+            </Button>
             <div className="px-3 py-1 rounded-full text-xs font-mono border bg-green-500/10 text-green-500 border-green-500/20">
               CONNECTED
             </div>
@@ -256,14 +410,14 @@ export default function Dashboard() {
                   </div>
                   <Badge variant="outline" className="border-primary/50 text-primary">AI POWERED</Badge>
                 </div>
-                <CardDescription>AI analyzes market conditions and optimizes your allocations automatically</CardDescription>
+                <CardDescription>AI analyzes Solana network conditions and optimizes your allocations</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-4">
                   <div className="flex-1 bg-black/40 rounded-lg p-3 font-mono text-xs text-primary/80 h-24 overflow-hidden relative">
                     {analyzing ? (
                       <div className="flex flex-col gap-1 animate-pulse">
-                        <div>&gt; Analyzing order book depth...</div>
+                        <div>&gt; Analyzing network TPS...</div>
                         <div>&gt; Checking volatility index...</div>
                         <div>&gt; Calculating optimal buyback pressure...</div>
                         <div>&gt; optimizing...</div>
@@ -271,7 +425,7 @@ export default function Dashboard() {
                     ) : (
                       <div className="flex flex-col gap-1">
                         <div className="text-muted-foreground">&gt; System ready.</div>
-                        <div className="text-muted-foreground">&gt; Last analysis: 2 hours ago</div>
+                        <div className="text-muted-foreground">&gt; Network: Solana Mainnet</div>
                         <div className="text-green-500/50">&gt; Waiting for command...</div>
                       </div>
                     )}
@@ -294,18 +448,43 @@ export default function Dashboard() {
             <Card className="bg-card border-white/5">
               <CardHeader>
                 <CardTitle className="text-white">Manual Distribution</CardTitle>
-                <CardDescription>Distribute fees manually from your wallet</CardDescription>
+                <CardDescription>Distribute fees manually from your wallet using Phantom</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex gap-4">
                   <div className="relative flex-1">
-                    <Input placeholder="0.0" className="bg-black/40 border-white/10 text-lg font-mono pl-4 pr-12 h-12" data-testid="input-distribution-amount" />
+                    <Input 
+                      placeholder="0.0" 
+                      value={distributionAmount}
+                      onChange={(e) => setDistributionAmount(e.target.value)}
+                      className="bg-black/40 border-white/10 text-lg font-mono pl-4 pr-12 h-12" 
+                      data-testid="input-distribution-amount" 
+                    />
                     <div className="absolute right-4 top-3 text-muted-foreground font-mono text-sm">SOL</div>
                   </div>
-                  <Button className="h-12 px-6 bg-secondary text-white hover:bg-secondary/90 font-bold" data-testid="button-distribute">
-                    Distribute Now <ArrowRight className="ml-2 h-4 w-4" />
+                  <Button 
+                    className="h-12 px-6 bg-secondary text-white hover:bg-secondary/90 font-bold" 
+                    onClick={handleDistribute}
+                    disabled={isDistributing}
+                    data-testid="button-distribute"
+                  >
+                    {isDistributing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Signing...
+                      </>
+                    ) : (
+                      <>
+                        Distribute Now <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
                   </Button>
                 </div>
+                {balanceData && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Available balance: <span className="text-primary font-mono">{balanceData.balance.toFixed(4)} SOL</span>
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -337,8 +516,8 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <StatBox label="RSI (14)" value={automationData?.rsi || "42.5"} />
-                  <StatBox label="Volatility" value={automationData?.volatility || "High"} />
+                  <StatBox label="RSI (14)" value={automationData?.rsi || "—"} />
+                  <StatBox label="Volatility" value={automationData?.volatility || "—"} />
                 </div>
               </CardContent>
             </Card>
@@ -349,9 +528,17 @@ export default function Dashboard() {
                 <CardTitle className="text-sm font-medium uppercase text-muted-foreground tracking-widest">Wallet Stats</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <StatRow label="Wallet" value={user.walletAddress.substring(0, 16) + "..."} />
-                <StatRow label="User ID" value={user.id.substring(0, 8) + "..."} />
+                <StatRow label="Address" value={`${user.walletAddress.substring(0, 8)}...${user.walletAddress.substring(user.walletAddress.length - 4)}`} />
+                <StatRow label="Balance" value={balanceData ? `${balanceData.balance.toFixed(4)} SOL` : "Loading..."} />
                 <StatRow label="Transactions" value={transactions.length.toString()} />
+                <a 
+                  href={`https://solscan.io/account/${user.walletAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-primary hover:underline mt-2"
+                >
+                  View on Solscan <ExternalLink className="h-3 w-3" />
+                </a>
               </CardContent>
             </Card>
 
@@ -381,6 +568,7 @@ export default function Dashboard() {
                       type={tx.type}
                       detail={tx.detail}
                       amount={tx.amount}
+                      signature={tx.signature}
                     />
                   ))
                 )}
@@ -389,6 +577,68 @@ export default function Dashboard() {
         </div>
 
       </div>
+
+      {/* Wallet Configuration Dialog */}
+      <Dialog open={showWalletConfig} onOpenChange={setShowWalletConfig}>
+        <DialogContent className="bg-card border-white/10 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Configure Destination Wallets</DialogTitle>
+            <DialogDescription>
+              Set up the wallet addresses where fees will be distributed for each channel.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label className="text-white text-sm">Market Making Wallet</Label>
+              <Input 
+                placeholder="Enter Solana wallet address"
+                value={destWallets.marketMakingWallet}
+                onChange={(e) => setDestWallets(prev => ({ ...prev, marketMakingWallet: e.target.value }))}
+                className="bg-black/40 border-white/10 mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-white text-sm">Buyback & Burn Wallet</Label>
+              <Input 
+                placeholder="Enter Solana wallet address"
+                value={destWallets.buybackWallet}
+                onChange={(e) => setDestWallets(prev => ({ ...prev, buybackWallet: e.target.value }))}
+                className="bg-black/40 border-white/10 mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-white text-sm">Liquidity Pool Wallet</Label>
+              <Input 
+                placeholder="Enter Solana wallet address"
+                value={destWallets.liquidityWallet}
+                onChange={(e) => setDestWallets(prev => ({ ...prev, liquidityWallet: e.target.value }))}
+                className="bg-black/40 border-white/10 mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-white text-sm">Creator Revenue Wallet</Label>
+              <Input 
+                placeholder="Enter Solana wallet address"
+                value={destWallets.revenueWallet}
+                onChange={(e) => setDestWallets(prev => ({ ...prev, revenueWallet: e.target.value }))}
+                className="bg-black/40 border-white/10 mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowWalletConfig(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => saveDestWalletsMutation.mutate()}
+              disabled={saveDestWalletsMutation.isPending}
+              className="bg-primary text-black"
+            >
+              {saveDestWalletsMutation.isPending ? "Saving..." : "Save Wallets"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -430,12 +680,15 @@ function StatRow({ label, value }: { label: string, value: string }) {
   );
 }
 
-function LogItem({ time, type, detail, amount }: { time: string, type: string, detail: string, amount: string }) {
+function LogItem({ time, type, detail, amount, signature }: { time: string, type: string, detail: string, amount: string, signature?: string | null }) {
   const getColor = (t: string) => {
     switch(t) {
       case 'OPTIMIZE': return 'text-primary';
       case 'DISTRIBUTE': return 'text-secondary';
       case 'BUYBACK': return 'text-blue-400';
+      case 'MARKET_MAKING': return 'text-primary';
+      case 'LIQUIDITY': return 'text-blue-400';
+      case 'REVENUE': return 'text-yellow-400';
       case 'DEPOSIT': return 'text-green-400';
       default: return 'text-muted-foreground';
     }
@@ -445,7 +698,19 @@ function LogItem({ time, type, detail, amount }: { time: string, type: string, d
     <div className="p-4 grid grid-cols-12 gap-4 text-sm hover:bg-white/5 transition-colors">
       <div className="col-span-2 text-muted-foreground font-mono text-xs">{time}</div>
       <div className={cn("col-span-2 font-bold text-xs uppercase", getColor(type))}>{type}</div>
-      <div className="col-span-6 text-white">{detail}</div>
+      <div className="col-span-6 text-white flex items-center gap-2">
+        {detail}
+        {signature && (
+          <a 
+            href={`https://solscan.io/tx/${signature}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
       <div className="col-span-2 text-right font-mono text-white">{amount}</div>
     </div>
   );

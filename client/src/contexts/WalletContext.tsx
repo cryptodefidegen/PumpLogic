@@ -12,6 +12,8 @@ declare global {
       off: (event: string, callback: () => void) => void;
       publicKey?: { toString: () => string };
       isConnected?: boolean;
+      signTransaction: (tx: any) => Promise<any>;
+      signAndSendTransaction: (tx: any) => Promise<{ signature: string }>;
     };
   }
 }

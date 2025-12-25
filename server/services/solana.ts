@@ -163,7 +163,7 @@ class SolanaService {
       });
 
       return {
-        transaction: bs58.encode(serializedTransaction),
+        transaction: Buffer.from(serializedTransaction).toString('base64'),
         breakdown: {
           marketMaking: breakdown.marketMaking / LAMPORTS_PER_SOL,
           buyback: breakdown.buyback / LAMPORTS_PER_SOL,
@@ -209,7 +209,7 @@ class SolanaService {
 
   async estimateTransactionFee(transaction: string): Promise<number> {
     try {
-      const txBuffer = bs58.decode(transaction);
+      const txBuffer = Buffer.from(transaction, 'base64');
       const tx = Transaction.from(txBuffer);
       const fee = await this.connection.getFeeForMessage(tx.compileMessage());
       return (fee.value || 5000) / LAMPORTS_PER_SOL;
