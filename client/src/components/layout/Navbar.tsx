@@ -60,9 +60,9 @@ export function Navbar() {
           <div className="h-9 w-9 rounded relative overflow-hidden flex items-center justify-center">
             <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
               <div className="bg-primary"></div>
-              <div className="bg-secondary"></div>
-              <div className="bg-blue-400"></div>
-              <div className="bg-yellow-400"></div>
+              <div className="bg-emerald-400"></div>
+              <div className="bg-teal-500"></div>
+              <div className="bg-cyan-400"></div>
             </div>
             <Rocket className="h-5 w-5 text-black relative z-10 fill-current" />
           </div>
