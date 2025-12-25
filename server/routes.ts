@@ -57,12 +57,23 @@ export async function registerRoutes(
       const validated = insertAllocationSchema.parse(req.body);
       
       // Validate total is 100
-      const total = validated.marketMaking + validated.buyback + validated.liquidity + validated.revenue;
+      const marketMaking = validated.marketMaking ?? 25;
+      const buyback = validated.buyback ?? 25;
+      const liquidity = validated.liquidity ?? 25;
+      const revenue = validated.revenue ?? 25;
+      
+      const total = marketMaking + buyback + liquidity + revenue;
       if (total !== 100) {
         return res.status(400).json({ error: "Allocations must total exactly 100%" });
       }
 
-      const allocation = await storage.upsertAllocation(validated);
+      const allocation = await storage.upsertAllocation({
+        ...validated,
+        marketMaking,
+        buyback,
+        liquidity,
+        revenue,
+      });
       return res.json(allocation);
     } catch (error: any) {
       if (error instanceof z.ZodError) {

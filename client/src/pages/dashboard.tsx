@@ -10,42 +10,115 @@ import { Wallet, Activity, Zap, Play, Pause, Save, RotateCw, Copy, Check, Info, 
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useWallet } from "@/contexts/WalletContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAllocation, saveAllocation, getTransactions, getAutomationConfig, updateAutomationConfig, runOptimizer } from "@/lib/api";
+import { useLocation } from "wouter";
 
 export default function Dashboard() {
   const { toast } = useToast();
-  const [isConnected, setIsConnected] = useState(false);
+  const { user, isConnected, connect } = useWallet();
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  
   const [allocations, setAllocations] = useState({
-    marketMaking: 30,
-    buyback: 20,
-    liquidity: 30,
-    revenue: 20
+    marketMaking: 25,
+    buyback: 25,
+    liquidity: 25,
+    revenue: 25
   });
-  const [automationActive, setAutomationActive] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+
+  // Fetch allocation data
+  const { data: allocationData } = useQuery({
+    queryKey: ['allocation', user?.id],
+    queryFn: () => getAllocation(user!.id),
+    enabled: !!user,
+  });
+
+  // Fetch transactions
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['transactions', user?.id],
+    queryFn: () => getTransactions(user!.id, 10),
+    enabled: !!user,
+  });
+
+  // Fetch automation config
+  const { data: automationData } = useQuery({
+    queryKey: ['automation', user?.id],
+    queryFn: () => getAutomationConfig(user!.id),
+    enabled: !!user,
+  });
+
+  // Update local state when allocation data loads
+  useEffect(() => {
+    if (allocationData) {
+      setAllocations({
+        marketMaking: allocationData.marketMaking ?? 25,
+        buyback: allocationData.buyback ?? 25,
+        liquidity: allocationData.liquidity ?? 25,
+        revenue: allocationData.revenue ?? 25,
+      });
+    }
+  }, [allocationData]);
+
+  // Save allocation mutation
+  const saveMutation = useMutation({
+    mutationFn: () => saveAllocation(user!.id, allocations),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allocation', user?.id] });
+      toast({
+        title: "Allocations Saved",
+        description: "Your fee routing strategy has been updated.",
+        className: "bg-primary text-black font-bold"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: error.message || "Failed to save allocations",
+      });
+    },
+  });
+
+  // Automation mutation
+  const automationMutation = useMutation({
+    mutationFn: (isActive: boolean) => updateAutomationConfig(user!.id, {
+      isActive,
+      rsi: automationData?.rsi || null,
+      volatility: automationData?.volatility || null,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['automation', user?.id] });
+    },
+  });
+
+  // Optimizer mutation
+  const optimizerMutation = useMutation({
+    mutationFn: () => runOptimizer(user!.id),
+    onSuccess: (data) => {
+      setAllocations({
+        marketMaking: data.marketMaking ?? 25,
+        buyback: data.buyback ?? 25,
+        liquidity: data.liquidity ?? 25,
+        revenue: data.revenue ?? 25,
+      });
+      queryClient.invalidateQueries({ queryKey: ['allocation', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['transactions', user?.id] });
+      toast({
+        title: "Analysis Complete",
+        description: "AI has optimized allocations based on current market volatility.",
+        className: "bg-black border-primary text-white"
+      });
+    },
+  });
 
   const total = Object.values(allocations).reduce((a, b) => a + b, 0);
   const isValid = total === 100;
 
   const handleSliderChange = (key: keyof typeof allocations, value: number[]) => {
     setAllocations(prev => ({ ...prev, [key]: value[0] }));
-  };
-
-  const runAnalysis = () => {
-    setAnalyzing(true);
-    setTimeout(() => {
-      setAnalyzing(false);
-      setAllocations({
-        marketMaking: 40,
-        buyback: 25,
-        liquidity: 25,
-        revenue: 10
-      });
-      toast({
-        title: "Analysis Complete",
-        description: "AI has optimized allocations based on current market volatility.",
-        className: "bg-black border-primary text-white"
-      });
-    }, 2000);
   };
 
   const handleSave = () => {
@@ -57,12 +130,40 @@ export default function Dashboard() {
       });
       return;
     }
-    toast({
-      title: "Allocations Saved",
-      description: "Your fee routing strategy has been updated.",
-      className: "bg-primary text-black font-bold"
-    });
+    saveMutation.mutate();
   };
+
+  const runAnalysis = async () => {
+    setAnalyzing(true);
+    setTimeout(() => {
+      optimizerMutation.mutate();
+      setAnalyzing(false);
+    }, 2000);
+  };
+
+  const handleAutomationToggle = (checked: boolean) => {
+    automationMutation.mutate(checked);
+  };
+
+  // Redirect if not connected
+  if (!isConnected || !user) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <Card className="bg-card border-white/5 max-w-md w-full mx-4">
+          <CardHeader>
+            <CardTitle className="text-white text-center">Connect Your Wallet</CardTitle>
+            <CardDescription className="text-center">You need to connect your wallet to access the dashboard</CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button onClick={connect} className="bg-primary text-black hover:bg-primary/90" data-testid="button-connect-dashboard">
+              <Wallet className="mr-2 h-4 w-4" />
+              Connect Wallet
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
@@ -84,15 +185,9 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Manage your programmable liquidity engine</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className={cn("px-3 py-1 rounded-full text-xs font-mono border", isConnected ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-red-500/10 text-red-500 border-red-500/20")}>
-              {isConnected ? "CONNECTED" : "DISCONNECTED"}
+            <div className="px-3 py-1 rounded-full text-xs font-mono border bg-green-500/10 text-green-500 border-green-500/20">
+              CONNECTED
             </div>
-            <Button 
-              onClick={() => setIsConnected(!isConnected)}
-              className={cn("font-bold", isConnected ? "bg-destructive text-white" : "bg-primary text-black")}
-            >
-              {isConnected ? "Disconnect Wallet" : "Connect Wallet"}
-            </Button>
           </div>
         </div>
 
@@ -144,8 +239,8 @@ export default function Dashboard() {
                   <div className="text-xs text-muted-foreground">
                     Must total exactly 100%
                   </div>
-                  <Button onClick={handleSave} disabled={!isValid} className="bg-white text-black hover:bg-white/90">
-                    <Save className="mr-2 h-4 w-4" /> Save Allocations
+                  <Button onClick={handleSave} disabled={!isValid || saveMutation.isPending} className="bg-white text-black hover:bg-white/90" data-testid="button-save-allocations">
+                    <Save className="mr-2 h-4 w-4" /> {saveMutation.isPending ? "Saving..." : "Save Allocations"}
                   </Button>
                 </div>
               </CardContent>
@@ -184,8 +279,9 @@ export default function Dashboard() {
                   <Button 
                     size="lg" 
                     onClick={runAnalysis} 
-                    disabled={analyzing}
+                    disabled={analyzing || optimizerMutation.isPending}
                     className="h-24 w-32 bg-primary/10 border border-primary/50 hover:bg-primary/20 text-primary flex-col gap-2"
+                    data-testid="button-run-optimizer"
                   >
                     {analyzing ? <RotateCw className="h-6 w-6 animate-spin" /> : <Zap className="h-6 w-6" />}
                     {analyzing ? "Running" : "Run AI"}
@@ -203,10 +299,10 @@ export default function Dashboard() {
               <CardContent>
                 <div className="flex gap-4">
                   <div className="relative flex-1">
-                    <Input placeholder="0.0" className="bg-black/40 border-white/10 text-lg font-mono pl-4 pr-12 h-12" />
+                    <Input placeholder="0.0" className="bg-black/40 border-white/10 text-lg font-mono pl-4 pr-12 h-12" data-testid="input-distribution-amount" />
                     <div className="absolute right-4 top-3 text-muted-foreground font-mono text-sm">SOL</div>
                   </div>
-                  <Button className="h-12 px-6 bg-secondary text-white hover:bg-secondary/90 font-bold">
+                  <Button className="h-12 px-6 bg-secondary text-white hover:bg-secondary/90 font-bold" data-testid="button-distribute">
                     Distribute Now <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -225,19 +321,24 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between mb-6">
-                  <div className={cn("text-2xl font-bold flex items-center gap-2", automationActive ? "text-green-500" : "text-muted-foreground")}>
-                    {automationActive ? "ACTIVE" : "INACTIVE"}
+                  <div className={cn("text-2xl font-bold flex items-center gap-2", automationData?.isActive ? "text-green-500" : "text-muted-foreground")}>
+                    {automationData?.isActive ? "ACTIVE" : "INACTIVE"}
                     <span className={cn("relative flex h-3 w-3 ml-2")}>
-                      {automationActive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>}
-                      <span className={cn("relative inline-flex rounded-full h-3 w-3", automationActive ? "bg-green-500" : "bg-zinc-700")}></span>
+                      {automationData?.isActive && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>}
+                      <span className={cn("relative inline-flex rounded-full h-3 w-3", automationData?.isActive ? "bg-green-500" : "bg-zinc-700")}></span>
                     </span>
                   </div>
-                  <Switch checked={automationActive} onCheckedChange={setAutomationActive} />
+                  <Switch 
+                    checked={automationData?.isActive || false} 
+                    onCheckedChange={handleAutomationToggle}
+                    disabled={automationMutation.isPending}
+                    data-testid="switch-automation"
+                  />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <StatBox label="RSI (14)" value="42.5" />
-                  <StatBox label="Volatility" value="High" />
+                  <StatBox label="RSI (14)" value={automationData?.rsi || "42.5"} />
+                  <StatBox label="Volatility" value={automationData?.volatility || "High"} />
                 </div>
               </CardContent>
             </Card>
@@ -248,27 +349,9 @@ export default function Dashboard() {
                 <CardTitle className="text-sm font-medium uppercase text-muted-foreground tracking-widest">Wallet Stats</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <StatRow label="Balance" value="14.24 SOL" />
-                <StatRow label="Total Claimed" value="145.50 SOL" />
-                <StatRow label="Total Distributed" value="89.20 SOL" />
-                <Button variant="outline" className="w-full border-white/10 hover:bg-white/5">
-                  View on Solscan
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Fund Wallet */}
-            <Card className="bg-card border-white/5">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium uppercase text-muted-foreground tracking-widest">Fund Fee Wallet</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-black/40 border border-white/10 rounded p-3 mb-3">
-                  <code className="text-xs text-muted-foreground block break-all">86ZnAujEVLmtnNazeCeT1zYR7hn2PeF5ZPEwUkTdpump</code>
-                </div>
-                <Button variant="secondary" size="sm" className="w-full bg-white/5 hover:bg-white/10 text-white border-none">
-                  <Copy className="mr-2 h-4 w-4" /> Copy Address
-                </Button>
+                <StatRow label="Wallet" value={user.walletAddress.substring(0, 16) + "..."} />
+                <StatRow label="User ID" value={user.id.substring(0, 8) + "..."} />
+                <StatRow label="Transactions" value={transactions.length.toString()} />
               </CardContent>
             </Card>
 
@@ -286,10 +369,21 @@ export default function Dashboard() {
                 <div className="col-span-2 text-right">Amount</div>
              </div>
              <div className="divide-y divide-white/5">
-                <LogItem time="2 mins ago" type="OPTIMIZE" detail="AI rebalanced allocations (High Volatility detected)" amount="-" />
-                <LogItem time="15 mins ago" type="DISTRIBUTE" detail="Manual distribution to liquidity pool" amount="4.2 SOL" />
-                <LogItem time="1 hour ago" type="BUYBACK" detail="Auto-buyback executed @ $0.0042" amount="1.5 SOL" />
-                <LogItem time="3 hours ago" type="DEPOSIT" detail="Received fees from Pump.fun" amount="0.8 SOL" />
+                {transactions.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    No transactions yet. Start by adjusting your allocations or running the AI optimizer.
+                  </div>
+                ) : (
+                  transactions.map((tx) => (
+                    <LogItem 
+                      key={tx.id}
+                      time={new Date(tx.createdAt).toLocaleString()}
+                      type={tx.type}
+                      detail={tx.detail}
+                      amount={tx.amount}
+                    />
+                  ))
+                )}
              </div>
           </div>
         </div>
@@ -331,7 +425,7 @@ function StatRow({ label, value }: { label: string, value: string }) {
   return (
     <div className="flex justify-between items-center py-1">
       <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="font-mono font-bold text-white">{value}</span>
+      <span className="font-mono font-bold text-white text-xs">{value}</span>
     </div>
   );
 }
