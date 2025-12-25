@@ -19,7 +19,7 @@ export function Navbar() {
             <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-black">
               <Rocket className="h-5 w-5 fill-current" />
             </div>
-            <span className="text-white">LAUNCH<span className="text-primary">R</span></span>
+            <span className="text-white">Launch<span className="text-primary">Logic</span></span>
           </a>
         </Link>
 
