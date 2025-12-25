@@ -7,7 +7,9 @@ import path from "path";
 const app = express();
 const httpServer = createServer(app);
 
-app.use(express.static(path.resolve(import.meta.dirname, "..", "client", "public")));
+if (process.env.NODE_ENV !== "production" && import.meta.dirname) {
+  app.use(express.static(path.resolve(import.meta.dirname, "..", "client", "public")));
+}
 
 declare module "http" {
   interface IncomingMessage {
