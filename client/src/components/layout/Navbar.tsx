@@ -57,16 +57,18 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/50 backdrop-blur-xl supports-[backdrop-filter]:bg-black/20">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold tracking-tighter">
-          <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className="h-5 w-5 text-black" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="5" r="2" fill="currentColor" />
-              <path d="M12 7v4" />
-              <path d="M12 11l-5 5" />
-              <path d="M12 11l5 5" />
-              <path d="M12 11v5" />
-              <circle cx="7" cy="18" r="2" fill="currentColor" />
-              <circle cx="12" cy="18" r="2" fill="currentColor" />
-              <circle cx="17" cy="18" r="2" fill="currentColor" />
+          <div className="h-10 w-10 rounded bg-primary flex items-center justify-center">
+            <svg viewBox="0 0 24 24" className="h-7 w-7 text-black" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="4" r="2" fill="currentColor" />
+              <path d="M12 6v3" />
+              <path d="M12 9l-7 7" />
+              <path d="M12 9l-2.5 7" />
+              <path d="M12 9l2.5 7" />
+              <path d="M12 9l7 7" />
+              <circle cx="5" cy="18" r="1.5" fill="currentColor" />
+              <circle cx="9.5" cy="18" r="1.5" fill="currentColor" />
+              <circle cx="14.5" cy="18" r="1.5" fill="currentColor" />
+              <circle cx="19" cy="18" r="1.5" fill="currentColor" />
             </svg>
           </div>
           <span className="text-white">Pump<span className="text-primary">Logic</span></span>
