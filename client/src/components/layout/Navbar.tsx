@@ -58,7 +58,7 @@ export function Navbar() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold tracking-tighter">
           <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-black" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="5" r="2" fill="currentColor" />
               <path d="M12 7v4" />
               <path d="M12 11l-5 5" />
