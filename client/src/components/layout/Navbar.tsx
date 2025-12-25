@@ -10,7 +10,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [location] = useLocation();
-  const { isConnected, walletAddress, connect, disconnect } = useWallet();
+  const { isConnected, walletAddress, connect, disconnect, isPhantomInstalled } = useWallet();
   const { toast } = useToast();
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -28,16 +28,25 @@ export function Navbar() {
         await connect();
         toast({
           title: "Wallet Connected",
-          description: "Your wallet has been connected successfully!",
+          description: "Your Phantom wallet has been connected successfully!",
           className: "bg-primary text-black font-bold"
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to connect wallet:", error);
-        toast({
-          variant: "destructive",
-          title: "Connection Failed",
-          description: "Failed to connect wallet. Please try again.",
-        });
+        
+        if (!isPhantomInstalled) {
+          toast({
+            variant: "destructive",
+            title: "Phantom Not Found",
+            description: "Please install Phantom wallet from phantom.app",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Connection Failed",
+            description: error.message || "Failed to connect wallet. Please try again.",
+          });
+        }
       } finally {
         setIsLoading(false);
       }
