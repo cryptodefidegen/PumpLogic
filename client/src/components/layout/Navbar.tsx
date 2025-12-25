@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Rocket, Loader2 } from "lucide-react";
+import { Wallet, Menu, X, Loader2, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -58,7 +58,7 @@ export function Navbar() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold tracking-tighter">
           <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-black">
-            <Rocket className="h-5 w-5 fill-current" />
+            <ArrowUpDown className="h-5 w-5" />
           </div>
           <span className="text-white">Pump<span className="text-primary">Logic</span></span>
         </Link>
@@ -77,9 +77,12 @@ export function Navbar() {
           >
             App
           </Link>
-          <a href="#" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+          <Link 
+            href="/docs" 
+            className={cn("text-sm font-medium transition-colors hover:text-primary", location === "/docs" ? "text-primary" : "text-muted-foreground")}
+          >
             Docs
-          </a>
+          </Link>
         </div>
 
         <div className="hidden md:flex items-center gap-4">
@@ -114,6 +117,9 @@ export function Navbar() {
             </Link>
             <Link href="/app" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               App
+            </Link>
+            <Link href="/docs" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
+              Docs
             </Link>
             <Button 
               className="w-full bg-primary text-black" 

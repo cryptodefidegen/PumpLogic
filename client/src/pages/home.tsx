@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, CheckCircle2, Rocket } from "lucide-react";
+import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, CheckCircle2, ArrowUpDown } from "lucide-react";
 import gridBg from "@assets/generated_images/neon_green_cyberpunk_abstract_grid_background.png";
 
 export default function Home() {
@@ -42,9 +42,11 @@ export default function Home() {
                 Get Started <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-white/20 hover:bg-white/5 rounded-full">
-              View Docs
-            </Button>
+            <Link href="/docs">
+              <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-white/20 hover:bg-white/5 rounded-full">
+                View Docs
+              </Button>
+            </Link>
           </div>
           
           <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto border-t border-white/5 mt-12">
@@ -111,7 +113,7 @@ export default function Home() {
           
           <Link href="/app">
             <Button size="lg" className="h-14 px-8 text-lg bg-primary text-black hover:bg-primary/90 rounded-full font-bold shadow-[0_0_20px_rgba(0,255,157,0.3)]">
-              Open Dashboard <Rocket className="ml-2 h-5 w-5" />
+              Open Dashboard <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>
