@@ -1,38 +1,110 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "../db/index";
+import { users, allocations, transactions, automationConfigs } from "@shared/schema";
+import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig } from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
+  // Users
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByWallet(walletAddress: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+
+  // Allocations
+  getAllocation(userId: string): Promise<Allocation | undefined>;
+  upsertAllocation(allocation: InsertAllocation): Promise<Allocation>;
+
+  // Transactions  
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getTransactions(userId: string, limit?: number): Promise<Transaction[]>;
+
+  // Automation
+  getAutomationConfig(userId: string): Promise<AutomationConfig | undefined>;
+  upsertAutomationConfig(config: InsertAutomationConfig): Promise<AutomationConfig>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
-  }
-
+export class DatabaseStorage implements IStorage {
+  // Users
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getUserByWallet(walletAddress: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.walletAddress, walletAddress)).limit(1);
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
+  }
+
+  // Allocations
+  async getAllocation(userId: string): Promise<Allocation | undefined> {
+    const result = await db.select().from(allocations).where(eq(allocations.userId, userId)).limit(1);
+    return result[0];
+  }
+
+  async upsertAllocation(allocation: InsertAllocation): Promise<Allocation> {
+    const existing = await this.getAllocation(allocation.userId);
+    
+    if (existing) {
+      const result = await db.update(allocations)
+        .set({
+          marketMaking: allocation.marketMaking,
+          buyback: allocation.buyback,
+          liquidity: allocation.liquidity,
+          revenue: allocation.revenue,
+          updatedAt: new Date(),
+        })
+        .where(eq(allocations.userId, allocation.userId))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(allocations).values(allocation).returning();
+      return result[0];
+    }
+  }
+
+  // Transactions
+  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    const result = await db.insert(transactions).values(transaction).returning();
+    return result[0];
+  }
+
+  async getTransactions(userId: string, limit: number = 50): Promise<Transaction[]> {
+    return await db.select()
+      .from(transactions)
+      .where(eq(transactions.userId, userId))
+      .orderBy(desc(transactions.createdAt))
+      .limit(limit);
+  }
+
+  // Automation
+  async getAutomationConfig(userId: string): Promise<AutomationConfig | undefined> {
+    const result = await db.select().from(automationConfigs).where(eq(automationConfigs.userId, userId)).limit(1);
+    return result[0];
+  }
+
+  async upsertAutomationConfig(config: InsertAutomationConfig): Promise<AutomationConfig> {
+    const existing = await this.getAutomationConfig(config.userId);
+    
+    if (existing) {
+      const result = await db.update(automationConfigs)
+        .set({
+          isActive: config.isActive,
+          rsi: config.rsi,
+          volatility: config.volatility,
+          updatedAt: new Date(),
+        })
+        .where(eq(automationConfigs.userId, config.userId))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(automationConfigs).values(config).returning();
+      return result[0];
+    }
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
