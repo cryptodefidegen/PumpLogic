@@ -1,6 +1,6 @@
 import { db } from "../db/index";
-import { users, allocations, transactions, automationConfigs } from "@shared/schema";
-import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig } from "@shared/schema";
+import { users, allocations, transactions, automationConfigs, destinationWallets } from "@shared/schema";
+import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
@@ -20,6 +20,10 @@ export interface IStorage {
   // Automation
   getAutomationConfig(userId: string): Promise<AutomationConfig | undefined>;
   upsertAutomationConfig(config: InsertAutomationConfig): Promise<AutomationConfig>;
+
+  // Destination Wallets
+  getDestinationWallets(userId: string): Promise<DestinationWallets | undefined>;
+  upsertDestinationWallets(wallets: InsertDestinationWallets): Promise<DestinationWallets>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -102,6 +106,33 @@ export class DatabaseStorage implements IStorage {
       return result[0];
     } else {
       const result = await db.insert(automationConfigs).values(config).returning();
+      return result[0];
+    }
+  }
+
+  // Destination Wallets
+  async getDestinationWallets(userId: string): Promise<DestinationWallets | undefined> {
+    const result = await db.select().from(destinationWallets).where(eq(destinationWallets.userId, userId)).limit(1);
+    return result[0];
+  }
+
+  async upsertDestinationWallets(wallets: InsertDestinationWallets): Promise<DestinationWallets> {
+    const existing = await this.getDestinationWallets(wallets.userId);
+    
+    if (existing) {
+      const result = await db.update(destinationWallets)
+        .set({
+          marketMakingWallet: wallets.marketMakingWallet,
+          buybackWallet: wallets.buybackWallet,
+          liquidityWallet: wallets.liquidityWallet,
+          revenueWallet: wallets.revenueWallet,
+          updatedAt: new Date(),
+        })
+        .where(eq(destinationWallets.userId, wallets.userId))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(destinationWallets).values(wallets).returning();
       return result[0];
     }
   }

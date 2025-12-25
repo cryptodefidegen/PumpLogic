@@ -1,8 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema } from "@shared/schema";
+import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema } from "@shared/schema";
 import { z } from "zod";
+import { solanaService } from "./services/solana";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -144,30 +145,228 @@ export async function registerRoutes(
     }
   });
 
-  // AI Optimizer endpoint (simulated for now)
+  // Get destination wallets
+  app.get("/api/destination-wallets/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const wallets = await storage.getDestinationWallets(userId);
+      
+      if (!wallets) {
+        return res.json({
+          userId,
+          marketMakingWallet: null,
+          buybackWallet: null,
+          liquidityWallet: null,
+          revenueWallet: null,
+        });
+      }
+
+      return res.json(wallets);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update destination wallets
+  app.post("/api/destination-wallets", async (req, res) => {
+    try {
+      const validated = insertDestinationWalletsSchema.parse(req.body);
+      
+      // Validate wallet addresses if provided
+      const walletsToValidate = [
+        validated.marketMakingWallet,
+        validated.buybackWallet,
+        validated.liquidityWallet,
+        validated.revenueWallet,
+      ].filter(Boolean);
+      
+      for (const wallet of walletsToValidate) {
+        if (wallet && !(await solanaService.validateWalletAddress(wallet))) {
+          return res.status(400).json({ error: `Invalid wallet address: ${wallet}` });
+        }
+      }
+
+      const wallets = await storage.upsertDestinationWallets(validated);
+      return res.json(wallets);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get wallet balance
+  app.get("/api/solana/balance/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      if (!(await solanaService.validateWalletAddress(walletAddress))) {
+        return res.status(400).json({ error: "Invalid wallet address" });
+      }
+
+      const balance = await solanaService.getBalance(walletAddress);
+      return res.json({ balance, walletAddress });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get network stats
+  app.get("/api/solana/network-stats", async (req, res) => {
+    try {
+      const stats = await solanaService.getNetworkStats();
+      return res.json(stats);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create distribution transaction (returns unsigned transaction for frontend signing)
+  app.post("/api/solana/create-distribution", async (req, res) => {
+    try {
+      const { userId, fromWallet, amount } = req.body;
+      
+      if (!userId || !fromWallet || !amount) {
+        return res.status(400).json({ error: "userId, fromWallet, and amount are required" });
+      }
+
+      // Get allocations and destination wallets
+      const allocation = await storage.getAllocation(userId);
+      const destWallets = await storage.getDestinationWallets(userId);
+
+      if (!allocation) {
+        return res.status(400).json({ error: "No allocation settings found" });
+      }
+
+      if (!destWallets || !destWallets.marketMakingWallet || !destWallets.buybackWallet || 
+          !destWallets.liquidityWallet || !destWallets.revenueWallet) {
+        return res.status(400).json({ error: "Please configure all destination wallets first" });
+      }
+
+      const result = await solanaService.createDistributionTransaction(
+        fromWallet,
+        {
+          marketMaking: allocation.marketMaking,
+          buyback: allocation.buyback,
+          liquidity: allocation.liquidity,
+          revenue: allocation.revenue,
+        },
+        parseFloat(amount),
+        {
+          marketMaking: destWallets.marketMakingWallet,
+          buyback: destWallets.buybackWallet,
+          liquidity: destWallets.liquidityWallet,
+          revenue: destWallets.revenueWallet,
+        }
+      );
+
+      return res.json(result);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Record a confirmed transaction
+  app.post("/api/solana/record-transaction", async (req, res) => {
+    try {
+      const { userId, signature, amount, breakdown } = req.body;
+      
+      if (!userId || !signature) {
+        return res.status(400).json({ error: "userId and signature are required" });
+      }
+
+      // Confirm transaction on chain
+      const confirmed = await solanaService.confirmTransaction(signature);
+      
+      if (!confirmed) {
+        return res.status(400).json({ error: "Transaction not confirmed on chain" });
+      }
+
+      // Record main distribution transaction
+      const transaction = await storage.createTransaction({
+        userId,
+        type: "DISTRIBUTE",
+        detail: `Fee distribution: ${amount} SOL`,
+        amount: `${amount} SOL`,
+        signature,
+      });
+
+      // Record individual channel transactions
+      if (breakdown) {
+        const channels = [
+          { type: "MARKET_MAKING", amount: breakdown.marketMaking },
+          { type: "BUYBACK", amount: breakdown.buyback },
+          { type: "LIQUIDITY", amount: breakdown.liquidity },
+          { type: "REVENUE", amount: breakdown.revenue },
+        ];
+
+        for (const channel of channels) {
+          if (channel.amount > 0) {
+            await storage.createTransaction({
+              userId,
+              type: channel.type,
+              detail: `${channel.type.replace("_", " ")} allocation`,
+              amount: `${channel.amount.toFixed(6)} SOL`,
+              signature,
+            });
+          }
+        }
+      }
+
+      return res.json({ success: true, transaction });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // AI Optimizer endpoint
   app.post("/api/optimize/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
       
-      // Simulate AI analysis
+      // Get current network stats for "AI analysis"
+      let networkStats;
+      try {
+        networkStats = await solanaService.getNetworkStats();
+      } catch {
+        networkStats = { tps: 2000, slot: 0 };
+      }
+      
+      // Simulate AI analysis based on network conditions
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Return optimized allocations based on "market conditions"
+      // Generate optimized allocations based on "market conditions"
+      // Higher TPS = more active network = favor market making
+      // Lower TPS = quieter = favor buyback
+      const tpsRatio = Math.min(networkStats.tps / 3000, 1);
+      
       const optimized = {
         userId,
-        marketMaking: 40,
-        buyback: 25,
+        marketMaking: Math.round(20 + (tpsRatio * 25)),
+        buyback: Math.round(35 - (tpsRatio * 15)),
         liquidity: 25,
-        revenue: 10,
+        revenue: 0,
       };
+      
+      // Ensure totals 100
+      optimized.revenue = 100 - optimized.marketMaking - optimized.buyback - optimized.liquidity;
 
       const allocation = await storage.upsertAllocation(optimized);
+      
+      // Update automation config with current stats
+      await storage.upsertAutomationConfig({
+        userId,
+        isActive: true,
+        rsi: (30 + Math.random() * 40).toFixed(1),
+        volatility: tpsRatio > 0.6 ? "High" : tpsRatio > 0.3 ? "Medium" : "Low",
+      });
       
       // Log optimization event
       await storage.createTransaction({
         userId,
         type: "OPTIMIZE",
-        detail: "AI rebalanced allocations (High Volatility detected)",
+        detail: `AI rebalanced allocations (TPS: ${networkStats.tps}, Volatility: ${tpsRatio > 0.6 ? "High" : "Medium"})`,
         amount: "-",
         signature: null,
       });

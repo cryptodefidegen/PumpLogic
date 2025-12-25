@@ -1,4 +1,4 @@
-import type { User, Allocation, Transaction, AutomationConfig } from "@shared/schema";
+import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets } from "@shared/schema";
 
 export async function authenticateWallet(walletAddress: string): Promise<User> {
   const response = await fetch("/api/auth/wallet", {
@@ -13,6 +13,104 @@ export async function authenticateWallet(walletAddress: string): Promise<User> {
   
   const data = await response.json();
   return data.user;
+}
+
+export async function getWalletBalance(walletAddress: string): Promise<{ balance: number }> {
+  const response = await fetch(`/api/solana/balance/${walletAddress}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to get wallet balance");
+  }
+  
+  return await response.json();
+}
+
+export async function getNetworkStats(): Promise<{
+  slot: number;
+  totalSupply: number;
+  circulatingSupply: number;
+  tps: number;
+}> {
+  const response = await fetch("/api/solana/network-stats");
+  
+  if (!response.ok) {
+    throw new Error("Failed to get network stats");
+  }
+  
+  return await response.json();
+}
+
+export async function getDestinationWallets(userId: string): Promise<DestinationWallets> {
+  const response = await fetch(`/api/destination-wallets/${userId}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to get destination wallets");
+  }
+  
+  return await response.json();
+}
+
+export async function saveDestinationWallets(userId: string, wallets: {
+  marketMakingWallet: string | null;
+  buybackWallet: string | null;
+  liquidityWallet: string | null;
+  revenueWallet: string | null;
+}): Promise<DestinationWallets> {
+  const response = await fetch("/api/destination-wallets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, ...wallets }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to save destination wallets");
+  }
+  
+  return await response.json();
+}
+
+export async function createDistribution(userId: string, fromWallet: string, amount: number): Promise<{
+  transaction: string;
+  breakdown: {
+    marketMaking: number;
+    buyback: number;
+    liquidity: number;
+    revenue: number;
+  };
+}> {
+  const response = await fetch("/api/solana/create-distribution", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, fromWallet, amount }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to create distribution");
+  }
+  
+  return await response.json();
+}
+
+export async function recordTransaction(userId: string, signature: string, amount: number, breakdown: {
+  marketMaking: number;
+  buyback: number;
+  liquidity: number;
+  revenue: number;
+}): Promise<{ success: boolean; transaction: Transaction }> {
+  const response = await fetch("/api/solana/record-transaction", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, signature, amount, breakdown }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to record transaction");
+  }
+  
+  return await response.json();
 }
 
 export async function getAllocation(userId: string): Promise<Allocation> {

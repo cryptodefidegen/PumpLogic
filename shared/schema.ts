@@ -65,3 +65,20 @@ export const insertAutomationConfigSchema = createInsertSchema(automationConfigs
 });
 export type InsertAutomationConfig = z.infer<typeof insertAutomationConfigSchema>;
 export type AutomationConfig = typeof automationConfigs.$inferSelect;
+
+export const destinationWallets = pgTable("destination_wallets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull().unique(),
+  marketMakingWallet: text("market_making_wallet"),
+  buybackWallet: text("buyback_wallet"),
+  liquidityWallet: text("liquidity_wallet"),
+  revenueWallet: text("revenue_wallet"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertDestinationWalletsSchema = createInsertSchema(destinationWallets).omit({
+  id: true,
+  updatedAt: true,
+});
+export type InsertDestinationWallets = z.infer<typeof insertDestinationWalletsSchema>;
+export type DestinationWallets = typeof destinationWallets.$inferSelect;
