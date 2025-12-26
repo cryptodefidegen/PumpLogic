@@ -232,12 +232,18 @@ export default function Dashboard() {
       return;
     }
 
-    if (!destinationData?.marketMakingWallet || !destinationData?.buybackWallet ||
-        !destinationData?.liquidityWallet || !destinationData?.revenueWallet) {
+    // Check at least one channel has both allocation > 0 and a wallet configured
+    const hasValidChannel = 
+      (allocations.marketMaking > 0 && destinationData?.marketMakingWallet) ||
+      (allocations.buyback > 0 && destinationData?.buybackWallet) ||
+      (allocations.liquidity > 0 && destinationData?.liquidityWallet) ||
+      (allocations.revenue > 0 && destinationData?.revenueWallet);
+
+    if (!hasValidChannel) {
       toast({
         variant: "destructive",
         title: "Configure Wallets First",
-        description: "Please configure all destination wallets before distributing."
+        description: "Configure at least one destination wallet for a channel with allocation > 0%."
       });
       setShowWalletConfig(true);
       return;

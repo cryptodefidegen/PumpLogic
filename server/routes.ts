@@ -239,25 +239,31 @@ export async function registerRoutes(
         return res.status(400).json({ error: "No allocation settings found" });
       }
 
-      if (!destWallets || !destWallets.marketMakingWallet || !destWallets.buybackWallet || 
-          !destWallets.liquidityWallet || !destWallets.revenueWallet) {
-        return res.status(400).json({ error: "Please configure all destination wallets first" });
+      // Check that at least one channel has both allocation > 0 and a wallet configured
+      const hasValidChannel = 
+        (allocation.marketMaking > 0 && destWallets?.marketMakingWallet) ||
+        (allocation.buyback > 0 && destWallets?.buybackWallet) ||
+        (allocation.liquidity > 0 && destWallets?.liquidityWallet) ||
+        (allocation.revenue > 0 && destWallets?.revenueWallet);
+
+      if (!hasValidChannel) {
+        return res.status(400).json({ error: "Configure at least one destination wallet for a channel with allocation > 0%" });
       }
 
       const result = await solanaService.createDistributionTransaction(
         fromWallet,
         {
-          marketMaking: allocation.marketMaking,
-          buyback: allocation.buyback,
-          liquidity: allocation.liquidity,
-          revenue: allocation.revenue,
+          marketMaking: destWallets?.marketMakingWallet ? allocation.marketMaking : 0,
+          buyback: destWallets?.buybackWallet ? allocation.buyback : 0,
+          liquidity: destWallets?.liquidityWallet ? allocation.liquidity : 0,
+          revenue: destWallets?.revenueWallet ? allocation.revenue : 0,
         },
         parseFloat(amount),
         {
-          marketMaking: destWallets.marketMakingWallet,
-          buyback: destWallets.buybackWallet,
-          liquidity: destWallets.liquidityWallet,
-          revenue: destWallets.revenueWallet,
+          marketMaking: destWallets?.marketMakingWallet || "",
+          buyback: destWallets?.buybackWallet || "",
+          liquidity: destWallets?.liquidityWallet || "",
+          revenue: destWallets?.revenueWallet || "",
         }
       );
 

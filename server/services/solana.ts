@@ -113,7 +113,7 @@ class SolanaService {
 
       const transaction = new Transaction();
 
-      if (breakdown.marketMaking > 0) {
+      if (breakdown.marketMaking > 0 && destinationWallets.marketMaking) {
         transaction.add(
           SystemProgram.transfer({
             fromPubkey,
@@ -123,7 +123,7 @@ class SolanaService {
         );
       }
 
-      if (breakdown.buyback > 0) {
+      if (breakdown.buyback > 0 && destinationWallets.buyback) {
         transaction.add(
           SystemProgram.transfer({
             fromPubkey,
@@ -133,7 +133,7 @@ class SolanaService {
         );
       }
 
-      if (breakdown.liquidity > 0) {
+      if (breakdown.liquidity > 0 && destinationWallets.liquidity) {
         transaction.add(
           SystemProgram.transfer({
             fromPubkey,
@@ -143,7 +143,7 @@ class SolanaService {
         );
       }
 
-      if (breakdown.revenue > 0) {
+      if (breakdown.revenue > 0 && destinationWallets.revenue) {
         transaction.add(
           SystemProgram.transfer({
             fromPubkey,
