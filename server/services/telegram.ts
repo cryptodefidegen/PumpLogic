@@ -48,6 +48,20 @@ export function initTelegramBot() {
       );
     });
 
+    bot.onText(/\/help/, async (msg) => {
+      const chatId = msg.chat.id.toString();
+      await bot!.sendMessage(
+        chatId,
+        `*PumpLogic Bot Commands*\n\n` +
+        `/start - Get your Chat ID for linking\n` +
+        `/status - Check your notification settings\n` +
+        `/help - Show this help message\n\n` +
+        `*Documentation:*\n` +
+        `Visit the PumpLogic docs for detailed setup instructions.`,
+        { parse_mode: "Markdown" }
+      );
+    });
+
     return bot;
   } catch (error) {
     console.error("Failed to initialize Telegram bot:", error);

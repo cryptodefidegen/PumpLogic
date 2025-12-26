@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import Docs from "@/pages/docs";
+import TelegramDocs from "@/pages/telegram-docs";
 import { Navbar } from "@/components/layout/Navbar";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/app" component={Dashboard} />
       <Route path="/docs" component={Docs} />
+      <Route path="/docs/telegram" component={TelegramDocs} />
       <Route component={NotFound} />
     </Switch>
   );

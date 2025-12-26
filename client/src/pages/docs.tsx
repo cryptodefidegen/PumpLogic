@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download, Bell, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Docs() {
   return (
@@ -178,6 +180,31 @@ export default function Docs() {
                 color="bg-yellow-400/20"
                 description="Download your complete transaction history as a CSV file for record-keeping, tax purposes, or analysis. The export includes timestamps, transaction types, amounts, and on-chain signatures for full transparency."
               />
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-white/5">
+            <CardHeader>
+              <CardTitle className="text-white text-2xl font-display flex items-center gap-2">
+                <Bell className="h-6 w-6 text-primary" />
+                Telegram Notifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground space-y-4">
+              <p>
+                Get real-time alerts about your distributions via Telegram. The PumpLogic Bot notifies you 
+                when distributions complete, fees accumulate, or large purchases occur.
+              </p>
+              <p>
+                The bot uses a secure notification-only model - it never has access to your private keys 
+                or wallet. All transactions still require your manual approval.
+              </p>
+              <Link href="/docs/telegram">
+                <Button variant="outline" className="border-primary/30 text-primary hover:bg-primary/10 mt-2" data-testid="link-telegram-docs">
+                  Learn More About Telegram Bot
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
