@@ -82,3 +82,21 @@ export const insertDestinationWalletsSchema = createInsertSchema(destinationWall
 });
 export type InsertDestinationWallets = z.infer<typeof insertDestinationWalletsSchema>;
 export type DestinationWallets = typeof destinationWallets.$inferSelect;
+
+export const allocationPresets = pgTable("allocation_presets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(),
+  marketMaking: integer("market_making").notNull(),
+  buyback: integer("buyback").notNull(),
+  liquidity: integer("liquidity").notNull(),
+  revenue: integer("revenue").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAllocationPresetSchema = createInsertSchema(allocationPresets).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAllocationPreset = z.infer<typeof insertAllocationPresetSchema>;
+export type AllocationPreset = typeof allocationPresets.$inferSelect;

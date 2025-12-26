@@ -1,6 +1,6 @@
 import { db } from "../db/index";
-import { users, allocations, transactions, automationConfigs, destinationWallets } from "@shared/schema";
-import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets } from "@shared/schema";
+import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets } from "@shared/schema";
+import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
@@ -24,6 +24,11 @@ export interface IStorage {
   // Destination Wallets
   getDestinationWallets(userId: string): Promise<DestinationWallets | undefined>;
   upsertDestinationWallets(wallets: InsertDestinationWallets): Promise<DestinationWallets>;
+
+  // Allocation Presets
+  getPresets(userId: string): Promise<AllocationPreset[]>;
+  createPreset(preset: InsertAllocationPreset): Promise<AllocationPreset>;
+  deletePreset(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -135,6 +140,23 @@ export class DatabaseStorage implements IStorage {
       const result = await db.insert(destinationWallets).values(wallets).returning();
       return result[0];
     }
+  }
+
+  // Allocation Presets
+  async getPresets(userId: string): Promise<AllocationPreset[]> {
+    return await db.select()
+      .from(allocationPresets)
+      .where(eq(allocationPresets.userId, userId))
+      .orderBy(desc(allocationPresets.createdAt));
+  }
+
+  async createPreset(preset: InsertAllocationPreset): Promise<AllocationPreset> {
+    const result = await db.insert(allocationPresets).values(preset).returning();
+    return result[0];
+  }
+
+  async deletePreset(id: string): Promise<void> {
+    await db.delete(allocationPresets).where(eq(allocationPresets.id, id));
   }
 }
 

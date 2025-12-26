@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2 } from "lucide-react";
+import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
@@ -24,9 +24,13 @@ import {
   getDestinationWallets,
   saveDestinationWallets,
   createDistribution,
-  recordTransaction
+  recordTransaction,
+  getPresets,
+  createPreset,
+  deletePreset
 } from "@/lib/api";
 import { Transaction } from "@solana/web3.js";
+import type { AllocationPreset } from "@shared/schema";
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -49,6 +53,15 @@ export default function Dashboard() {
     liquidityWallet: "",
     revenueWallet: ""
   });
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewBreakdown, setPreviewBreakdown] = useState<{
+    marketMaking: number;
+    buyback: number;
+    liquidity: number;
+    revenue: number;
+  } | null>(null);
+  const [showSavePreset, setShowSavePreset] = useState(false);
+  const [presetName, setPresetName] = useState("");
 
   // Fetch allocation data
   const { data: allocationData } = useQuery({
@@ -85,6 +98,44 @@ export default function Dashboard() {
     queryFn: () => getDestinationWallets(user!.id),
     enabled: !!user,
   });
+
+  // Fetch presets
+  const { data: presets = [] } = useQuery({
+    queryKey: ['presets', user?.id],
+    queryFn: () => getPresets(user!.id),
+    enabled: !!user,
+  });
+
+  // Fetch all transactions for channel performance (no limit)
+  const { data: allTransactions = [] } = useQuery({
+    queryKey: ['allTransactions', user?.id],
+    queryFn: () => getTransactions(user!.id, 1000),
+    enabled: !!user,
+  });
+
+  // Calculate channel performance from transactions
+  const channelPerformance = useMemo(() => {
+    const performance = {
+      marketMaking: 0,
+      buyback: 0,
+      liquidity: 0,
+      revenue: 0,
+      total: 0
+    };
+    
+    allTransactions.forEach((tx: any) => {
+      const amount = parseFloat(tx.amount?.replace(' SOL', '') || '0');
+      if (isNaN(amount)) return;
+      
+      if (tx.type === 'MARKET_MAKING') performance.marketMaking += amount;
+      else if (tx.type === 'BUYBACK') performance.buyback += amount;
+      else if (tx.type === 'LIQUIDITY') performance.liquidity += amount;
+      else if (tx.type === 'REVENUE') performance.revenue += amount;
+    });
+    
+    performance.total = performance.marketMaking + performance.buyback + performance.liquidity + performance.revenue;
+    return performance;
+  }, [allTransactions]);
 
   // Update local state when allocation data loads
   useEffect(() => {
@@ -189,11 +240,95 @@ export default function Dashboard() {
     },
   });
 
+  // Preset mutations
+  const createPresetMutation = useMutation({
+    mutationFn: () => createPreset(user!.id, presetName, allocations),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['presets', user?.id] });
+      setShowSavePreset(false);
+      setPresetName("");
+      toast({
+        title: "Preset Saved",
+        description: `"${presetName}" has been saved.`,
+        className: "bg-primary text-black font-bold"
+      });
+    },
+  });
+
+  const deletePresetMutation = useMutation({
+    mutationFn: (id: string) => deletePreset(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['presets', user?.id] });
+      toast({ title: "Preset Deleted" });
+    },
+  });
+
   const total = Object.values(allocations).reduce((a, b) => a + b, 0);
   const isValid = total === 100;
 
   const handleSliderChange = (key: keyof typeof allocations, value: number[]) => {
     setAllocations(prev => ({ ...prev, [key]: value[0] }));
+  };
+
+  const loadPreset = (preset: AllocationPreset) => {
+    setAllocations({
+      marketMaking: preset.marketMaking,
+      buyback: preset.buyback,
+      liquidity: preset.liquidity,
+      revenue: preset.revenue,
+    });
+    toast({
+      title: "Preset Loaded",
+      description: `"${preset.name}" allocation loaded.`,
+    });
+  };
+
+  const exportTransactionsCSV = () => {
+    const headers = ["Time", "Type", "Details", "Amount", "Signature"];
+    const rows = allTransactions.map((tx: any) => [
+      new Date(tx.createdAt).toISOString(),
+      tx.type,
+      tx.detail,
+      tx.amount,
+      tx.signature || ""
+    ]);
+    
+    const csvContent = [headers, ...rows]
+      .map(row => row.map((cell: string) => `"${cell}"`).join(","))
+      .join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pumplogic-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Export Complete",
+      description: `Exported ${allTransactions.length} transactions.`,
+    });
+  };
+
+  const showDistributionPreview = () => {
+    const amount = parseFloat(distributionAmount);
+    if (!amount || amount <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Amount",
+        description: "Please enter a valid amount to preview."
+      });
+      return;
+    }
+    
+    setPreviewBreakdown({
+      marketMaking: (allocations.marketMaking / 100) * amount,
+      buyback: (allocations.buyback / 100) * amount,
+      liquidity: (allocations.liquidity / 100) * amount,
+      revenue: (allocations.revenue / 100) * amount,
+    });
+    setShowPreview(true);
   };
 
   const handleSave = () => {
@@ -396,13 +531,49 @@ export default function Dashboard() {
                 <Separator className="bg-white/5" />
 
                 <div className="flex items-center justify-between pt-2">
-                  <div className="text-xs text-muted-foreground">
-                    Must total exactly 100%
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setShowSavePreset(true)}
+                      disabled={!isValid}
+                      className="border-primary/30 text-primary hover:bg-primary/10"
+                      data-testid="button-save-preset"
+                    >
+                      <BookmarkPlus className="mr-1 h-3 w-3" /> Save Preset
+                    </Button>
                   </div>
                   <Button onClick={handleSave} disabled={!isValid || saveMutation.isPending} className="bg-white text-black hover:bg-white/90" data-testid="button-save-allocations">
                     <Save className="mr-2 h-4 w-4" /> {saveMutation.isPending ? "Saving..." : "Save Allocations"}
                   </Button>
                 </div>
+
+                {/* Quick Presets */}
+                {presets.length > 0 && (
+                  <div className="pt-4">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">Quick Presets</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {presets.map((preset: AllocationPreset) => (
+                        <div key={preset.id} className="flex items-center gap-1 bg-black/40 rounded-lg px-3 py-1.5 border border-white/10 group">
+                          <button
+                            onClick={() => loadPreset(preset)}
+                            className="text-sm text-white/80 hover:text-primary transition-colors"
+                            data-testid={`button-load-preset-${preset.id}`}
+                          >
+                            {preset.name}
+                          </button>
+                          <button
+                            onClick={() => deletePresetMutation.mutate(preset.id)}
+                            className="text-white/30 hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                            data-testid={`button-delete-preset-${preset.id}`}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -468,6 +639,14 @@ export default function Dashboard() {
                     />
                     <div className="absolute right-4 top-3 text-muted-foreground font-mono text-sm">SOL</div>
                   </div>
+                  <Button 
+                    variant="outline"
+                    className="h-12 px-4 border-white/20 text-white hover:bg-white/10" 
+                    onClick={showDistributionPreview}
+                    data-testid="button-preview"
+                  >
+                    <Eye className="mr-2 h-4 w-4" /> Preview
+                  </Button>
                   <Button 
                     className="h-12 px-6 bg-secondary text-white hover:bg-secondary/90 font-bold" 
                     onClick={handleDistribute}
@@ -548,12 +727,57 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
+            {/* Channel Performance */}
+            <Card className="bg-card border-white/5">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  <CardTitle className="text-sm font-medium uppercase text-muted-foreground tracking-widest">Channel Performance</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Market Making</span>
+                  <span className="text-sm font-mono text-primary">{channelPerformance.marketMaking.toFixed(4)} SOL</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Buyback & Burn</span>
+                  <span className="text-sm font-mono text-secondary">{channelPerformance.buyback.toFixed(4)} SOL</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Liquidity Pool</span>
+                  <span className="text-sm font-mono text-blue-400">{channelPerformance.liquidity.toFixed(4)} SOL</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Creator Revenue</span>
+                  <span className="text-sm font-mono text-yellow-400">{channelPerformance.revenue.toFixed(4)} SOL</span>
+                </div>
+                <Separator className="bg-white/10" />
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-white font-medium">Total Distributed</span>
+                  <span className="text-sm font-mono text-white font-bold">{channelPerformance.total.toFixed(4)} SOL</span>
+                </div>
+              </CardContent>
+            </Card>
+
           </div>
         </div>
 
         {/* Activity Log */}
         <div className="mt-8">
-          <h3 className="text-lg font-bold font-display text-white mb-4">Activity Log</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold font-display text-white">Activity Log</h3>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={exportTransactionsCSV}
+              disabled={allTransactions.length === 0}
+              className="border-white/20 text-white hover:bg-white/10"
+              data-testid="button-export-csv"
+            >
+              <Download className="mr-2 h-4 w-4" /> Export CSV
+            </Button>
+          </div>
           <div className="bg-card border border-white/5 rounded-lg overflow-hidden">
              <div className="p-4 border-b border-white/5 text-xs text-muted-foreground grid grid-cols-12 gap-4 uppercase tracking-widest font-mono">
                 <div className="col-span-2">Time</div>
@@ -641,6 +865,128 @@ export default function Dashboard() {
               className="bg-primary text-black"
             >
               {saveDestWalletsMutation.isPending ? "Saving..." : "Save Wallets"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save Preset Dialog */}
+      <Dialog open={showSavePreset} onOpenChange={setShowSavePreset}>
+        <DialogContent className="bg-card border-white/10 text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Save Allocation Preset</DialogTitle>
+            <DialogDescription>
+              Save your current allocation settings for quick access later.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label className="text-white text-sm">Preset Name</Label>
+            <Input 
+              placeholder="e.g., Bull Market Strategy"
+              value={presetName}
+              onChange={(e) => setPresetName(e.target.value)}
+              className="bg-black/40 border-white/10 mt-2"
+              data-testid="input-preset-name"
+            />
+            <div className="mt-4 p-3 bg-black/20 rounded-lg text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Market Making</span>
+                <span className="text-primary font-mono">{allocations.marketMaking}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Buyback & Burn</span>
+                <span className="text-secondary font-mono">{allocations.buyback}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Liquidity Pool</span>
+                <span className="text-blue-400 font-mono">{allocations.liquidity}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Creator Revenue</span>
+                <span className="text-yellow-400 font-mono">{allocations.revenue}%</span>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSavePreset(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => createPresetMutation.mutate()}
+              disabled={!presetName.trim() || createPresetMutation.isPending}
+              className="bg-primary text-black"
+              data-testid="button-confirm-save-preset"
+            >
+              {createPresetMutation.isPending ? "Saving..." : "Save Preset"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Distribution Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="bg-card border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-primary" />
+              Distribution Preview
+            </DialogTitle>
+            <DialogDescription>
+              Review how your {distributionAmount} SOL will be distributed across channels.
+            </DialogDescription>
+          </DialogHeader>
+          {previewBreakdown && (
+            <div className="py-4 space-y-4">
+              <div className="space-y-3">
+                {previewBreakdown.marketMaking > 0 && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-white">Market Making</span>
+                    <span className="text-primary font-mono font-bold">{previewBreakdown.marketMaking.toFixed(6)} SOL</span>
+                  </div>
+                )}
+                {previewBreakdown.buyback > 0 && (
+                  <div className="flex justify-between items-center p-3 bg-secondary/10 rounded-lg border border-secondary/20">
+                    <span className="text-white">Buyback & Burn</span>
+                    <span className="text-secondary font-mono font-bold">{previewBreakdown.buyback.toFixed(6)} SOL</span>
+                  </div>
+                )}
+                {previewBreakdown.liquidity > 0 && (
+                  <div className="flex justify-between items-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                    <span className="text-white">Liquidity Pool</span>
+                    <span className="text-blue-400 font-mono font-bold">{previewBreakdown.liquidity.toFixed(6)} SOL</span>
+                  </div>
+                )}
+                {previewBreakdown.revenue > 0 && (
+                  <div className="flex justify-between items-center p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                    <span className="text-white">Creator Revenue</span>
+                    <span className="text-yellow-400 font-mono font-bold">{previewBreakdown.revenue.toFixed(6)} SOL</span>
+                  </div>
+                )}
+              </div>
+              <Separator className="bg-white/10" />
+              <div className="flex justify-between items-center">
+                <span className="text-white font-medium">Total</span>
+                <span className="text-white font-mono font-bold text-lg">{distributionAmount} SOL</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Note: Channels without configured destination wallets will be skipped.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowPreview(false);
+                handleDistribute();
+              }}
+              disabled={isDistributing}
+              className="bg-secondary text-white"
+              data-testid="button-confirm-distribute"
+            >
+              Proceed to Distribute
             </Button>
           </DialogFooter>
         </DialogContent>

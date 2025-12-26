@@ -383,5 +383,58 @@ export async function registerRoutes(
     }
   });
 
+  // ===== ALLOCATION PRESETS =====
+  
+  // Get all presets for user
+  app.get("/api/presets/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const presets = await storage.getPresets(userId);
+      return res.json(presets);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create a new preset
+  app.post("/api/presets", async (req, res) => {
+    try {
+      const { userId, name, marketMaking, buyback, liquidity, revenue } = req.body;
+      
+      if (!userId || !name) {
+        return res.status(400).json({ error: "userId and name are required" });
+      }
+
+      const total = marketMaking + buyback + liquidity + revenue;
+      if (total !== 100) {
+        return res.status(400).json({ error: "Allocations must sum to 100%" });
+      }
+
+      const preset = await storage.createPreset({
+        userId,
+        name,
+        marketMaking,
+        buyback,
+        liquidity,
+        revenue,
+      });
+
+      return res.json(preset);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete a preset
+  app.delete("/api/presets/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deletePreset(id);
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
   return httpServer;
 }

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain } from "lucide-react";
+import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download } from "lucide-react";
 
 export default function Docs() {
   return (
@@ -131,6 +131,41 @@ export default function Docs() {
                 Transaction types include manual distributions, automated distributions, and optimizer runs 
                 (which record allocation changes).
               </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-white/5">
+            <CardHeader>
+              <CardTitle className="text-white text-2xl font-display">Dashboard Tools</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Category 
+                icon={<Eye className="h-6 w-6 text-primary" />}
+                title="Distribution Preview"
+                color="bg-primary/20"
+                description="Before signing any transaction, use the Preview button to see exactly how your SOL will be split across channels. This shows the precise amount going to each destination wallet, so you can verify the breakdown before committing."
+              />
+              <Separator className="bg-white/5" />
+              <Category 
+                icon={<BookmarkPlus className="h-6 w-6 text-secondary" />}
+                title="Quick Presets"
+                color="bg-secondary/20"
+                description="Save your favorite allocation configurations as presets for quick access. Whether you have a 'Bull Market' strategy or a 'Conservative' approach, presets let you switch between configurations instantly without manually adjusting each slider."
+              />
+              <Separator className="bg-white/5" />
+              <Category 
+                icon={<BarChart3 className="h-6 w-6 text-blue-400" />}
+                title="Channel Performance"
+                color="bg-blue-400/20"
+                description="Track your cumulative distribution history with the Channel Performance dashboard. See total SOL distributed to each category over time, helping you understand your overall fee routing patterns and make informed strategy adjustments."
+              />
+              <Separator className="bg-white/5" />
+              <Category 
+                icon={<Download className="h-6 w-6 text-yellow-400" />}
+                title="Export History"
+                color="bg-yellow-400/20"
+                description="Download your complete transaction history as a CSV file for record-keeping, tax purposes, or analysis. The export includes timestamps, transaction types, amounts, and on-chain signatures for full transparency."
+              />
             </CardContent>
           </Card>
 

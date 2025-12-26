@@ -1,4 +1,4 @@
-import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets } from "@shared/schema";
+import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets, AllocationPreset } from "@shared/schema";
 
 export async function authenticateWallet(walletAddress: string): Promise<User> {
   const response = await fetch("/api/auth/wallet", {
@@ -212,4 +212,45 @@ export async function runOptimizer(userId: string): Promise<Allocation> {
   }
   
   return await response.json();
+}
+
+// Allocation Presets
+export async function getPresets(userId: string): Promise<AllocationPreset[]> {
+  const response = await fetch(`/api/presets/${userId}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch presets");
+  }
+  
+  return await response.json();
+}
+
+export async function createPreset(userId: string, name: string, allocations: {
+  marketMaking: number;
+  buyback: number;
+  liquidity: number;
+  revenue: number;
+}): Promise<AllocationPreset> {
+  const response = await fetch("/api/presets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, name, ...allocations }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to create preset");
+  }
+  
+  return await response.json();
+}
+
+export async function deletePreset(id: string): Promise<void> {
+  const response = await fetch(`/api/presets/${id}`, {
+    method: "DELETE",
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to delete preset");
+  }
 }
