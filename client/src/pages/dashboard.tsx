@@ -578,7 +578,7 @@ export default function Dashboard() {
             </Card>
 
             {/* AI Optimizer */}
-            <Card className="bg-gradient-to-br from-primary/5 to-transparent border-primary/20">
+            <Card className="bg-card border-primary/20">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
