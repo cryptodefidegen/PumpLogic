@@ -68,32 +68,44 @@ export default function Docs() {
               <CardTitle className="text-white text-2xl font-display">Distribution Categories</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Category 
+              <CategoryDetailed 
                 icon={<TrendingUp className="h-6 w-6 text-primary" />}
                 title="Market Making"
                 color="bg-primary/20"
-                description="Funds allocated here support trading activity and order book depth. This helps maintain healthy price discovery and reduces slippage for traders."
+                summary="Funds allocated here support trading activity and order book depth."
+                concept="Market making involves placing both buy and sell orders at various price levels to provide liquidity. When traders want to buy or sell your token, market makers ensure there's always someone on the other side of the trade. This reduces price volatility and slippage (the difference between expected and actual trade price)."
+                howItWorks="PumpLogic sends your allocated percentage to your designated Market Making wallet. You then use those funds to place orders on exchanges, either manually or through trading bots. The goal is to maintain tight spreads and sufficient depth so traders can execute orders efficiently."
+                benefits={["Reduces price slippage for traders", "Improves trading experience and volume", "Stabilizes token price movements", "Attracts more traders to your token"]}
               />
               <Separator className="bg-white/5" />
-              <Category 
+              <CategoryDetailed 
                 icon={<RefreshCw className="h-6 w-6 text-secondary" />}
                 title="Buyback & Burn"
                 color="bg-secondary/20"
-                description="Tokens are repurchased from the market and permanently removed from circulation. This creates deflationary pressure and can increase token value over time."
+                summary="Tokens are repurchased from the market and permanently removed from circulation."
+                concept="Buyback and burn is a deflationary mechanism. The allocated funds are used to purchase your token from the open market, and those tokens are then sent to a burn address (a wallet with no private key), permanently removing them from circulation. This reduces total supply over time."
+                howItWorks="PumpLogic sends funds to your Buyback wallet. You use those funds to buy your token on DEXs, then send the purchased tokens to a burn address. Some projects automate this with smart contracts that execute burns on a schedule."
+                benefits={["Reduces circulating supply", "Creates deflationary pressure on token", "Can increase token value over time", "Shows commitment to token holders"]}
               />
               <Separator className="bg-white/5" />
-              <Category 
+              <CategoryDetailed 
                 icon={<Zap className="h-6 w-6 text-blue-400" />}
                 title="Liquidity Pool"
                 color="bg-blue-400/20"
-                description="Contributions to decentralized liquidity pools strengthen your token's tradability. Deeper liquidity means better prices and more trading volume."
+                summary="Contributions to decentralized liquidity pools strengthen your token's tradability."
+                concept="Liquidity pools are smart contracts that hold pairs of tokens (e.g., your token + SOL) on decentralized exchanges like Raydium or Orca. When you add liquidity, you're depositing both tokens to enable trading. In return, you earn a portion of trading fees from swaps."
+                howItWorks="PumpLogic sends funds to your Liquidity wallet. You then add those funds (along with an equivalent value of your token) to a liquidity pool. This deepens the pool, allowing larger trades with less price impact and earning you LP fees."
+                benefits={["Enables trading on DEXs", "Earns passive income from swap fees", "Deeper liquidity attracts more traders", "Improves overall token accessibility"]}
               />
               <Separator className="bg-white/5" />
-              <Category 
+              <CategoryDetailed 
                 icon={<Coins className="h-6 w-6 text-yellow-400" />}
                 title="Creator Revenue"
                 color="bg-yellow-400/20"
-                description="Direct earnings sent to your designated wallet. Use this for development costs, team payments, marketing, or any operational expenses."
+                summary="Direct earnings sent to your designated wallet for operational use."
+                concept="Creator revenue is the portion of fees you keep for yourself or your team. This is your income from the token project, used to fund ongoing development, marketing, team salaries, partnerships, or any other business expenses."
+                howItWorks="PumpLogic sends the allocated percentage directly to your Revenue wallet. These funds are yours to use however you see fit - no additional steps required. This ensures consistent income flow from your token's trading activity."
+                benefits={["Fund ongoing development", "Pay team members and contributors", "Cover marketing and growth costs", "Sustain long-term project operations"]}
               />
             </CardContent>
           </Card>
@@ -216,6 +228,51 @@ function Category({ icon, title, color, description }: { icon: React.ReactNode; 
       <div>
         <h4 className="text-white font-semibold text-lg">{title}</h4>
         <p className="text-muted-foreground mt-1">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function CategoryDetailed({ icon, title, color, summary, concept, howItWorks, benefits }: { 
+  icon: React.ReactNode; 
+  title: string; 
+  color: string; 
+  summary: string;
+  concept: string;
+  howItWorks: string;
+  benefits: string[];
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-4">
+        <div className={`flex-shrink-0 w-12 h-12 rounded-lg ${color} flex items-center justify-center`}>
+          {icon}
+        </div>
+        <div>
+          <h4 className="text-white font-semibold text-lg">{title}</h4>
+          <p className="text-muted-foreground mt-1">{summary}</p>
+        </div>
+      </div>
+      <div className="ml-16 space-y-3">
+        <div>
+          <h5 className="text-white/80 font-medium text-sm mb-1">The Concept</h5>
+          <p className="text-muted-foreground text-sm">{concept}</p>
+        </div>
+        <div>
+          <h5 className="text-white/80 font-medium text-sm mb-1">How It Works</h5>
+          <p className="text-muted-foreground text-sm">{howItWorks}</p>
+        </div>
+        <div>
+          <h5 className="text-white/80 font-medium text-sm mb-1">Benefits</h5>
+          <ul className="text-muted-foreground text-sm space-y-1">
+            {benefits.map((benefit, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="text-primary mt-1">•</span>
+                {benefit}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
