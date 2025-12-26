@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema } from "@shared/schema";
+import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema, insertTelegramSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 import { solanaService } from "./services/solana";
 
@@ -432,6 +432,38 @@ export async function registerRoutes(
       await storage.deletePreset(id);
       return res.json({ success: true });
     } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get telegram settings for a user
+  app.get("/api/telegram-settings/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getTelegramSettings(userId);
+      return res.json(settings || {
+        userId,
+        chatId: null,
+        isEnabled: false,
+        notifyOnDistribution: true,
+        notifyOnFeeReady: true,
+        notifyOnLargeBuy: false,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update telegram settings
+  app.post("/api/telegram-settings", async (req, res) => {
+    try {
+      const validated = insertTelegramSettingsSchema.parse(req.body);
+      const settings = await storage.upsertTelegramSettings(validated);
+      return res.json(settings);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: "Invalid request data", details: error.errors });
+      }
       return res.status(500).json({ error: error.message });
     }
   });

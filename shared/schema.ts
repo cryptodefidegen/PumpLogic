@@ -100,3 +100,21 @@ export const insertAllocationPresetSchema = createInsertSchema(allocationPresets
 });
 export type InsertAllocationPreset = z.infer<typeof insertAllocationPresetSchema>;
 export type AllocationPreset = typeof allocationPresets.$inferSelect;
+
+export const telegramSettings = pgTable("telegram_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull().unique(),
+  chatId: text("chat_id"),
+  isEnabled: boolean("is_enabled").notNull().default(false),
+  notifyOnDistribution: boolean("notify_on_distribution").notNull().default(true),
+  notifyOnFeeReady: boolean("notify_on_fee_ready").notNull().default(true),
+  notifyOnLargeBuy: boolean("notify_on_large_buy").notNull().default(false),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertTelegramSettingsSchema = createInsertSchema(telegramSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+export type InsertTelegramSettings = z.infer<typeof insertTelegramSettingsSchema>;
+export type TelegramSettings = typeof telegramSettings.$inferSelect;

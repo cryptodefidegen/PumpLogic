@@ -1,4 +1,4 @@
-import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets, AllocationPreset } from "@shared/schema";
+import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets, AllocationPreset, TelegramSettings } from "@shared/schema";
 
 export async function authenticateWallet(walletAddress: string): Promise<User> {
   const response = await fetch("/api/auth/wallet", {
@@ -253,4 +253,36 @@ export async function deletePreset(id: string): Promise<void> {
   if (!response.ok) {
     throw new Error("Failed to delete preset");
   }
+}
+
+// Telegram Settings
+export async function getTelegramSettings(userId: string): Promise<TelegramSettings> {
+  const response = await fetch(`/api/telegram-settings/${userId}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch telegram settings");
+  }
+  
+  return await response.json();
+}
+
+export async function saveTelegramSettings(userId: string, settings: {
+  chatId: string | null;
+  isEnabled: boolean;
+  notifyOnDistribution: boolean;
+  notifyOnFeeReady: boolean;
+  notifyOnLargeBuy: boolean;
+}): Promise<TelegramSettings> {
+  const response = await fetch("/api/telegram-settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, ...settings }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to save telegram settings");
+  }
+  
+  return await response.json();
 }

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye } from "lucide-react";
+import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
@@ -27,7 +27,9 @@ import {
   recordTransaction,
   getPresets,
   createPreset,
-  deletePreset
+  deletePreset,
+  getTelegramSettings,
+  saveTelegramSettings
 } from "@/lib/api";
 import { Transaction } from "@solana/web3.js";
 import type { AllocationPreset } from "@shared/schema";
@@ -62,6 +64,12 @@ export default function Dashboard() {
   } | null>(null);
   const [showSavePreset, setShowSavePreset] = useState(false);
   const [presetName, setPresetName] = useState("");
+  const [showTelegramSettings, setShowTelegramSettings] = useState(false);
+  const [telegramChatId, setTelegramChatId] = useState("");
+  const [telegramEnabled, setTelegramEnabled] = useState(false);
+  const [notifyDistribution, setNotifyDistribution] = useState(true);
+  const [notifyFeeReady, setNotifyFeeReady] = useState(true);
+  const [notifyLargeBuy, setNotifyLargeBuy] = useState(false);
 
   // Fetch allocation data
   const { data: allocationData } = useQuery({
@@ -113,6 +121,13 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  // Fetch telegram settings
+  const { data: telegramData } = useQuery({
+    queryKey: ['telegramSettings', user?.id],
+    queryFn: () => getTelegramSettings(user!.id),
+    enabled: !!user,
+  });
+
   // Calculate channel performance from transactions
   const channelPerformance = useMemo(() => {
     const performance = {
@@ -160,6 +175,17 @@ export default function Dashboard() {
       });
     }
   }, [destinationData]);
+
+  // Update telegram settings state when data loads
+  useEffect(() => {
+    if (telegramData) {
+      setTelegramChatId(telegramData.chatId || "");
+      setTelegramEnabled(telegramData.isEnabled ?? false);
+      setNotifyDistribution(telegramData.notifyOnDistribution ?? true);
+      setNotifyFeeReady(telegramData.notifyOnFeeReady ?? true);
+      setNotifyLargeBuy(telegramData.notifyOnLargeBuy ?? false);
+    }
+  }, [telegramData]);
 
   // Save allocation mutation
   const saveMutation = useMutation({
@@ -479,6 +505,16 @@ export default function Dashboard() {
             >
               <Settings className="h-4 w-4 mr-2" />
               Configure Wallets
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowTelegramSettings(true)}
+              className="border-white/10"
+              data-testid="button-telegram-settings"
+            >
+              <Bell className="h-4 w-4 mr-2" />
+              Notifications
             </Button>
             <div className="px-3 py-1 rounded-full text-xs font-mono border bg-green-500/10 text-green-500 border-green-500/20">
               CONNECTED
@@ -987,6 +1023,133 @@ export default function Dashboard() {
               data-testid="button-confirm-distribute"
             >
               Proceed to Distribute
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Telegram Notifications Dialog */}
+      <Dialog open={showTelegramSettings} onOpenChange={setShowTelegramSettings}>
+        <DialogContent className="bg-card border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              Telegram Notifications
+            </DialogTitle>
+            <DialogDescription>
+              Get notified about distributions and fee activity via Telegram. No private keys required.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+              <h4 className="text-sm font-medium text-white mb-2">Setup Instructions</h4>
+              <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
+                <li>Open Telegram and search for <span className="text-primary font-mono">@PumpLogicBot</span></li>
+                <li>Send <span className="text-primary font-mono">/start</span> to the bot</li>
+                <li>Copy your Chat ID from the bot's response</li>
+                <li>Paste it below and enable notifications</li>
+              </ol>
+            </div>
+            
+            <div>
+              <Label className="text-white text-sm">Telegram Chat ID</Label>
+              <Input 
+                placeholder="e.g., 123456789"
+                value={telegramChatId}
+                onChange={(e) => setTelegramChatId(e.target.value)}
+                className="bg-black/40 border-white/10 mt-1 font-mono"
+                data-testid="input-telegram-chat-id"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-white text-sm">Enable Notifications</Label>
+                <p className="text-xs text-muted-foreground">Turn on to receive Telegram alerts</p>
+              </div>
+              <Switch 
+                checked={telegramEnabled}
+                onCheckedChange={setTelegramEnabled}
+                data-testid="switch-telegram-enabled"
+              />
+            </div>
+
+            <Separator className="bg-white/10" />
+
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-white">Notification Types</h4>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white text-sm">Distribution Confirmations</Label>
+                  <p className="text-xs text-muted-foreground">When a distribution is completed</p>
+                </div>
+                <Switch 
+                  checked={notifyDistribution}
+                  onCheckedChange={setNotifyDistribution}
+                  disabled={!telegramEnabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white text-sm">Fee Ready Alerts</Label>
+                  <p className="text-xs text-muted-foreground">When fees are ready to distribute</p>
+                </div>
+                <Switch 
+                  checked={notifyFeeReady}
+                  onCheckedChange={setNotifyFeeReady}
+                  disabled={!telegramEnabled}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-white text-sm">Large Buy Alerts</Label>
+                  <p className="text-xs text-muted-foreground">When a large purchase is detected</p>
+                </div>
+                <Switch 
+                  checked={notifyLargeBuy}
+                  onCheckedChange={setNotifyLargeBuy}
+                  disabled={!telegramEnabled}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTelegramSettings(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={async () => {
+                try {
+                  await saveTelegramSettings(user!.id, {
+                    chatId: telegramChatId || null,
+                    isEnabled: telegramEnabled,
+                    notifyOnDistribution: notifyDistribution,
+                    notifyOnFeeReady: notifyFeeReady,
+                    notifyOnLargeBuy: notifyLargeBuy,
+                  });
+                  queryClient.invalidateQueries({ queryKey: ['telegramSettings', user?.id] });
+                  toast({
+                    title: "Settings Saved",
+                    description: "Your notification preferences have been updated.",
+                    className: "bg-primary text-black font-bold"
+                  });
+                  setShowTelegramSettings(false);
+                } catch (error: any) {
+                  toast({
+                    variant: "destructive",
+                    title: "Save Failed",
+                    description: error.message || "Failed to save settings",
+                  });
+                }
+              }}
+              disabled={!telegramChatId.trim()}
+              className="bg-primary text-black"
+              data-testid="button-save-telegram-settings"
+            >
+              Save Settings
             </Button>
           </DialogFooter>
         </DialogContent>
