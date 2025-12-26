@@ -190,21 +190,95 @@ export default function Docs() {
                 Telegram Notifications
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-muted-foreground space-y-4">
+            <CardContent className="text-muted-foreground space-y-6">
               <p>
-                Get real-time alerts about your distributions via Telegram. The PumpLogic Bot notifies you 
-                when distributions complete, fees accumulate, or large purchases occur.
+                The PumpLogic Telegram Bot keeps you informed about your fee distributions in real-time. 
+                Receive instant notifications when distributions complete, fees accumulate, or large purchases occur.
+                The bot uses a secure notification-only model - it never has access to your private keys or wallet.
               </p>
-              <p>
-                The bot uses a secure notification-only model - it never has access to your private keys 
-                or wallet. All transactions still require your manual approval.
-              </p>
-              <Link href="/docs/telegram">
-                <Button variant="outline" className="border-primary/30 text-primary hover:bg-primary/10 mt-2" data-testid="link-telegram-docs">
-                  Learn More About Telegram Bot
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Setup Guide</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <p className="text-sm">Open Telegram and search for <span className="text-primary font-mono">@PumpLogicBot</span></p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
+                    <p className="text-sm">Send <span className="text-primary font-mono">/start</span> to the bot - it will reply with your unique Chat ID</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
+                    <p className="text-sm">In your PumpLogic Dashboard, click the <span className="text-white">"Notifications"</span> button</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <p className="text-sm">Paste your Chat ID, enable notifications, and choose your alert preferences</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Notification Types</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Zap className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Distribution Confirmations</p>
+                      <p className="text-xs">Get notified when a distribution completes with amount breakdown and transaction link</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center shrink-0">
+                      <Coins className="h-4 w-4 text-secondary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Fee Ready Alerts</p>
+                      <p className="text-xs">Receive alerts when your wallet has accumulated fees ready for distribution</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-400/20 flex items-center justify-center shrink-0">
+                      <TrendingUp className="h-4 w-4 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Large Buy Alerts</p>
+                      <p className="text-xs">Get notified when significant token purchases occur that may generate fees</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Bot Commands</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-2">
+                  <div className="flex gap-3 items-start">
+                    <code className="bg-primary/20 text-primary px-2 py-0.5 rounded font-mono text-xs shrink-0">/start</code>
+                    <p className="text-xs">Get your unique Chat ID for linking to PumpLogic</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <code className="bg-primary/20 text-primary px-2 py-0.5 rounded font-mono text-xs shrink-0">/status</code>
+                    <p className="text-xs">Check your current notification settings</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <code className="bg-primary/20 text-primary px-2 py-0.5 rounded font-mono text-xs shrink-0">/help</code>
+                    <p className="text-xs">Display available commands and documentation links</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                <h4 className="text-primary font-semibold mb-2">Security</h4>
+                <ul className="text-xs space-y-1">
+                  <li>The bot never has access to your private keys</li>
+                  <li>All transactions still require manual Phantom wallet approval</li>
+                  <li>Only your Telegram Chat ID is stored - no other personal data</li>
+                  <li>Notifications are completely optional and can be disabled anytime</li>
+                </ul>
+              </div>
             </CardContent>
           </Card>
 
