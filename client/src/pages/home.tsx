@@ -5,7 +5,7 @@ import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, CheckCircle2 } from "luc
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-hidden">
+    <div className="min-h-screen text-foreground overflow-hidden">
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 container mx-auto px-4 text-center">
         <motion.div 

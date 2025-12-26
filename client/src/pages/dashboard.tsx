@@ -434,7 +434,7 @@ export default function Dashboard() {
   // Redirect if not connected
   if (!isConnected || !user) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+      <div className="min-h-screen text-foreground flex items-center justify-center">
         <Card className="bg-card border-white/5 max-w-md w-full mx-4">
           <CardHeader>
             <CardTitle className="text-white text-center">Connect Your Wallet</CardTitle>
@@ -452,7 +452,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20">
+    <div className="min-h-screen text-foreground pb-20">
       <div className="container mx-auto px-4 pt-8">
         
         {/* Connection Warning */}
