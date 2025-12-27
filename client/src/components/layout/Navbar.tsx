@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2 } from "lucide-react";
+import { Wallet, Menu, X, Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -82,6 +82,26 @@ export function Navbar() {
           >
             Docs
           </Link>
+          <div className="flex items-center gap-3 ml-2 border-l border-white/10 pl-4">
+            <a 
+              href="https://x.com/i/communities/2004770032832929819" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors"
+              title="X Community"
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a 
+              href="https://t.me/PumpLogicSol" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-primary transition-colors"
+              title="Telegram"
+            >
+              <MessageCircle className="h-4 w-4" />
+            </a>
+          </div>
         </div>
 
         <div className="hidden md:flex items-center gap-4">
@@ -120,6 +140,26 @@ export function Navbar() {
             <Link href="/docs" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               Docs
             </Link>
+            <div className="flex items-center gap-4 pt-2 border-t border-white/10">
+              <a 
+                href="https://x.com/i/communities/2004770032832929819" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                <span className="text-sm">X Community</span>
+              </a>
+              <a 
+                href="https://t.me/PumpLogicSol" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span className="text-sm">Telegram</span>
+              </a>
+            </div>
             <Button 
               className="w-full bg-primary text-black" 
               onClick={() => { handleWalletClick(); setIsOpen(false); }}

@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, MessageCircle } from "lucide-react";
 
 export default function Home() {
   return (
@@ -112,6 +112,41 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/5 py-12 bg-black/30">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2">
+              <span className="text-white font-display font-bold">Pump<span className="text-primary">Logic</span></span>
+              <span className="text-muted-foreground text-sm">- Smart Fee Routing for Solana</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <a 
+                href="https://x.com/i/communities/2004770032832929819" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+              >
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                <span>X Community</span>
+              </a>
+              <a 
+                href="https://t.me/PumpLogicSol" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+              >
+                <MessageCircle className="h-5 w-5" />
+                <span>Telegram</span>
+              </a>
+            </div>
+          </div>
+          <div className="text-center mt-8 text-xs text-muted-foreground">
+            Built for Solana token creators. Use at your own risk. DYOR.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
