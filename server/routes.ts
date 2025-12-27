@@ -7,6 +7,7 @@ import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfig
 import { z } from "zod";
 import { solanaService } from "./services/solana";
 import { getBot } from "./services/telegram";
+import { tokenMonitor } from "./services/tokenMonitor";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -495,6 +496,15 @@ export async function registerRoutes(
     try {
       const validated = insertTokenSettingsSchema.parse(req.body);
       const settings = await storage.upsertTokenSettings(validated);
+      
+      if (settings.contractAddress) {
+        tokenMonitor.addToken(
+          settings.userId,
+          settings.contractAddress,
+          settings.feeCollectionWallet
+        );
+      }
+      
       return res.json(settings);
     } catch (error: any) {
       if (error.name === 'ZodError') {
@@ -504,10 +514,26 @@ export async function registerRoutes(
     }
   });
 
+  // Start monitoring a token manually
+  app.post("/api/token-monitor/start", async (req, res) => {
+    try {
+      const { userId, contractAddress, feeWallet } = req.body;
+      
+      if (!userId || !contractAddress) {
+        return res.status(400).json({ error: "userId and contractAddress are required" });
+      }
+
+      tokenMonitor.addToken(userId, contractAddress, feeWallet || null);
+      return res.json({ success: true, message: `Monitoring started for ${contractAddress}` });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
   // Test telegram notification
   app.post("/api/telegram-settings/test", async (req, res) => {
     try {
-      const { chatId } = req.body;
+      const { chatId, type } = req.body;
       
       if (!chatId) {
         return res.status(400).json({ error: "Chat ID is required" });
@@ -518,12 +544,17 @@ export async function registerRoutes(
         return res.status(503).json({ error: "Telegram bot is not configured" });
       }
 
-      await bot.sendMessage(
-        chatId,
-        `*PumpLogic Test Notification*\n\nYour Telegram notifications are working correctly!\n\nYou will receive alerts for:\n• Distribution confirmations\n• Fee accumulation reminders\n• Large buyer activity`,
-        { parse_mode: "Markdown" }
-      );
+      let message = "";
+      
+      if (type === "large_buy") {
+        message = `*Large Buy Detected*\n\nBuyer: \`7xKp2m...9aB4cD\`\nAmount: 0.5 SOL\n\n[View Token](https://solscan.io/token/93tQHLgbK4J8dzv3xictW46JqfKCjKcoe69Q9nrtpump)`;
+      } else if (type === "fee_ready") {
+        message = `*Fees Ready to Distribute*\n\nYour wallet has accumulated 0.25 SOL ready for distribution.\n\n[Open Dashboard](https://pumplogic.replit.app) to distribute now.`;
+      } else {
+        message = `*PumpLogic Test Notification*\n\nYour Telegram notifications are working correctly!\n\nYou will receive alerts for:\n• Distribution confirmations\n• Fee accumulation reminders\n• Large buyer activity`;
+      }
 
+      await bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
       return res.json({ success: true, message: "Test notification sent" });
     } catch (error: any) {
       console.error("Failed to send test notification:", error);

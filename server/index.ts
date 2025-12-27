@@ -4,6 +4,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import path from "path";
 import { initTelegramBot } from "./services/telegram";
+import { tokenMonitor } from "./services/tokenMonitor";
 
 const app = express();
 const httpServer = createServer(app);
@@ -67,6 +68,7 @@ app.use((req, res, next) => {
 
 (async () => {
   initTelegramBot();
+  tokenMonitor.start();
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
