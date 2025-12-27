@@ -4,6 +4,7 @@ import { storage } from "../storage";
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 let bot: TelegramBot | null = null;
+let pollingErrorLogged = false;
 
 export function initTelegramBot() {
   if (!BOT_TOKEN) {
@@ -12,8 +13,27 @@ export function initTelegramBot() {
   }
 
   try {
-    bot = new TelegramBot(BOT_TOKEN, { polling: true });
+    bot = new TelegramBot(BOT_TOKEN, { 
+      polling: {
+        interval: 2000,
+        autoStart: true,
+        params: {
+          timeout: 10
+        }
+      }
+    });
     console.log("Telegram bot initialized");
+
+    bot.on("polling_error", (error: any) => {
+      if (error.code === "ETELEGRAM" && error.message?.includes("409 Conflict")) {
+        if (!pollingErrorLogged) {
+          console.log("Telegram bot: Another instance is running. Notifications will still work for sending messages.");
+          pollingErrorLogged = true;
+        }
+      } else {
+        console.error("Telegram polling error:", error.message);
+      }
+    });
 
     bot.onText(/\/start/, async (msg) => {
       const chatId = msg.chat.id.toString();
