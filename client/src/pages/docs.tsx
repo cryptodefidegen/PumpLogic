@@ -371,6 +371,92 @@ export default function Docs() {
 
           <Card className="bg-card border-white/5">
             <CardHeader>
+              <CardTitle className="text-white text-2xl font-display flex items-center gap-2">
+                <Activity className="h-6 w-6 text-primary" />
+                Blockchain Monitoring
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground space-y-6">
+              <p>
+                PumpLogic includes real-time blockchain monitoring that automatically watches your token 
+                for trading activity. When configured with your token contract address, the system polls 
+                the Solana blockchain every 30 seconds to detect significant events.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">What Gets Monitored</h4>
+                <div className="space-y-3">
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Large Token Purchases</h5>
+                    <p className="text-xs">
+                      When someone buys 10,000+ tokens of your token in a single transaction, you'll 
+                      receive a Telegram notification with the buyer's address and purchase amount. 
+                      This helps you track significant accumulation events.
+                    </p>
+                  </div>
+
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Fee Wallet Balance</h5>
+                    <p className="text-xs">
+                      If you configure a fee collection wallet in Token Settings, the system monitors 
+                      its SOL balance. When fees accumulate above the threshold (0.01 SOL), you'll get 
+                      a notification reminding you to distribute.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Per-User Token Support</h4>
+                <p className="text-sm mb-3">
+                  Each user can configure and monitor their own token independently:
+                </p>
+                <ul className="text-xs space-y-2 list-disc list-inside">
+                  <li>Your Token Settings are private to your account</li>
+                  <li>Monitoring runs separately for each user's token</li>
+                  <li>Telegram notifications go only to your configured Chat ID</li>
+                  <li>Other users' tokens don't affect your monitoring</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">How to Enable Monitoring</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <p className="text-sm">Open Token Settings from your Dashboard</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
+                    <p className="text-sm">Enter your token's contract address (mint address from Pump.fun)</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
+                    <p className="text-sm">Optionally add your fee collection wallet for balance monitoring</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <p className="text-sm">Save settings - monitoring starts automatically</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">5</div>
+                    <p className="text-sm">Make sure Telegram notifications are enabled to receive alerts</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4">
+                <h4 className="text-secondary font-semibold mb-2">Current Limitation</h4>
+                <p className="text-xs">
+                  Each user can currently monitor one token at a time. If you need to monitor multiple 
+                  tokens simultaneously, this feature may be added in a future update.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-white/5">
+            <CardHeader>
               <CardTitle className="text-white text-2xl font-display">Security</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground space-y-4">
