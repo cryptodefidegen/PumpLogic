@@ -532,44 +532,44 @@ export default function Dashboard() {
             <h1 className="text-3xl font-display font-bold text-white">Dashboard</h1>
             <p className="text-muted-foreground">Manage your programmable liquidity engine</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2">
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => setShowWalletConfig(true)}
-              className="border-white/10"
+              className="border-white/10 text-xs"
             >
-              <Settings className="h-4 w-4 mr-2" />
-              Configure Wallets
+              <Settings className="h-4 w-4 mr-1" />
+              Wallets
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => setShowTelegramSettings(true)}
-              className="border-white/10"
+              className="border-white/10 text-xs"
               data-testid="button-telegram-settings"
             >
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
+              <Bell className="h-4 w-4 mr-1" />
+              Alerts
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => setShowSoundSettings(true)}
-              className="border-white/10"
+              className="border-white/10 text-xs"
               data-testid="button-sound-settings"
             >
-              <Volume2 className="h-4 w-4 mr-2" />
+              <Volume2 className="h-4 w-4 mr-1" />
               Sounds
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => setShowTokenSettings(true)}
-              className="border-white/10"
+              className="border-white/10 text-xs"
               data-testid="button-token-settings"
             >
-              <Coins className="h-4 w-4 mr-2" />
+              <Coins className="h-4 w-4 mr-1" />
               Token
             </Button>
             <div className="px-3 py-1 rounded-full text-xs font-mono border bg-green-500/10 text-green-500 border-green-500/20">
@@ -720,7 +720,7 @@ export default function Dashboard() {
                 <CardDescription>Distribute fees manually from your wallet using Phantom</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-4">
+                <div className="flex flex-col md:flex-row gap-3">
                   <div className="relative flex-1">
                     <Input 
                       placeholder="0.0" 
@@ -731,31 +731,33 @@ export default function Dashboard() {
                     />
                     <div className="absolute right-4 top-3 text-muted-foreground font-mono text-sm">SOL</div>
                   </div>
-                  <Button 
-                    variant="outline"
-                    className="h-12 px-4 border-white/20 text-white hover:bg-white/10" 
-                    onClick={showDistributionPreview}
-                    data-testid="button-preview"
-                  >
-                    <Eye className="mr-2 h-4 w-4" /> Preview
-                  </Button>
-                  <Button 
-                    className="h-12 px-6 bg-secondary text-white hover:bg-secondary/90 font-bold" 
-                    onClick={handleDistribute}
-                    disabled={isDistributing}
-                    data-testid="button-distribute"
-                  >
-                    {isDistributing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing...
-                      </>
-                    ) : (
-                      <>
-                        Distribute Now <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline"
+                      className="h-12 flex-1 md:flex-none px-4 border-white/20 text-white hover:bg-white/10" 
+                      onClick={showDistributionPreview}
+                      data-testid="button-preview"
+                    >
+                      <Eye className="mr-2 h-4 w-4" /> Preview
+                    </Button>
+                    <Button 
+                      className="h-12 flex-1 md:flex-none px-4 md:px-6 bg-secondary text-white hover:bg-secondary/90 font-bold" 
+                      onClick={handleDistribute}
+                      disabled={isDistributing}
+                      data-testid="button-distribute"
+                    >
+                      {isDistributing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Signing...
+                        </>
+                      ) : (
+                        <>
+                          Distribute <ArrowRight className="ml-1 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 {balanceData && (
                   <p className="text-xs text-muted-foreground mt-2">
