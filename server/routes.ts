@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema, insertTelegramSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 import { solanaService } from "./services/solana";
+import { getBot } from "./services/telegram";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -467,6 +468,33 @@ export async function registerRoutes(
       if (error.name === 'ZodError') {
         return res.status(400).json({ error: "Invalid request data", details: error.errors });
       }
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Test telegram notification
+  app.post("/api/telegram-settings/test", async (req, res) => {
+    try {
+      const { chatId } = req.body;
+      
+      if (!chatId) {
+        return res.status(400).json({ error: "Chat ID is required" });
+      }
+
+      const bot = getBot();
+      if (!bot) {
+        return res.status(503).json({ error: "Telegram bot is not configured" });
+      }
+
+      await bot.sendMessage(
+        chatId,
+        `*PumpLogic Test Notification*\n\nYour Telegram notifications are working correctly!\n\nYou will receive alerts for:\n• Distribution confirmations\n• Fee accumulation reminders\n• Large buyer activity`,
+        { parse_mode: "Markdown" }
+      );
+
+      return res.json({ success: true, message: "Test notification sent" });
+    } catch (error: any) {
+      console.error("Failed to send test notification:", error);
       return res.status(500).json({ error: error.message });
     }
   });
