@@ -8,10 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell } from "lucide-react";
+import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell, Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
+import { SoundSettingsDialog } from "@/components/SoundSettings";
+import { playSound } from "@/lib/sounds";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   getAllocation, 
@@ -65,6 +67,7 @@ export default function Dashboard() {
   const [showSavePreset, setShowSavePreset] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [showTelegramSettings, setShowTelegramSettings] = useState(false);
+  const [showSoundSettings, setShowSoundSettings] = useState(false);
   const [telegramChatId, setTelegramChatId] = useState("");
   const [telegramEnabled, setTelegramEnabled] = useState(false);
   const [notifyDistribution, setNotifyDistribution] = useState(true);
@@ -192,6 +195,7 @@ export default function Dashboard() {
     mutationFn: () => saveAllocation(user!.id, allocations),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allocation', user?.id] });
+      playSound('success');
       toast({
         title: "Allocations Saved",
         description: "Your fee routing strategy has been updated.",
@@ -199,6 +203,7 @@ export default function Dashboard() {
       });
     },
     onError: (error: any) => {
+      playSound('error');
       toast({
         variant: "destructive",
         title: "Save Failed",
@@ -232,6 +237,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['allocation', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['transactions', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['automation', user?.id] });
+      playSound('notification');
       toast({
         title: "Analysis Complete",
         description: "AI has optimized allocations based on current network conditions.",
@@ -251,6 +257,7 @@ export default function Dashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['destinationWallets', user?.id] });
       setShowWalletConfig(false);
+      playSound('success');
       toast({
         title: "Wallets Saved",
         description: "Your destination wallets have been configured.",
@@ -258,6 +265,7 @@ export default function Dashboard() {
       });
     },
     onError: (error: any) => {
+      playSound('error');
       toast({
         variant: "destructive",
         title: "Save Failed",
@@ -439,6 +447,7 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['transactions', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['balance', user?.walletAddress] });
 
+      playSound('distribute');
       toast({
         title: "Distribution Complete",
         description: `Successfully distributed ${amount} SOL across all channels.`,
@@ -447,6 +456,7 @@ export default function Dashboard() {
 
       setDistributionAmount("");
     } catch (error: any) {
+      playSound('error');
       toast({
         variant: "destructive",
         title: "Distribution Failed",
@@ -515,6 +525,16 @@ export default function Dashboard() {
             >
               <Bell className="h-4 w-4 mr-2" />
               Notifications
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowSoundSettings(true)}
+              className="border-white/10"
+              data-testid="button-sound-settings"
+            >
+              <Volume2 className="h-4 w-4 mr-2" />
+              Sounds
             </Button>
             <div className="px-3 py-1 rounded-full text-xs font-mono border bg-green-500/10 text-green-500 border-green-500/20">
               CONNECTED
@@ -1154,6 +1174,8 @@ export default function Dashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <SoundSettingsDialog open={showSoundSettings} onOpenChange={setShowSoundSettings} />
     </div>
   );
 }
