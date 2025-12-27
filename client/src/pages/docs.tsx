@@ -284,6 +284,93 @@ export default function Docs() {
 
           <Card className="bg-card border-white/5">
             <CardHeader>
+              <CardTitle className="text-white text-2xl font-display flex items-center gap-2">
+                <Coins className="h-6 w-6 text-primary" />
+                Token Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground space-y-6">
+              <p>
+                The Token Settings feature allows you to configure your token information in PumpLogic. 
+                This helps track your token's fees and provides context for the distribution system.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Configuration Fields</h4>
+                <div className="space-y-4">
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Token Name & Symbol</h5>
+                    <p className="text-xs">
+                      Your token's display name and ticker symbol (e.g., "MyToken" / "MTK"). 
+                      Used for display purposes throughout the dashboard.
+                    </p>
+                  </div>
+
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Token Contract Address</h5>
+                    <p className="text-xs">
+                      The mint address of your Pump.fun token on Solana. This is the unique identifier 
+                      for your token on the blockchain. You can find this on Pump.fun or Solscan.
+                    </p>
+                  </div>
+
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Fee Collection Wallet</h5>
+                    <p className="text-xs">
+                      The wallet address where trading fees from your token accumulate. This should be the 
+                      same wallet you connect with Phantom. When fees accumulate here, you can use PumpLogic 
+                      to distribute them across your configured allocation categories.
+                    </p>
+                  </div>
+
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Fee Percentage</h5>
+                    <p className="text-xs">
+                      The trading fee percentage set on your token (1-10%). This is used for tracking 
+                      and calculating expected fee amounts based on trading volume.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">How It Works Together</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <p className="text-sm">When people trade your token on Pump.fun, fees go to your Fee Collection Wallet</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
+                    <p className="text-sm">Connect that wallet to PumpLogic via Phantom</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
+                    <p className="text-sm">Set your allocation percentages (Market Making, Buyback, Liquidity, Revenue)</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <p className="text-sm">Use the "Distribute" feature to split accumulated fees across your destination wallets</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">5</div>
+                    <p className="text-sm">Get Telegram notifications when distributions complete</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                <h4 className="text-primary font-semibold mb-2">Getting Started</h4>
+                <p className="text-xs">
+                  Click the "Token" button in your Dashboard to configure your token settings. 
+                  Enter your token details to enable accurate fee tracking and distribution management.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card border-white/5">
+            <CardHeader>
               <CardTitle className="text-white text-2xl font-display">Security</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground space-y-4">
