@@ -1,10 +1,11 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, Rocket } from "lucide-react";
+import { Wallet, Menu, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
 import { useToast } from "@/hooks/use-toast";
+import logoImage from "@assets/generated_images/pumplogic_telegram_bot_logo.png";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,15 +58,7 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/50 backdrop-blur-xl supports-[backdrop-filter]:bg-black/20">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold tracking-tighter">
-          <div className="h-9 w-9 rounded relative overflow-hidden flex items-center justify-center">
-            <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
-              <div className="bg-primary"></div>
-              <div className="bg-emerald-400"></div>
-              <div className="bg-teal-500"></div>
-              <div className="bg-cyan-400"></div>
-            </div>
-            <Rocket className="h-5 w-5 text-black relative z-10 fill-current" />
-          </div>
+          <img src={logoImage} alt="PumpLogic" className="h-9 w-9 rounded" />
           <span className="text-white">Pump<span className="text-primary">Logic</span></span>
         </Link>
 
