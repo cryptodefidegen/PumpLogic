@@ -80,8 +80,8 @@ export default function Home() {
             />
             <FeatureCard 
               icon={<RefreshCw className="h-8 w-8 text-secondary" />}
-              title="Buyback & Burn"
-              desc="Reduce circulating supply through strategic token repurchases and burns."
+              title="Buyback"
+              desc="Repurchase tokens from the market to support price and reduce supply."
             />
             <FeatureCard 
               icon={<Zap className="h-8 w-8 text-blue-400" />}

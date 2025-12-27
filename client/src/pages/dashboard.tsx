@@ -602,7 +602,7 @@ export default function Dashboard() {
                   onChange={(v) => handleSliderChange('marketMaking', v)} 
                 />
                 <AllocationItem 
-                  label="Buyback & Burn" 
+                  label="Buyback" 
                   value={allocations.buyback} 
                   color="bg-secondary"
                   onChange={(v) => handleSliderChange('buyback', v)} 
@@ -833,7 +833,7 @@ export default function Dashboard() {
                   <span className="text-sm font-mono text-primary">{channelPerformance.marketMaking.toFixed(4)} SOL</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">Buyback & Burn</span>
+                  <span className="text-xs text-muted-foreground">Buyback</span>
                   <span className="text-sm font-mono text-secondary">{channelPerformance.buyback.toFixed(4)} SOL</span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -920,7 +920,7 @@ export default function Dashboard() {
               />
             </div>
             <div>
-              <Label className="text-white text-sm">Buyback & Burn Wallet</Label>
+              <Label className="text-white text-sm">Buyback Wallet</Label>
               <Input 
                 placeholder="Enter Solana wallet address"
                 value={destWallets.buybackWallet}
@@ -997,7 +997,7 @@ export default function Dashboard() {
                 <span className="text-primary font-mono">{allocations.marketMaking}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Buyback & Burn</span>
+                <span className="text-muted-foreground">Buyback</span>
                 <span className="text-secondary font-mono">{allocations.buyback}%</span>
               </div>
               <div className="flex justify-between">
@@ -1049,7 +1049,7 @@ export default function Dashboard() {
                 )}
                 {previewBreakdown.buyback > 0 && (
                   <div className="flex justify-between items-center p-3 bg-secondary/10 rounded-lg border border-secondary/20">
-                    <span className="text-white">Buyback & Burn</span>
+                    <span className="text-white">Buyback</span>
                     <span className="text-secondary font-mono font-bold">{previewBreakdown.buyback.toFixed(6)} SOL</span>
                   </div>
                 )}

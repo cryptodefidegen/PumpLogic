@@ -89,12 +89,12 @@ export default function Docs() {
               <Separator className="bg-white/5" />
               <CategoryDetailed 
                 icon={<RefreshCw className="h-6 w-6 text-secondary" />}
-                title="Buyback & Burn"
+                title="Buyback"
                 color="bg-secondary/20"
-                summary="Tokens are repurchased from the market and permanently removed from circulation."
-                concept="Buyback and burn is a deflationary mechanism. The allocated funds are used to purchase your token from the open market, and those tokens are then sent to a burn address, permanently removing them from circulation."
-                howItWorks="PumpLogic sends funds to your Buyback wallet. You use those funds to buy your token on DEXs, then send the purchased tokens to a burn address."
-                benefits={["Reduces circulating supply", "Creates deflationary pressure on token", "Can increase token value over time", "Shows commitment to token holders"]}
+                summary="Tokens are repurchased from the market to support price stability."
+                concept="Buyback is a mechanism to support your token's price. The allocated funds are used to purchase your token from the open market, which creates buying pressure and reduces available supply."
+                howItWorks="PumpLogic sends funds to your Buyback wallet. You use those funds to buy your token on DEXs. If you want to burn the purchased tokens, use a third-party service like Sol Incinerator."
+                benefits={["Creates buying pressure on token", "Reduces available supply", "Supports token price stability", "Shows commitment to token holders"]}
               />
               <Separator className="bg-white/5" />
               <CategoryDetailed 

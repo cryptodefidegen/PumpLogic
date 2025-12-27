@@ -102,7 +102,7 @@ export async function sendDistributionNotification(
     `Total: ${amount} SOL\n\n` +
     `*Breakdown:*\n` +
     `• Market Making: ${(breakdown.marketMaking * parseFloat(amount)).toFixed(4)} SOL\n` +
-    `• Buyback & Burn: ${(breakdown.buyback * parseFloat(amount)).toFixed(4)} SOL\n` +
+    `• Buyback: ${(breakdown.buyback * parseFloat(amount)).toFixed(4)} SOL\n` +
     `• Liquidity Pool: ${(breakdown.liquidity * parseFloat(amount)).toFixed(4)} SOL\n` +
     `• Creator Revenue: ${(breakdown.revenue * parseFloat(amount)).toFixed(4)} SOL\n\n` +
     `[View on Solscan](https://solscan.io/tx/${signature})`;
