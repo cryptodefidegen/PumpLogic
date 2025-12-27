@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import express from "express";
 import path from "path";
 import { storage } from "./storage";
-import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema, insertTelegramSettingsSchema } from "@shared/schema";
+import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema, insertTelegramSettingsSchema, insertTokenSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 import { solanaService } from "./services/solana";
 import { getBot } from "./services/telegram";
@@ -463,6 +463,38 @@ export async function registerRoutes(
     try {
       const validated = insertTelegramSettingsSchema.parse(req.body);
       const settings = await storage.upsertTelegramSettings(validated);
+      return res.json(settings);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: "Invalid request data", details: error.errors });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get token settings for a user
+  app.get("/api/token-settings/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getTokenSettings(userId);
+      return res.json(settings || {
+        userId,
+        tokenName: null,
+        tokenSymbol: null,
+        contractAddress: null,
+        feeCollectionWallet: null,
+        feePercentage: 1,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update token settings
+  app.post("/api/token-settings", async (req, res) => {
+    try {
+      const validated = insertTokenSettingsSchema.parse(req.body);
+      const settings = await storage.upsertTokenSettings(validated);
       return res.json(settings);
     } catch (error: any) {
       if (error.name === 'ZodError') {

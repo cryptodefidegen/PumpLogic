@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell, Volume2 } from "lucide-react";
+import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell, Volume2, Coins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
@@ -31,7 +31,9 @@ import {
   createPreset,
   deletePreset,
   getTelegramSettings,
-  saveTelegramSettings
+  saveTelegramSettings,
+  getTokenSettings,
+  saveTokenSettings
 } from "@/lib/api";
 import { Transaction } from "@solana/web3.js";
 import type { AllocationPreset } from "@shared/schema";
@@ -68,11 +70,17 @@ export default function Dashboard() {
   const [presetName, setPresetName] = useState("");
   const [showTelegramSettings, setShowTelegramSettings] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const [showTokenSettings, setShowTokenSettings] = useState(false);
   const [telegramChatId, setTelegramChatId] = useState("");
   const [telegramEnabled, setTelegramEnabled] = useState(false);
   const [notifyDistribution, setNotifyDistribution] = useState(true);
   const [notifyFeeReady, setNotifyFeeReady] = useState(true);
   const [notifyLargeBuy, setNotifyLargeBuy] = useState(false);
+  const [tokenName, setTokenName] = useState("");
+  const [tokenSymbol, setTokenSymbol] = useState("");
+  const [contractAddress, setContractAddress] = useState("");
+  const [feeCollectionWallet, setFeeCollectionWallet] = useState("");
+  const [feePercentage, setFeePercentage] = useState(1);
 
   // Fetch allocation data
   const { data: allocationData } = useQuery({
@@ -128,6 +136,13 @@ export default function Dashboard() {
   const { data: telegramData } = useQuery({
     queryKey: ['telegramSettings', user?.id],
     queryFn: () => getTelegramSettings(user!.id),
+    enabled: !!user,
+  });
+
+  // Fetch token settings
+  const { data: tokenData } = useQuery({
+    queryKey: ['tokenSettings', user?.id],
+    queryFn: () => getTokenSettings(user!.id),
     enabled: !!user,
   });
 
@@ -189,6 +204,17 @@ export default function Dashboard() {
       setNotifyLargeBuy(telegramData.notifyOnLargeBuy ?? false);
     }
   }, [telegramData]);
+
+  // Update token settings state when data loads
+  useEffect(() => {
+    if (tokenData) {
+      setTokenName(tokenData.tokenName || "");
+      setTokenSymbol(tokenData.tokenSymbol || "");
+      setContractAddress(tokenData.contractAddress || "");
+      setFeeCollectionWallet(tokenData.feeCollectionWallet || "");
+      setFeePercentage(tokenData.feePercentage ?? 1);
+    }
+  }, [tokenData]);
 
   // Save allocation mutation
   const saveMutation = useMutation({
@@ -535,6 +561,16 @@ export default function Dashboard() {
             >
               <Volume2 className="h-4 w-4 mr-2" />
               Sounds
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowTokenSettings(true)}
+              className="border-white/10"
+              data-testid="button-token-settings"
+            >
+              <Coins className="h-4 w-4 mr-2" />
+              Token
             </Button>
             <div className="px-3 py-1 rounded-full text-xs font-mono border bg-green-500/10 text-green-500 border-green-500/20">
               CONNECTED
@@ -1176,6 +1212,132 @@ export default function Dashboard() {
       </Dialog>
 
       <SoundSettingsDialog open={showSoundSettings} onOpenChange={setShowSoundSettings} />
+
+      {/* Token Settings Dialog */}
+      <Dialog open={showTokenSettings} onOpenChange={setShowTokenSettings}>
+        <DialogContent className="bg-card border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Coins className="h-5 w-5 text-primary" />
+              Token Settings
+            </DialogTitle>
+            <DialogDescription>
+              Configure your token details for fee tracking
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tokenName" className="text-white text-sm">Token Name</Label>
+                <Input 
+                  id="tokenName"
+                  placeholder="e.g., MyToken"
+                  value={tokenName}
+                  onChange={(e) => setTokenName(e.target.value)}
+                  className="bg-black/20 border-white/10"
+                  data-testid="input-token-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tokenSymbol" className="text-white text-sm">Token Symbol</Label>
+                <Input 
+                  id="tokenSymbol"
+                  placeholder="e.g., MTK"
+                  value={tokenSymbol}
+                  onChange={(e) => setTokenSymbol(e.target.value)}
+                  className="bg-black/20 border-white/10"
+                  data-testid="input-token-symbol"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contractAddress" className="text-white text-sm">Token Contract Address</Label>
+              <Input 
+                id="contractAddress"
+                placeholder="Enter your token's Solana address"
+                value={contractAddress}
+                onChange={(e) => setContractAddress(e.target.value)}
+                className="bg-black/20 border-white/10 font-mono text-xs"
+                data-testid="input-contract-address"
+              />
+              <p className="text-xs text-muted-foreground">
+                The mint address of your Pump.fun token
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="feeCollectionWallet" className="text-white text-sm">Fee Collection Wallet</Label>
+              <Input 
+                id="feeCollectionWallet"
+                placeholder="Wallet that receives trading fees"
+                value={feeCollectionWallet}
+                onChange={(e) => setFeeCollectionWallet(e.target.value)}
+                className="bg-black/20 border-white/10 font-mono text-xs"
+                data-testid="input-fee-wallet"
+              />
+              <p className="text-xs text-muted-foreground">
+                This wallet accumulates fees that will be distributed via PumpLogic
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="feePercentage" className="text-white text-sm">Fee Percentage</Label>
+              <div className="flex items-center gap-3">
+                <Slider 
+                  value={[feePercentage]} 
+                  max={10} 
+                  min={1}
+                  step={1} 
+                  onValueChange={(v) => setFeePercentage(v[0])}
+                  className="flex-1"
+                />
+                <span className="font-mono text-white w-12 text-right">{feePercentage}%</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                The fee percentage set on your token (for tracking purposes)
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTokenSettings(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={async () => {
+                try {
+                  await saveTokenSettings(user!.id, {
+                    tokenName: tokenName || null,
+                    tokenSymbol: tokenSymbol || null,
+                    contractAddress: contractAddress || null,
+                    feeCollectionWallet: feeCollectionWallet || null,
+                    feePercentage: feePercentage,
+                  });
+                  queryClient.invalidateQueries({ queryKey: ['tokenSettings', user?.id] });
+                  playSound('success');
+                  toast({
+                    title: "Token Settings Saved",
+                    description: "Your token configuration has been updated.",
+                    className: "bg-primary text-black font-bold"
+                  });
+                  setShowTokenSettings(false);
+                } catch (error: any) {
+                  playSound('error');
+                  toast({
+                    variant: "destructive",
+                    title: "Save Failed",
+                    description: error.message || "Failed to save token settings",
+                  });
+                }
+              }}
+              className="bg-primary text-black"
+              data-testid="button-save-token-settings"
+            >
+              Save Settings
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

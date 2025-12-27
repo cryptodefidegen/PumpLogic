@@ -1,4 +1,4 @@
-import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets, AllocationPreset, TelegramSettings } from "@shared/schema";
+import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets, AllocationPreset, TelegramSettings, TokenSettings } from "@shared/schema";
 
 export async function authenticateWallet(walletAddress: string): Promise<User> {
   const response = await fetch("/api/auth/wallet", {
@@ -282,6 +282,38 @@ export async function saveTelegramSettings(userId: string, settings: {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error || "Failed to save telegram settings");
+  }
+  
+  return await response.json();
+}
+
+// Token Settings
+export async function getTokenSettings(userId: string): Promise<TokenSettings> {
+  const response = await fetch(`/api/token-settings/${userId}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch token settings");
+  }
+  
+  return await response.json();
+}
+
+export async function saveTokenSettings(userId: string, settings: {
+  tokenName: string | null;
+  tokenSymbol: string | null;
+  contractAddress: string | null;
+  feeCollectionWallet: string | null;
+  feePercentage: number;
+}): Promise<TokenSettings> {
+  const response = await fetch("/api/token-settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, ...settings }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to save token settings");
   }
   
   return await response.json();

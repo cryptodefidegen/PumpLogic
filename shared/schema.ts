@@ -118,3 +118,21 @@ export const insertTelegramSettingsSchema = createInsertSchema(telegramSettings)
 });
 export type InsertTelegramSettings = z.infer<typeof insertTelegramSettingsSchema>;
 export type TelegramSettings = typeof telegramSettings.$inferSelect;
+
+export const tokenSettings = pgTable("token_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull().unique(),
+  tokenName: text("token_name"),
+  tokenSymbol: text("token_symbol"),
+  contractAddress: text("contract_address"),
+  feeCollectionWallet: text("fee_collection_wallet"),
+  feePercentage: integer("fee_percentage").default(1),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertTokenSettingsSchema = createInsertSchema(tokenSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+export type InsertTokenSettings = z.infer<typeof insertTokenSettingsSchema>;
+export type TokenSettings = typeof tokenSettings.$inferSelect;

@@ -1,6 +1,6 @@
 import { db } from "../db/index";
-import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings } from "@shared/schema";
-import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings } from "@shared/schema";
+import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings } from "@shared/schema";
+import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
@@ -34,6 +34,10 @@ export interface IStorage {
   getTelegramSettings(userId: string): Promise<TelegramSettings | undefined>;
   upsertTelegramSettings(settings: InsertTelegramSettings): Promise<TelegramSettings>;
   getTelegramSettingsByChatId(chatId: string): Promise<TelegramSettings | undefined>;
+
+  // Token Settings
+  getTokenSettings(userId: string): Promise<TokenSettings | undefined>;
+  upsertTokenSettings(settings: InsertTokenSettings): Promise<TokenSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -195,6 +199,34 @@ export class DatabaseStorage implements IStorage {
   async getTelegramSettingsByChatId(chatId: string): Promise<TelegramSettings | undefined> {
     const result = await db.select().from(telegramSettings).where(eq(telegramSettings.chatId, chatId)).limit(1);
     return result[0];
+  }
+
+  // Token Settings
+  async getTokenSettings(userId: string): Promise<TokenSettings | undefined> {
+    const result = await db.select().from(tokenSettings).where(eq(tokenSettings.userId, userId)).limit(1);
+    return result[0];
+  }
+
+  async upsertTokenSettings(settings: InsertTokenSettings): Promise<TokenSettings> {
+    const existing = await this.getTokenSettings(settings.userId);
+    
+    if (existing) {
+      const result = await db.update(tokenSettings)
+        .set({
+          tokenName: settings.tokenName,
+          tokenSymbol: settings.tokenSymbol,
+          contractAddress: settings.contractAddress,
+          feeCollectionWallet: settings.feeCollectionWallet,
+          feePercentage: settings.feePercentage,
+          updatedAt: new Date(),
+        })
+        .where(eq(tokenSettings.userId, settings.userId))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(tokenSettings).values(settings).returning();
+      return result[0];
+    }
   }
 }
 
