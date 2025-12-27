@@ -635,7 +635,7 @@ export default function Dashboard() {
                       <BookmarkPlus className="mr-1 h-3 w-3" /> Save Preset
                     </Button>
                   </div>
-                  <Button onClick={handleSave} disabled={!isValid || saveMutation.isPending} className="bg-white text-black hover:bg-white/90" data-testid="button-save-allocations">
+                  <Button onClick={handleSave} disabled={!isValid || saveMutation.isPending} className="bg-primary text-black hover:bg-primary/90" data-testid="button-save-allocations">
                     <Save className="mr-2 h-4 w-4" /> {saveMutation.isPending ? "Saving..." : "Save Allocations"}
                   </Button>
                 </div>
