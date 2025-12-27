@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
+import path from "path";
 import { storage } from "./storage";
 import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema, insertTelegramSettingsSchema } from "@shared/schema";
 import { z } from "zod";
@@ -9,6 +11,7 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  app.use('/downloads', express.static(path.join(process.cwd(), 'attached_assets/generated_images')));
   // Get or create user by wallet address
   app.post("/api/auth/wallet", async (req, res) => {
     try {
