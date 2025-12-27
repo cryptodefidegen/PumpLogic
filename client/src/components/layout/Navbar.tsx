@@ -5,7 +5,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
 import { useToast } from "@/hooks/use-toast";
-import logoImage from "@assets/generated_images/circular_rocket_crypto_logo.png";
+import logoImage from "@assets/generated_images/pump_logic_logo.png";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
