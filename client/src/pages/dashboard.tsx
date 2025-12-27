@@ -1190,6 +1190,39 @@ export default function Dashboard() {
                 />
               </div>
             </div>
+
+            {telegramChatId.trim() && (
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/telegram-settings/test', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ chatId: telegramChatId }),
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error);
+                    toast({
+                      title: "Test Sent",
+                      description: "Check your Telegram for the test message!",
+                      className: "bg-primary text-black font-bold"
+                    });
+                  } catch (error: any) {
+                    toast({
+                      variant: "destructive",
+                      title: "Test Failed",
+                      description: error.message || "Failed to send test notification",
+                    });
+                  }
+                }}
+                className="w-full border-primary/50 text-primary hover:bg-primary/10"
+                data-testid="button-test-telegram"
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                Send Test Notification
+              </Button>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowTelegramSettings(false)}>
