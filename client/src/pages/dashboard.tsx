@@ -871,7 +871,7 @@ export default function Dashboard() {
             </Button>
           </div>
           <div className="bg-card border border-white/5 rounded-lg overflow-hidden">
-             <div className="p-4 border-b border-white/5 text-xs text-muted-foreground grid grid-cols-12 gap-4 uppercase tracking-widest font-mono">
+             <div className="p-4 border-b border-white/5 text-xs text-muted-foreground hidden md:grid grid-cols-12 gap-4 uppercase tracking-widest font-mono">
                 <div className="col-span-2">Time</div>
                 <div className="col-span-2">Type</div>
                 <div className="col-span-6">Details</div>
@@ -1438,23 +1438,47 @@ function LogItem({ time, type, detail, amount, signature }: { time: string, type
   };
 
   return (
-    <div className="p-4 grid grid-cols-12 gap-4 text-sm hover:bg-white/5 transition-colors">
-      <div className="col-span-2 text-muted-foreground font-mono text-xs">{time}</div>
-      <div className={cn("col-span-2 font-bold text-xs uppercase", getColor(type))}>{type}</div>
-      <div className="col-span-6 text-white flex items-center gap-2">
-        {detail}
-        {signature && (
-          <a 
-            href={`https://solscan.io/tx/${signature}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
+    <>
+      {/* Desktop layout */}
+      <div className="p-4 hidden md:grid grid-cols-12 gap-4 text-sm hover:bg-white/5 transition-colors">
+        <div className="col-span-2 text-muted-foreground font-mono text-xs">{time}</div>
+        <div className={cn("col-span-2 font-bold text-xs uppercase", getColor(type))}>{type}</div>
+        <div className="col-span-6 text-white flex items-center gap-2">
+          {detail}
+          {signature && (
+            <a 
+              href={`https://solscan.io/tx/${signature}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+        </div>
+        <div className="col-span-2 text-right font-mono text-white">{amount}</div>
       </div>
-      <div className="col-span-2 text-right font-mono text-white">{amount}</div>
-    </div>
+      {/* Mobile layout */}
+      <div className="p-4 md:hidden hover:bg-white/5 transition-colors space-y-2">
+        <div className="flex items-center justify-between">
+          <span className={cn("font-bold text-xs uppercase", getColor(type))}>{type}</span>
+          <span className="font-mono text-white text-sm">{amount}</span>
+        </div>
+        <div className="text-white text-sm flex items-center gap-2">
+          {detail}
+          {signature && (
+            <a 
+              href={`https://solscan.io/tx/${signature}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+        </div>
+        <div className="text-muted-foreground font-mono text-xs">{time}</div>
+      </div>
+    </>
   );
 }
