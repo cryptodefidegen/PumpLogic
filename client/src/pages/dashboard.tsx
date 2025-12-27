@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell, Volume2, Coins, Flame } from "lucide-react";
+import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell, Volume2, Coins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
@@ -920,32 +920,24 @@ export default function Dashboard() {
               />
             </div>
             <div>
-              <div className="flex items-center justify-between">
-                <Label className="text-white text-sm">Buyback & Burn Wallet</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDestWallets(prev => ({ ...prev, buybackWallet: "1nc1nerator11111111111111111111111111111111" }))}
-                  className="text-xs text-secondary hover:text-secondary/80 h-6 px-2"
-                  data-testid="button-use-burn-address"
-                >
-                  <Flame className="h-3 w-3 mr-1" />
-                  Use Burn Address
-                </Button>
-              </div>
+              <Label className="text-white text-sm">Buyback & Burn Wallet</Label>
               <Input 
                 placeholder="Enter Solana wallet address"
                 value={destWallets.buybackWallet}
                 onChange={(e) => setDestWallets(prev => ({ ...prev, buybackWallet: e.target.value }))}
                 className="bg-black/40 border-white/10 mt-1"
               />
-              {destWallets.buybackWallet === "1nc1nerator11111111111111111111111111111111" && (
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Flame className="h-3 w-3 text-secondary" />
-                  Official Solana burn address selected
-                </p>
-              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Need to burn tokens? Use{" "}
+                <a 
+                  href="https://sol-incinerator.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-secondary hover:underline"
+                >
+                  Sol Incinerator
+                </a>
+              </p>
             </div>
             <div>
               <Label className="text-white text-sm">Liquidity Pool Wallet</Label>
