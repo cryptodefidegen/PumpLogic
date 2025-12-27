@@ -1,8 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download, Bell, ArrowRight } from "lucide-react";
-import { Link } from "wouter";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download, Bell, Shield, ChevronRight } from "lucide-react";
 
 export default function Docs() {
   return (
@@ -13,12 +11,15 @@ export default function Docs() {
           <p className="text-xl text-muted-foreground">Learn how PumpLogic automates your token fee distribution</p>
         </div>
 
-        <div className="space-y-8">
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display">Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground space-y-4">
+        <Accordion type="multiple" className="space-y-4" defaultValue={["overview"]}>
+          <AccordionItem value="overview" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Wallet className="h-5 w-5 text-primary" />
+                Overview
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-4 pb-6">
               <p>
                 PumpLogic is a fee distribution platform for Solana token creators. It allows you to automatically 
                 split incoming fees across four strategic categories, helping you manage token economics without 
@@ -28,14 +29,17 @@ export default function Docs() {
                 Connect your Phantom wallet, configure your allocation percentages, set up destination wallets, 
                 and let the system handle the rest.
               </p>
-            </CardContent>
-          </Card>
+            </AccordionContent>
+          </AccordionItem>
 
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display">How It Works</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <AccordionItem value="how-it-works" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Settings className="h-5 w-5 text-primary" />
+                How It Works
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-6 pb-6">
               <div className="grid gap-6">
                 <Step 
                   number={1}
@@ -62,21 +66,24 @@ export default function Docs() {
                   description="Manually trigger distributions or enable automation. The AI optimizer can suggest allocation adjustments based on network conditions."
                 />
               </div>
-            </CardContent>
-          </Card>
+            </AccordionContent>
+          </AccordionItem>
 
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display">Distribution Categories</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <AccordionItem value="categories" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Distribution Categories
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-6 pb-6">
               <CategoryDetailed 
                 icon={<TrendingUp className="h-6 w-6 text-primary" />}
                 title="Market Making"
                 color="bg-primary/20"
                 summary="Funds allocated here support trading activity and order book depth."
-                concept="Market making involves placing both buy and sell orders at various price levels to provide liquidity. When traders want to buy or sell your token, market makers ensure there's always someone on the other side of the trade. This reduces price volatility and slippage (the difference between expected and actual trade price)."
-                howItWorks="PumpLogic sends your allocated percentage to your designated Market Making wallet. You then use those funds to place orders on exchanges, either manually or through trading bots. The goal is to maintain tight spreads and sufficient depth so traders can execute orders efficiently."
+                concept="Market making involves placing both buy and sell orders at various price levels to provide liquidity. When traders want to buy or sell your token, market makers ensure there's always someone on the other side of the trade. This reduces price volatility and slippage."
+                howItWorks="PumpLogic sends your allocated percentage to your designated Market Making wallet. You then use those funds to place orders on exchanges, either manually or through trading bots."
                 benefits={["Reduces price slippage for traders", "Improves trading experience and volume", "Stabilizes token price movements", "Attracts more traders to your token"]}
               />
               <Separator className="bg-white/5" />
@@ -85,8 +92,8 @@ export default function Docs() {
                 title="Buyback & Burn"
                 color="bg-secondary/20"
                 summary="Tokens are repurchased from the market and permanently removed from circulation."
-                concept="Buyback and burn is a deflationary mechanism. The allocated funds are used to purchase your token from the open market, and those tokens are then sent to a burn address (a wallet with no private key), permanently removing them from circulation. This reduces total supply over time."
-                howItWorks="PumpLogic sends funds to your Buyback wallet. You use those funds to buy your token on DEXs, then send the purchased tokens to a burn address. Some projects automate this with smart contracts that execute burns on a schedule."
+                concept="Buyback and burn is a deflationary mechanism. The allocated funds are used to purchase your token from the open market, and those tokens are then sent to a burn address, permanently removing them from circulation."
+                howItWorks="PumpLogic sends funds to your Buyback wallet. You use those funds to buy your token on DEXs, then send the purchased tokens to a burn address."
                 benefits={["Reduces circulating supply", "Creates deflationary pressure on token", "Can increase token value over time", "Shows commitment to token holders"]}
               />
               <Separator className="bg-white/5" />
@@ -95,8 +102,8 @@ export default function Docs() {
                 title="Liquidity Pool"
                 color="bg-blue-400/20"
                 summary="Contributions to decentralized liquidity pools strengthen your token's tradability."
-                concept="Liquidity pools are smart contracts that hold pairs of tokens (e.g., your token + SOL) on decentralized exchanges like Raydium or Orca. When you add liquidity, you're depositing both tokens to enable trading. In return, you earn a portion of trading fees from swaps."
-                howItWorks="PumpLogic sends funds to your Liquidity wallet. You then add those funds (along with an equivalent value of your token) to a liquidity pool. This deepens the pool, allowing larger trades with less price impact and earning you LP fees."
+                concept="Liquidity pools are smart contracts that hold pairs of tokens on decentralized exchanges like Raydium or Orca. When you add liquidity, you're depositing both tokens to enable trading."
+                howItWorks="PumpLogic sends funds to your Liquidity wallet. You then add those funds (along with an equivalent value of your token) to a liquidity pool."
                 benefits={["Enables trading on DEXs", "Earns passive income from swap fees", "Deeper liquidity attracts more traders", "Improves overall token accessibility"]}
               />
               <Separator className="bg-white/5" />
@@ -105,18 +112,21 @@ export default function Docs() {
                 title="Creator Revenue"
                 color="bg-yellow-400/20"
                 summary="Direct earnings sent to your designated wallet for operational use."
-                concept="Creator revenue is the portion of fees you keep for yourself or your team. This is your income from the token project, used to fund ongoing development, marketing, team salaries, partnerships, or any other business expenses."
-                howItWorks="PumpLogic sends the allocated percentage directly to your Revenue wallet. These funds are yours to use however you see fit - no additional steps required. This ensures consistent income flow from your token's trading activity."
+                concept="Creator revenue is the portion of fees you keep for yourself or your team. This is your income from the token project."
+                howItWorks="PumpLogic sends the allocated percentage directly to your Revenue wallet. These funds are yours to use however you see fit."
                 benefits={["Fund ongoing development", "Pay team members and contributors", "Cover marketing and growth costs", "Sustain long-term project operations"]}
               />
-            </CardContent>
-          </Card>
+            </AccordionContent>
+          </AccordionItem>
 
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display">AI Optimizer</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground space-y-4">
+          <AccordionItem value="ai-optimizer" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Brain className="h-5 w-5 text-primary" />
+                AI Optimizer
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-4 pb-6">
               <p>
                 The built-in AI optimizer analyzes current Solana network conditions including transaction throughput, 
                 congestion levels, and market volatility to suggest optimal allocation percentages.
@@ -129,72 +139,58 @@ export default function Docs() {
               <p>
                 You always have final control - the optimizer makes suggestions that you can accept or modify.
               </p>
-            </CardContent>
-          </Card>
+            </AccordionContent>
+          </AccordionItem>
 
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display">Transaction History</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground space-y-4">
-              <p>
-                Every distribution is recorded with its transaction signature, amount, and breakdown by category. 
-                You can view your complete history in the dashboard and verify any transaction on-chain using Solana explorers.
-              </p>
-              <p>
-                Transaction types include manual distributions, automated distributions, and optimizer runs 
-                (which record allocation changes).
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display">Dashboard Tools</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <AccordionItem value="dashboard-tools" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Eye className="h-5 w-5 text-primary" />
+                Dashboard Tools
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-6 pb-6">
               <Category 
                 icon={<Eye className="h-6 w-6 text-primary" />}
                 title="Distribution Preview"
                 color="bg-primary/20"
-                description="Before signing any transaction, use the Preview button to see exactly how your SOL will be split across channels. This shows the precise amount going to each destination wallet, so you can verify the breakdown before committing."
+                description="Before signing any transaction, use the Preview button to see exactly how your SOL will be split across channels."
               />
               <Separator className="bg-white/5" />
               <Category 
                 icon={<BookmarkPlus className="h-6 w-6 text-secondary" />}
                 title="Quick Presets"
                 color="bg-secondary/20"
-                description="Save your favorite allocation configurations as presets for quick access. Whether you have a 'Bull Market' strategy or a 'Conservative' approach, presets let you switch between configurations instantly without manually adjusting each slider."
+                description="Save your favorite allocation configurations as presets for quick access. Switch between strategies instantly."
               />
               <Separator className="bg-white/5" />
               <Category 
                 icon={<BarChart3 className="h-6 w-6 text-blue-400" />}
                 title="Channel Performance"
                 color="bg-blue-400/20"
-                description="Track your cumulative distribution history with the Channel Performance dashboard. See total SOL distributed to each category over time, helping you understand your overall fee routing patterns and make informed strategy adjustments."
+                description="Track your cumulative distribution history. See total SOL distributed to each category over time."
               />
               <Separator className="bg-white/5" />
               <Category 
                 icon={<Download className="h-6 w-6 text-yellow-400" />}
                 title="Export History"
                 color="bg-yellow-400/20"
-                description="Download your complete transaction history as a CSV file for record-keeping, tax purposes, or analysis. The export includes timestamps, transaction types, amounts, and on-chain signatures for full transparency."
+                description="Download your complete transaction history as a CSV file for record-keeping or tax purposes."
               />
-            </CardContent>
-          </Card>
+            </AccordionContent>
+          </AccordionItem>
 
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display flex items-center gap-2">
-                <Bell className="h-6 w-6 text-primary" />
+          <AccordionItem value="telegram" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Bell className="h-5 w-5 text-primary" />
                 Telegram Notifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground space-y-6">
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
               <p>
                 The PumpLogic Telegram Bot keeps you informed about your fee distributions in real-time. 
                 Receive instant notifications when distributions complete, fees accumulate, or large purchases occur.
-                The bot uses a secure notification-only model - it never has access to your private keys or wallet.
               </p>
 
               <div>
@@ -206,15 +202,15 @@ export default function Docs() {
                   </div>
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
-                    <p className="text-sm">Send <span className="text-primary font-mono">/start</span> to the bot - it will reply with your unique Chat ID</p>
+                    <p className="text-sm">Send <span className="text-primary font-mono">/start</span> to get your unique Chat ID</p>
                   </div>
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
-                    <p className="text-sm">In your PumpLogic Dashboard, click the <span className="text-white">"Notifications"</span> button</p>
+                    <p className="text-sm">In your Dashboard, click "Notifications" and paste your Chat ID</p>
                   </div>
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
-                    <p className="text-sm">Paste your Chat ID, enable notifications, and choose your alert preferences</p>
+                    <p className="text-sm">Enable notifications and choose your alert preferences</p>
                   </div>
                 </div>
               </div>
@@ -228,7 +224,7 @@ export default function Docs() {
                     </div>
                     <div>
                       <p className="text-white text-sm font-medium">Distribution Confirmations</p>
-                      <p className="text-xs">Get notified when a distribution completes with amount breakdown and transaction link</p>
+                      <p className="text-xs">Get notified when a distribution completes with amount breakdown</p>
                     </div>
                   </div>
                   <div className="flex gap-3">
@@ -237,7 +233,7 @@ export default function Docs() {
                     </div>
                     <div>
                       <p className="text-white text-sm font-medium">Fee Ready Alerts</p>
-                      <p className="text-xs">Receive alerts when your wallet has accumulated fees ready for distribution</p>
+                      <p className="text-xs">Receive alerts when your wallet has accumulated fees</p>
                     </div>
                   </div>
                   <div className="flex gap-3">
@@ -246,7 +242,7 @@ export default function Docs() {
                     </div>
                     <div>
                       <p className="text-white text-sm font-medium">Large Buy Alerts</p>
-                      <p className="text-xs">Get notified when significant token purchases occur that may generate fees</p>
+                      <p className="text-xs">Get notified when significant token purchases occur</p>
                     </div>
                   </div>
                 </div>
@@ -257,7 +253,7 @@ export default function Docs() {
                 <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-2">
                   <div className="flex gap-3 items-start">
                     <code className="bg-primary/20 text-primary px-2 py-0.5 rounded font-mono text-xs shrink-0">/start</code>
-                    <p className="text-xs">Get your unique Chat ID for linking to PumpLogic</p>
+                    <p className="text-xs">Get your unique Chat ID for linking</p>
                   </div>
                   <div className="flex gap-3 items-start">
                     <code className="bg-primary/20 text-primary px-2 py-0.5 rounded font-mono text-xs shrink-0">/status</code>
@@ -265,122 +261,61 @@ export default function Docs() {
                   </div>
                   <div className="flex gap-3 items-start">
                     <code className="bg-primary/20 text-primary px-2 py-0.5 rounded font-mono text-xs shrink-0">/help</code>
-                    <p className="text-xs">Display available commands and documentation links</p>
+                    <p className="text-xs">Display available commands</p>
                   </div>
                 </div>
               </div>
+            </AccordionContent>
+          </AccordionItem>
 
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                <h4 className="text-primary font-semibold mb-2">Security</h4>
-                <ul className="text-xs space-y-1">
-                  <li>The bot never has access to your private keys</li>
-                  <li>All transactions still require manual Phantom wallet approval</li>
-                  <li>Only your Telegram Chat ID is stored - no other personal data</li>
-                  <li>Notifications are completely optional and can be disabled anytime</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display flex items-center gap-2">
-                <Coins className="h-6 w-6 text-primary" />
+          <AccordionItem value="token-settings" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Coins className="h-5 w-5 text-primary" />
                 Token Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground space-y-6">
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
               <p>
                 The Token Settings feature allows you to configure your token information in PumpLogic. 
-                This helps track your token's fees and provides context for the distribution system.
+                This helps track your token's fees and enables blockchain monitoring.
               </p>
 
               <div>
                 <h4 className="text-white font-semibold mb-3">Configuration Fields</h4>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="bg-black/20 rounded-lg p-4 border border-white/10">
                     <h5 className="text-white text-sm font-medium mb-2">Token Name & Symbol</h5>
-                    <p className="text-xs">
-                      Your token's display name and ticker symbol (e.g., "MyToken" / "MTK"). 
-                      Used for display purposes throughout the dashboard.
-                    </p>
+                    <p className="text-xs">Your token's display name and ticker symbol for dashboard display.</p>
                   </div>
-
                   <div className="bg-black/20 rounded-lg p-4 border border-white/10">
                     <h5 className="text-white text-sm font-medium mb-2">Token Contract Address</h5>
-                    <p className="text-xs">
-                      The mint address of your Pump.fun token on Solana. This is the unique identifier 
-                      for your token on the blockchain. You can find this on Pump.fun or Solscan.
-                    </p>
+                    <p className="text-xs">The mint address of your token on Solana. Find this on Pump.fun or Solscan.</p>
                   </div>
-
                   <div className="bg-black/20 rounded-lg p-4 border border-white/10">
                     <h5 className="text-white text-sm font-medium mb-2">Fee Collection Wallet</h5>
-                    <p className="text-xs">
-                      The wallet address where trading fees from your token accumulate. This should be the 
-                      same wallet you connect with Phantom. When fees accumulate here, you can use PumpLogic 
-                      to distribute them across your configured allocation categories.
-                    </p>
+                    <p className="text-xs">The wallet where trading fees accumulate. Used for balance monitoring.</p>
                   </div>
-
                   <div className="bg-black/20 rounded-lg p-4 border border-white/10">
                     <h5 className="text-white text-sm font-medium mb-2">Fee Percentage</h5>
-                    <p className="text-xs">
-                      The trading fee percentage set on your token (1-10%). This is used for tracking 
-                      and calculating expected fee amounts based on trading volume.
-                    </p>
+                    <p className="text-xs">The trading fee percentage set on your token (1-10%).</p>
                   </div>
                 </div>
               </div>
+            </AccordionContent>
+          </AccordionItem>
 
-              <div>
-                <h4 className="text-white font-semibold mb-3">How It Works Together</h4>
-                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
-                    <p className="text-sm">When people trade your token on Pump.fun, fees go to your Fee Collection Wallet</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
-                    <p className="text-sm">Connect that wallet to PumpLogic via Phantom</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
-                    <p className="text-sm">Set your allocation percentages (Market Making, Buyback, Liquidity, Revenue)</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
-                    <p className="text-sm">Use the "Distribute" feature to split accumulated fees across your destination wallets</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">5</div>
-                    <p className="text-sm">Get Telegram notifications when distributions complete</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                <h4 className="text-primary font-semibold mb-2">Getting Started</h4>
-                <p className="text-xs">
-                  Click the "Token" button in your Dashboard to configure your token settings. 
-                  Enter your token details to enable accurate fee tracking and distribution management.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display flex items-center gap-2">
-                <Activity className="h-6 w-6 text-primary" />
+          <AccordionItem value="blockchain-monitoring" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Activity className="h-5 w-5 text-primary" />
                 Blockchain Monitoring
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground space-y-6">
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
               <p>
                 PumpLogic includes real-time blockchain monitoring that automatically watches your token 
-                for trading activity. When configured with your token contract address, the system polls 
-                the Solana blockchain every 30 seconds to detect significant events.
+                for trading activity. The system polls Solana every 30 seconds to detect significant events.
               </p>
 
               <div>
@@ -389,18 +324,15 @@ export default function Docs() {
                   <div className="bg-black/20 rounded-lg p-4 border border-white/10">
                     <h5 className="text-white text-sm font-medium mb-2">Large Token Purchases</h5>
                     <p className="text-xs">
-                      When someone buys 10,000+ tokens of your token in a single transaction, you'll 
-                      receive a Telegram notification with the buyer's address and purchase amount. 
-                      This helps you track significant accumulation events.
+                      When someone buys 10,000+ tokens in a single transaction, you'll receive a Telegram 
+                      notification with the buyer's address and purchase amount.
                     </p>
                   </div>
-
                   <div className="bg-black/20 rounded-lg p-4 border border-white/10">
                     <h5 className="text-white text-sm font-medium mb-2">Fee Wallet Balance</h5>
                     <p className="text-xs">
-                      If you configure a fee collection wallet in Token Settings, the system monitors 
-                      its SOL balance. When fees accumulate above the threshold (0.01 SOL), you'll get 
-                      a notification reminding you to distribute.
+                      If you configure a fee collection wallet, the system monitors its balance and notifies 
+                      you when fees accumulate above 0.01 SOL.
                     </p>
                   </div>
                 </div>
@@ -408,9 +340,6 @@ export default function Docs() {
 
               <div>
                 <h4 className="text-white font-semibold mb-3">Per-User Token Support</h4>
-                <p className="text-sm mb-3">
-                  Each user can configure and monitor their own token independently:
-                </p>
                 <ul className="text-xs space-y-2 list-disc list-inside">
                   <li>Your Token Settings are private to your account</li>
                   <li>Monitoring runs separately for each user's token</li>
@@ -420,27 +349,23 @@ export default function Docs() {
               </div>
 
               <div>
-                <h4 className="text-white font-semibold mb-3">How to Enable Monitoring</h4>
-                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                <h4 className="text-white font-semibold mb-3">How to Enable</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-2">
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <ChevronRight className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <p className="text-sm">Open Token Settings from your Dashboard</p>
                   </div>
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
-                    <p className="text-sm">Enter your token's contract address (mint address from Pump.fun)</p>
+                    <ChevronRight className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <p className="text-sm">Enter your token's contract address</p>
                   </div>
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
-                    <p className="text-sm">Optionally add your fee collection wallet for balance monitoring</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <ChevronRight className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <p className="text-sm">Save settings - monitoring starts automatically</p>
                   </div>
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">5</div>
-                    <p className="text-sm">Make sure Telegram notifications are enabled to receive alerts</p>
+                    <ChevronRight className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <p className="text-sm">Enable Telegram notifications to receive alerts</p>
                   </div>
                 </div>
               </div>
@@ -448,18 +373,20 @@ export default function Docs() {
               <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4">
                 <h4 className="text-secondary font-semibold mb-2">Current Limitation</h4>
                 <p className="text-xs">
-                  Each user can currently monitor one token at a time. If you need to monitor multiple 
-                  tokens simultaneously, this feature may be added in a future update.
+                  Each user can currently monitor one token at a time. Multi-token support may be added later.
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </AccordionContent>
+          </AccordionItem>
 
-          <Card className="bg-card border-white/5">
-            <CardHeader>
-              <CardTitle className="text-white text-2xl font-display">Security</CardTitle>
-            </CardHeader>
-            <CardContent className="text-muted-foreground space-y-4">
+          <AccordionItem value="security" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-primary" />
+                Security
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-4 pb-6">
               <p>
                 PumpLogic never has access to your private keys. All transactions are signed locally in your 
                 Phantom wallet before being submitted to the Solana network.
@@ -468,9 +395,17 @@ export default function Docs() {
                 Your wallet address is used for authentication and to create transactions, but signing authority 
                 remains entirely with you. You approve every distribution before it executes.
               </p>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                <ul className="text-xs space-y-1">
+                  <li>The bot never has access to your private keys</li>
+                  <li>All transactions require manual Phantom wallet approval</li>
+                  <li>Only your Telegram Chat ID is stored - no other personal data</li>
+                  <li>Notifications are completely optional</li>
+                </ul>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </div>
   );
