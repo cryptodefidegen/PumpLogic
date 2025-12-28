@@ -493,38 +493,40 @@ export default function Dashboard() {
     }
   };
 
-  // Redirect if not connected
-  if (!isConnected || !user) {
-    return (
-      <div className="min-h-screen text-foreground flex items-center justify-center">
-        <Card className="bg-card border-white/5 max-w-md w-full mx-4">
-          <CardHeader>
-            <CardTitle className="text-white text-center">Connect Your Wallet</CardTitle>
-            <CardDescription className="text-center">Connect your Phantom wallet to access the dashboard</CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <Button onClick={connect} className="bg-primary text-black hover:bg-primary/90" data-testid="button-connect-dashboard">
-              <Wallet className="mr-2 h-4 w-4" />
-              Connect Phantom
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Preview mode - show dashboard but with warning
+  const isPreviewMode = !isConnected || !user;
 
   return (
     <div className="min-h-screen text-foreground pb-20">
       <div className="container mx-auto px-4 pt-8">
         
-        {/* Connection Warning */}
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-8 flex gap-3 items-start">
-          <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
-          <div className="text-sm text-yellow-200/80">
-            <strong className="text-yellow-500 block mb-1">IMPORTANT SECURITY NOTICE</strong>
-            Transactions are signed by your Phantom wallet. Your private key <span className="text-white font-bold">NEVER</span> leaves your wallet. Only use a dedicated fee wallet. DYOR.
+        {/* Preview Mode Warning Banner */}
+        {isPreviewMode && (
+          <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div className="flex gap-3 items-start">
+              <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <strong className="text-primary block mb-1">PREVIEW MODE</strong>
+                <span className="text-white/80">You're viewing the dashboard in preview mode. Connect your Phantom wallet to save settings and execute transactions.</span>
+              </div>
+            </div>
+            <Button onClick={connect} className="bg-primary text-black hover:bg-primary/90 shrink-0" data-testid="button-connect-dashboard">
+              <Wallet className="mr-2 h-4 w-4" />
+              Connect Wallet
+            </Button>
           </div>
-        </div>
+        )}
+
+        {/* Connection Warning - only show when connected */}
+        {!isPreviewMode && (
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-8 flex gap-3 items-start">
+            <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
+            <div className="text-sm text-yellow-200/80">
+              <strong className="text-yellow-500 block mb-1">IMPORTANT SECURITY NOTICE</strong>
+              Transactions are signed by your Phantom wallet. Your private key <span className="text-white font-bold">NEVER</span> leaves your wallet. Only use a dedicated fee wallet. DYOR.
+            </div>
+          </div>
+        )}
 
         {/* Top Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
@@ -537,6 +539,7 @@ export default function Dashboard() {
               variant="outline" 
               size="sm" 
               onClick={() => setShowWalletConfig(true)}
+              disabled={isPreviewMode}
               className="border-white/10 text-xs"
             >
               <Settings className="h-4 w-4 mr-1" />
@@ -546,6 +549,7 @@ export default function Dashboard() {
               variant="outline" 
               size="sm" 
               onClick={() => setShowTelegramSettings(true)}
+              disabled={isPreviewMode}
               className="border-white/10 text-xs"
               data-testid="button-telegram-settings"
             >
@@ -566,15 +570,22 @@ export default function Dashboard() {
               variant="outline" 
               size="sm" 
               onClick={() => setShowTokenSettings(true)}
+              disabled={isPreviewMode}
               className="border-white/10 text-xs"
               data-testid="button-token-settings"
             >
               <Coins className="h-4 w-4 mr-1" />
               Token
             </Button>
-            <div className="px-3 py-1 rounded-full text-xs font-mono border bg-green-500/10 text-green-500 border-green-500/20">
-              CONNECTED
-            </div>
+            {isPreviewMode ? (
+              <div className="px-3 py-1 rounded-full text-xs font-mono border bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
+                PREVIEW
+              </div>
+            ) : (
+              <div className="px-3 py-1 rounded-full text-xs font-mono border bg-green-500/10 text-green-500 border-green-500/20">
+                CONNECTED
+              </div>
+            )}
           </div>
         </div>
 
@@ -628,14 +639,14 @@ export default function Dashboard() {
                       variant="outline" 
                       size="sm" 
                       onClick={() => setShowSavePreset(true)}
-                      disabled={!isValid}
+                      disabled={!isValid || isPreviewMode}
                       className="border-primary/30 text-primary hover:bg-primary/10"
                       data-testid="button-save-preset"
                     >
                       <BookmarkPlus className="mr-1 h-3 w-3" /> Save Preset
                     </Button>
                   </div>
-                  <Button onClick={handleSave} disabled={!isValid || saveMutation.isPending} className="bg-primary text-black hover:bg-primary/90" data-testid="button-save-allocations">
+                  <Button onClick={handleSave} disabled={!isValid || saveMutation.isPending || isPreviewMode} className="bg-primary text-black hover:bg-primary/90" data-testid="button-save-allocations">
                     <Save className="mr-2 h-4 w-4" /> {saveMutation.isPending ? "Saving..." : "Save Allocations"}
                   </Button>
                 </div>
@@ -702,7 +713,7 @@ export default function Dashboard() {
                   <Button 
                     size="lg" 
                     onClick={runAnalysis} 
-                    disabled={analyzing || optimizerMutation.isPending}
+                    disabled={analyzing || optimizerMutation.isPending || isPreviewMode}
                     className="h-24 w-32 bg-primary/10 border border-primary/50 hover:bg-primary/20 text-primary flex-col gap-2"
                     data-testid="button-run-optimizer"
                   >
@@ -743,7 +754,7 @@ export default function Dashboard() {
                     <Button 
                       className="h-12 flex-1 md:flex-none px-4 md:px-6 bg-secondary text-white hover:bg-secondary/90 font-bold" 
                       onClick={handleDistribute}
-                      disabled={isDistributing}
+                      disabled={isDistributing || isPreviewMode}
                       data-testid="button-distribute"
                     >
                       {isDistributing ? (
