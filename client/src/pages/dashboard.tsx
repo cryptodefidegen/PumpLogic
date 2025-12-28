@@ -1554,7 +1554,7 @@ export default function Dashboard() {
 
       {/* Multi-Token Management Dialog */}
       <Dialog open={showTokenSettings} onOpenChange={setShowTokenSettings}>
-        <DialogContent className="bg-card border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-card border-white/10 text-white w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto mx-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Coins className="h-5 w-5 text-primary" />
@@ -1571,7 +1571,7 @@ export default function Dashboard() {
                 <Plus className="h-4 w-4 text-primary" />
                 Add New Token
               </h4>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-white text-xs">Token Name *</Label>
                   <Input 
@@ -1603,7 +1603,7 @@ export default function Dashboard() {
                   data-testid="input-new-contract-address"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-white text-xs">Fee Collection Wallet</Label>
                   <Input 
@@ -1796,7 +1796,7 @@ export default function Dashboard() {
           </DialogHeader>
           {editingToken && (
             <div className="py-4 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-white text-xs">Token Name</Label>
                   <Input 
