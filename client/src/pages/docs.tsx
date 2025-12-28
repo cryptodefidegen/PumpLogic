@@ -10,7 +10,7 @@ export default function Docs() {
           <h1 className="text-4xl md:text-5xl font-bold font-display mb-4 text-white">Documentation</h1>
           <p className="text-xl text-muted-foreground mb-6">Learn how PumpLogic automates your token fee distribution</p>
           <a 
-            href="/guides/PumpLogic-User-Guide.pdf" 
+            href="/PumpLogic-User-Guide.pdf" 
             download="PumpLogic-User-Guide.pdf"
             className="inline-flex items-center gap-2 bg-primary text-black px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
             data-testid="button-download-guide"

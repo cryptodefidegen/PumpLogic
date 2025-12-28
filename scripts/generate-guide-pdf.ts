@@ -142,6 +142,11 @@ function generateHTML(screenshots: Record<string, string>) {
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    
     * {
       margin: 0;
       padding: 0;
@@ -149,16 +154,19 @@ function generateHTML(screenshots: Record<string, string>) {
     }
     
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: #0a0a0a;
       color: #ffffff;
       line-height: 1.6;
+      width: 210mm;
     }
     
     .page {
       page-break-after: always;
-      padding: 40px;
-      min-height: 100vh;
+      padding: 50px;
+      min-height: 297mm;
+      width: 210mm;
+      background: #0a0a0a;
     }
     
     .page:last-child {
@@ -171,98 +179,102 @@ function generateHTML(screenshots: Record<string, string>) {
       align-items: center;
       justify-content: center;
       text-align: center;
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+      background: linear-gradient(180deg, #0a0a0a 0%, #0f1419 50%, #1a1a2e 100%);
     }
     
     .logo {
-      width: 150px;
-      height: 150px;
+      width: 120px;
+      height: 120px;
       margin-bottom: 30px;
     }
     
     h1 {
-      font-size: 48px;
+      font-size: 42px;
       font-weight: 700;
       color: #00ff9d;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     
     .subtitle {
-      font-size: 24px;
+      font-size: 22px;
       color: #888;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
     
     .tagline {
-      font-size: 18px;
+      font-size: 16px;
       color: #00ff9d;
       border: 1px solid #00ff9d;
-      padding: 15px 30px;
+      padding: 12px 25px;
       border-radius: 8px;
     }
     
     h2 {
-      font-size: 32px;
+      font-size: 28px;
       color: #00ff9d;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
+      margin-bottom: 18px;
+      padding-bottom: 8px;
       border-bottom: 2px solid #00ff9d33;
     }
     
     h3 {
-      font-size: 22px;
+      font-size: 20px;
       color: #ffffff;
-      margin: 25px 0 15px 0;
+      margin: 20px 0 12px 0;
     }
     
     p {
-      font-size: 16px;
+      font-size: 14px;
       color: #cccccc;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
     }
     
     .step {
       background: #1a1a2e;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 15px 0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 10px 0;
       border-left: 4px solid #00ff9d;
+      display: flex;
+      align-items: center;
     }
     
     .step-number {
-      display: inline-block;
-      width: 30px;
-      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
       background: #00ff9d;
       color: #0a0a0a;
       border-radius: 50%;
-      text-align: center;
-      line-height: 30px;
       font-weight: 700;
-      margin-right: 15px;
+      font-size: 14px;
+      margin-right: 12px;
     }
     
     .step-content {
-      display: inline;
-      font-size: 16px;
+      font-size: 14px;
+      color: #ffffff;
     }
     
     .screenshot {
       width: 100%;
-      max-width: 800px;
-      border-radius: 12px;
+      max-width: 500px;
+      border-radius: 8px;
       border: 2px solid #333;
-      margin: 20px auto;
+      margin: 15px auto;
       display: block;
-      box-shadow: 0 10px 40px rgba(0, 255, 157, 0.1);
+      box-shadow: 0 8px 30px rgba(0, 255, 157, 0.1);
     }
     
     .tip {
       background: linear-gradient(135deg, #00ff9d15 0%, #00ff9d05 100%);
       border: 1px solid #00ff9d33;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px 0;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 15px 0;
     }
     
     .tip-title {
@@ -699,14 +711,16 @@ async function main() {
   
   console.log('Generating PDF...');
   const pdfPage = await browser.newPage();
-  await pdfPage.setContent(html, { waitUntil: 'networkidle0' });
+  await pdfPage.setContent(html, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await delay(2000);
   
   const pdfPath = path.join(OUTPUT_DIR, 'PumpLogic-User-Guide.pdf');
   await pdfPage.pdf({
     path: pdfPath,
     format: 'A4',
     printBackground: true,
-    margin: { top: '0', right: '0', bottom: '0', left: '0' }
+    margin: { top: '0', right: '0', bottom: '0', left: '0' },
+    timeout: 60000
   });
   
   console.log(`PDF saved to ${pdfPath}`);
