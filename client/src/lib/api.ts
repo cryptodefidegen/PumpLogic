@@ -1,5 +1,93 @@
 import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets, AllocationPreset, TelegramSettings, TokenSettings } from "@shared/schema";
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
+
+const DEMO_ALLOCATION: Allocation = {
+  id: 'demo-alloc-1',
+  userId: 'demo-user-id',
+  marketMaking: 30,
+  buyback: 25,
+  liquidity: 25,
+  revenue: 20,
+  updatedAt: new Date()
+};
+
+const DEMO_TRANSACTIONS: Transaction[] = [
+  {
+    id: 'demo-tx-1',
+    userId: 'demo-user-id',
+    type: 'distribution',
+    amount: '1.5',
+    signature: 'demo1234567890abcdef',
+    detail: 'Fee distribution: 0.45 SOL Market Making, 0.375 SOL Buyback, 0.375 SOL Liquidity, 0.3 SOL Revenue',
+    createdAt: new Date(Date.now() - 3600000)
+  },
+  {
+    id: 'demo-tx-2',
+    userId: 'demo-user-id',
+    type: 'optimize',
+    amount: '0',
+    signature: null,
+    detail: 'AI optimization applied: High volatility detected, increased buyback allocation',
+    createdAt: new Date(Date.now() - 7200000)
+  },
+  {
+    id: 'demo-tx-3',
+    userId: 'demo-user-id',
+    type: 'distribution',
+    amount: '2.0',
+    signature: 'demo0987654321fedcba',
+    detail: 'Fee distribution: 0.6 SOL Market Making, 0.5 SOL Buyback, 0.5 SOL Liquidity, 0.4 SOL Revenue',
+    createdAt: new Date(Date.now() - 86400000)
+  }
+];
+
+const DEMO_AUTOMATION: AutomationConfig = {
+  id: 'demo-auto-1',
+  userId: 'demo-user-id',
+  isActive: true,
+  rsi: '50',
+  volatility: 'medium',
+  updatedAt: new Date()
+};
+
+const DEMO_WALLETS: DestinationWallets = {
+  id: 'demo-wallets-1',
+  userId: 'demo-user-id',
+  marketMakingWallet: 'MarketMak1ngWa11etAddress123456789ABC',
+  buybackWallet: 'BuybackWa11etAddress123456789ABCDEF',
+  liquidityWallet: 'L1qu1d1tyWa11etAddress123456789ABCDE',
+  revenueWallet: 'RevenueWa11etAddress123456789ABCDEFG',
+  updatedAt: new Date()
+};
+
+const DEMO_PRESETS: AllocationPreset[] = [
+  { id: 'demo-preset-1', userId: 'demo-user-id', name: 'Aggressive Buyback', marketMaking: 20, buyback: 40, liquidity: 20, revenue: 20, createdAt: new Date() },
+  { id: 'demo-preset-2', userId: 'demo-user-id', name: 'Balanced Growth', marketMaking: 25, buyback: 25, liquidity: 25, revenue: 25, createdAt: new Date() }
+];
+
+const DEMO_TELEGRAM: TelegramSettings = {
+  id: 'demo-tg-1',
+  userId: 'demo-user-id',
+  chatId: '123456789',
+  isEnabled: true,
+  notifyOnDistribution: true,
+  notifyOnFeeReady: true,
+  notifyOnLargeBuy: true,
+  updatedAt: new Date()
+};
+
+const DEMO_TOKEN: TokenSettings = {
+  id: 'demo-token-1',
+  userId: 'demo-user-id',
+  tokenName: 'PumpToken',
+  tokenSymbol: 'PUMP',
+  contractAddress: 'TokenContractAddress123456789ABCDEFGH',
+  feeCollectionWallet: 'FeeCol1ect1onWa11et123456789ABCDEFG',
+  feePercentage: 1,
+  updatedAt: new Date()
+};
+
 export async function authenticateWallet(walletAddress: string): Promise<User> {
   const response = await fetch("/api/auth/wallet", {
     method: "POST",
@@ -41,6 +129,8 @@ export async function getNetworkStats(): Promise<{
 }
 
 export async function getDestinationWallets(userId: string): Promise<DestinationWallets> {
+  if (DEMO_MODE) return DEMO_WALLETS;
+  
   const response = await fetch(`/api/destination-wallets/${userId}`);
   
   if (!response.ok) {
@@ -114,6 +204,8 @@ export async function recordTransaction(userId: string, signature: string, amoun
 }
 
 export async function getAllocation(userId: string): Promise<Allocation> {
+  if (DEMO_MODE) return DEMO_ALLOCATION;
+  
   const response = await fetch(`/api/allocations/${userId}`);
   
   if (!response.ok) {
@@ -144,6 +236,8 @@ export async function saveAllocation(userId: string, allocations: {
 }
 
 export async function getTransactions(userId: string, limit?: number): Promise<Transaction[]> {
+  if (DEMO_MODE) return DEMO_TRANSACTIONS;
+  
   const url = `/api/transactions/${userId}${limit ? `?limit=${limit}` : ""}`;
   const response = await fetch(url);
   
@@ -175,6 +269,8 @@ export async function createTransaction(transaction: {
 }
 
 export async function getAutomationConfig(userId: string): Promise<AutomationConfig> {
+  if (DEMO_MODE) return DEMO_AUTOMATION;
+  
   const response = await fetch(`/api/automation/${userId}`);
   
   if (!response.ok) {
@@ -216,6 +312,8 @@ export async function runOptimizer(userId: string): Promise<Allocation> {
 
 // Allocation Presets
 export async function getPresets(userId: string): Promise<AllocationPreset[]> {
+  if (DEMO_MODE) return DEMO_PRESETS;
+  
   const response = await fetch(`/api/presets/${userId}`);
   
   if (!response.ok) {
@@ -257,6 +355,8 @@ export async function deletePreset(id: string): Promise<void> {
 
 // Telegram Settings
 export async function getTelegramSettings(userId: string): Promise<TelegramSettings> {
+  if (DEMO_MODE) return DEMO_TELEGRAM;
+  
   const response = await fetch(`/api/telegram-settings/${userId}`);
   
   if (!response.ok) {
@@ -289,6 +389,8 @@ export async function saveTelegramSettings(userId: string, settings: {
 
 // Token Settings
 export async function getTokenSettings(userId: string): Promise<TokenSettings> {
+  if (DEMO_MODE) return DEMO_TOKEN;
+  
   const response = await fetch(`/api/token-settings/${userId}`);
   
   if (!response.ok) {

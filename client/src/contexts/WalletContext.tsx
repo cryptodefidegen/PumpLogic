@@ -2,6 +2,14 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { authenticateWallet } from "@/lib/api";
 import type { User } from "@shared/schema";
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
+
+const DEMO_USER: User = {
+  id: 'demo-user-id',
+  walletAddress: 'DemoWa11etAddressForScreenshots123456789',
+  createdAt: new Date()
+};
+
 declare global {
   interface Window {
     solana?: {
@@ -30,12 +38,16 @@ interface WalletContextType {
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isPhantomInstalled, setIsPhantomInstalled] = useState(false);
+  const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(DEMO_MODE ? DEMO_USER.walletAddress : null);
+  const [isConnected, setIsConnected] = useState(DEMO_MODE);
+  const [isPhantomInstalled, setIsPhantomInstalled] = useState(DEMO_MODE);
 
   useEffect(() => {
+    if (DEMO_MODE) {
+      return;
+    }
+    
     // Check if Phantom is installed
     const checkPhantom = () => {
       const isInstalled = window.solana?.isPhantom || false;

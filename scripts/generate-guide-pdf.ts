@@ -20,12 +20,85 @@ async function ensureDirectories() {
 async function captureScreenshots(page: Page) {
   const screenshots: Record<string, string> = {};
 
-  // Only capture the home page - dashboard requires auth
+  // Home page
   console.log('Capturing home page...');
   await page.goto(`${APP_URL}/`, { waitUntil: 'networkidle2', timeout: 30000 });
   await delay(1500);
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'home.png'), fullPage: false });
   screenshots['home'] = 'home.png';
+
+  // Dashboard page
+  console.log('Capturing dashboard...');
+  await page.goto(`${APP_URL}/dashboard`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await delay(2000);
+  await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'dashboard.png'), fullPage: false });
+  screenshots['dashboard'] = 'dashboard.png';
+
+  // Scroll to allocation sliders
+  console.log('Capturing allocation sliders...');
+  await page.evaluate(() => {
+    const element = document.querySelector('[data-testid="slider-market-making"]');
+    if (element) element.scrollIntoView({ behavior: 'instant', block: 'center' });
+  });
+  await delay(500);
+  await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'allocations.png'), fullPage: false });
+  screenshots['allocations'] = 'allocations.png';
+
+  // Scroll to optimizer section
+  console.log('Capturing optimizer section...');
+  await page.evaluate(() => {
+    const element = document.querySelector('[data-testid="button-run-optimizer"]');
+    if (element) element.scrollIntoView({ behavior: 'instant', block: 'center' });
+  });
+  await delay(500);
+  await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'ai-optimizer.png'), fullPage: false });
+  screenshots['ai-optimizer'] = 'ai-optimizer.png';
+
+  // Capture telegram settings dialog
+  console.log('Capturing telegram settings dialog...');
+  try {
+    await page.click('[data-testid="button-telegram-settings"]');
+    await delay(1000);
+    await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'notifications.png'), fullPage: false });
+    screenshots['notifications'] = 'notifications.png';
+    await page.keyboard.press('Escape');
+    await delay(500);
+  } catch (e) {
+    console.log('Could not capture telegram settings dialog');
+  }
+
+  // Capture token settings
+  console.log('Capturing token settings...');
+  try {
+    await page.click('[data-testid="button-token-settings"]');
+    await delay(1000);
+    await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'token-settings.png'), fullPage: false });
+    screenshots['token-settings'] = 'token-settings.png';
+    await page.keyboard.press('Escape');
+    await delay(500);
+  } catch (e) {
+    console.log('Could not capture token settings dialog');
+  }
+
+  // Scroll to manual distribution
+  console.log('Capturing manual distribution...');
+  await page.evaluate(() => {
+    const element = document.querySelector('[data-testid="input-distribution-amount"]');
+    if (element) element.scrollIntoView({ behavior: 'instant', block: 'center' });
+  });
+  await delay(500);
+  await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'distribution.png'), fullPage: false });
+  screenshots['distribution'] = 'distribution.png';
+
+  // Scroll to activity log
+  console.log('Capturing activity log...');
+  await page.evaluate(() => {
+    const element = document.querySelector('[data-testid="section-activity-log"]');
+    if (element) element.scrollIntoView({ behavior: 'instant', block: 'center' });
+  });
+  await delay(500);
+  await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'activity-log.png'), fullPage: false });
+  screenshots['activity-log'] = 'activity-log.png';
 
   // Docs page
   console.log('Capturing docs page...');
@@ -308,6 +381,8 @@ function generateHTML(screenshots: Record<string, string>) {
     <h2>📊 Dashboard Overview</h2>
     <p>The dashboard is your command center for managing fee distributions. Once you connect your wallet, you'll see:</p>
     
+    ${screenshotImages['dashboard'] ? `<img src="${screenshotImages['dashboard']}" alt="Dashboard" class="screenshot">` : ''}
+    
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-title">Allocation Sliders</div>
@@ -346,6 +421,7 @@ function generateHTML(screenshots: Record<string, string>) {
       <span class="step-content">Click "Save Allocations" to confirm</span>
     </div>
     
+    ${screenshotImages['allocations'] ? `<img src="${screenshotImages['allocations']}" alt="Allocations" class="screenshot">` : ''}
     
     <div class="tip">
       <div class="tip-title">💡 Pro Tip</div>
@@ -400,6 +476,7 @@ function generateHTML(screenshots: Record<string, string>) {
       <span class="step-content">Click "Distribute Now" and sign in Phantom</span>
     </div>
     
+    ${screenshotImages['distribution'] ? `<img src="${screenshotImages['distribution']}" alt="Manual Distribution" class="screenshot">` : ''}
     
     <p>Your fees are split and sent to all destination wallets in one transaction!</p>
   </div>
@@ -430,6 +507,7 @@ function generateHTML(screenshots: Record<string, string>) {
       <span class="step-content">Apply with one click!</span>
     </div>
     
+    ${screenshotImages['ai-optimizer'] ? `<img src="${screenshotImages['ai-optimizer']}" alt="AI Optimizer" class="screenshot">` : ''}
   </div>
 
   <!-- Telegram Alerts -->
