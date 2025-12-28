@@ -46,42 +46,31 @@ async function captureScreenshots(page: Page) {
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'allocations.png'), fullPage: false });
   screenshots['allocations'] = 'allocations.png';
 
-  // Click wallet config button if exists
-  console.log('Capturing wallet dialog...');
+  // Scroll to optimizer section and capture
+  console.log('Capturing optimizer section...');
   try {
-    await page.click('[data-testid="button-configure-wallets"]');
-    await delay(1000);
-    await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'wallets.png'), fullPage: false });
-    screenshots['wallets'] = 'wallets.png';
-    // Close dialog
-    await page.keyboard.press('Escape');
+    await page.evaluate(() => {
+      const element = document.querySelector('[data-testid="button-run-optimizer"]');
+      if (element) element.scrollIntoView({ behavior: 'instant', block: 'center' });
+    });
     await delay(500);
-  } catch (e) {
-    console.log('Could not capture wallet dialog');
-  }
-
-  // Click AI optimizer if exists
-  console.log('Capturing AI optimizer...');
-  try {
-    await page.click('[data-testid="button-run-ai"]');
-    await delay(2000);
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'ai-optimizer.png'), fullPage: false });
     screenshots['ai-optimizer'] = 'ai-optimizer.png';
   } catch (e) {
-    console.log('Could not capture AI optimizer');
+    console.log('Could not capture optimizer section');
   }
 
-  // Capture notification settings
-  console.log('Capturing notifications dialog...');
+  // Capture telegram settings dialog
+  console.log('Capturing telegram settings dialog...');
   try {
-    await page.click('[data-testid="button-notifications"]');
+    await page.click('[data-testid="button-telegram-settings"]');
     await delay(1000);
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'notifications.png'), fullPage: false });
     screenshots['notifications'] = 'notifications.png';
     await page.keyboard.press('Escape');
     await delay(500);
   } catch (e) {
-    console.log('Could not capture notifications dialog');
+    console.log('Could not capture telegram settings dialog');
   }
 
   // Capture token settings
