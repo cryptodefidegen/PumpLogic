@@ -800,7 +800,7 @@ export default function Dashboard() {
                   <Switch 
                     checked={automationData?.isActive || false} 
                     onCheckedChange={handleAutomationToggle}
-                    disabled={automationMutation.isPending}
+                    disabled={automationMutation.isPending || isPreviewMode}
                     data-testid="switch-automation"
                   />
                 </div>
@@ -818,17 +818,19 @@ export default function Dashboard() {
                 <CardTitle className="text-sm font-medium uppercase text-muted-foreground tracking-widest">Wallet Stats</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <StatRow label="Address" value={`${user.walletAddress.substring(0, 8)}...${user.walletAddress.substring(user.walletAddress.length - 4)}`} />
-                <StatRow label="Balance" value={balanceData ? `${balanceData.balance.toFixed(4)} SOL` : "Loading..."} />
+                <StatRow label="Address" value={user ? `${user.walletAddress.substring(0, 8)}...${user.walletAddress.substring(user.walletAddress.length - 4)}` : "Not connected"} />
+                <StatRow label="Balance" value={balanceData ? `${balanceData.balance.toFixed(4)} SOL` : isPreviewMode ? "—" : "Loading..."} />
                 <StatRow label="Transactions" value={transactions.length.toString()} />
-                <a 
-                  href={`https://solscan.io/account/${user.walletAddress}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs text-primary hover:underline mt-2"
-                >
-                  View on Solscan <ExternalLink className="h-3 w-3" />
-                </a>
+                {user && (
+                  <a 
+                    href={`https://solscan.io/account/${user.walletAddress}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs text-primary hover:underline mt-2"
+                  >
+                    View on Solscan <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
               </CardContent>
             </Card>
 
