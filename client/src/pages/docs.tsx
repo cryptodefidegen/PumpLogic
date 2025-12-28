@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download, Bell, Shield, ChevronRight } from "lucide-react";
+import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download, Bell, Shield, ChevronRight, Link, Target, Layers } from "lucide-react";
 
 export default function Docs() {
   return (
@@ -379,10 +379,200 @@ export default function Docs() {
                 </div>
               </div>
 
-              <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4">
-                <h4 className="text-secondary font-semibold mb-2">Current Limitation</h4>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="multi-wallet" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Link className="h-5 w-5 text-primary" />
+                Multi-Wallet Support
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
+              <p>
+                Link multiple Solana wallets to your PumpLogic account. This feature is useful if you manage 
+                tokens from different wallets or want to keep your fee collection wallets separate.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">How to Use</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <p className="text-sm">Click "Linked" in the dashboard header to open the wallet manager</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
+                    <p className="text-sm">Enter a wallet address and optional label to identify it</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
+                    <p className="text-sm">Click "Add Wallet" to save it to your account</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <p className="text-sm">Use "Set Active" to switch between wallets for different operations</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Features</h4>
+                <div className="space-y-3">
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Wallet Labels</h5>
+                    <p className="text-xs">Add custom labels like "Fee Wallet" or "Trading Bot" to easily identify each wallet.</p>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Active Wallet</h5>
+                    <p className="text-xs">The active wallet is highlighted with a green indicator and used for context-specific operations.</p>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Quick Management</h5>
+                    <p className="text-xs">Add or remove wallets at any time. Changes are saved instantly to your account.</p>
+                  </div>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="price-alerts" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Target className="h-5 w-5 text-primary" />
+                Price Alerts
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
+              <p>
+                Set up price alerts to get notified when any Solana token reaches your target price. 
+                Alerts are checked every 60 seconds and can trigger Telegram notifications.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Creating an Alert</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <p className="text-sm">Click "Alerts" in the dashboard header</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
+                    <p className="text-sm">Enter the token symbol (e.g., "BONK") and contract address</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
+                    <p className="text-sm">Set your target price in USD</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <p className="text-sm">Choose direction: "Above" (price goes up) or "Below" (price goes down)</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Alert Status</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Eye className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Active</p>
+                      <p className="text-xs">Alert is being monitored - checking price every 60 seconds</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-yellow-400/20 flex items-center justify-center shrink-0">
+                      <Bell className="h-4 w-4 text-yellow-400" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Triggered</p>
+                      <p className="text-xs">Price target was reached - you were notified via Telegram</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                      <Activity className="h-4 w-4 text-white/50" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Inactive</p>
+                      <p className="text-xs">Alert is paused - use the toggle to reactivate</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                <h4 className="text-primary font-semibold mb-2">Telegram Required</h4>
                 <p className="text-xs">
-                  Each user can currently monitor one token at a time. Multi-token support may be added later.
+                  To receive price alert notifications, make sure you have Telegram notifications enabled 
+                  in your dashboard settings with a valid Chat ID configured.
+                </p>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="multi-token" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Layers className="h-5 w-5 text-primary" />
+                Multi-Token Settings
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
+              <p>
+                Manage multiple tokens from a single dashboard. Each token can have its own allocation 
+                percentages, fee settings, and destination wallets.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Adding a Token</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <p className="text-sm">Click "Token" in the dashboard header to open token management</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
+                    <p className="text-sm">Enter the token name, symbol, and contract address</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
+                    <p className="text-sm">Optionally set the fee collection wallet and fee percentage</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <p className="text-sm">Click "Add Token" - the first token becomes active automatically</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Token Features</h4>
+                <div className="space-y-3">
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Per-Token Allocations</h5>
+                    <p className="text-xs">Each token stores its own allocation percentages for Market Making, Buyback, Liquidity, and Revenue.</p>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Active Token</h5>
+                    <p className="text-xs">The active token (highlighted in green) is used for fee distribution. Switch active tokens with one click.</p>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Edit & Delete</h5>
+                    <p className="text-xs">Update token settings anytime or remove tokens you no longer manage.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-secondary/10 border border-secondary/20 rounded-lg p-4">
+                <h4 className="text-secondary font-semibold mb-2">Pro Tip</h4>
+                <p className="text-xs">
+                  Use different allocation strategies for different tokens based on their stage. 
+                  New tokens might need more liquidity, while established tokens can focus on buybacks.
                 </p>
               </div>
             </AccordionContent>
