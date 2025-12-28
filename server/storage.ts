@@ -1,7 +1,7 @@
 import { db } from "../db/index";
-import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings } from "@shared/schema";
-import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings } from "@shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings, linkedWallets, priceAlerts, multiTokenSettings } from "@shared/schema";
+import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings, LinkedWallet, InsertLinkedWallet, PriceAlert, InsertPriceAlert, MultiTokenSettings, InsertMultiTokenSettings } from "@shared/schema";
+import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -39,6 +39,29 @@ export interface IStorage {
   // Token Settings
   getTokenSettings(userId: string): Promise<TokenSettings | undefined>;
   upsertTokenSettings(settings: InsertTokenSettings): Promise<TokenSettings>;
+
+  // Linked Wallets (Multi-wallet support)
+  getLinkedWallets(userId: string): Promise<LinkedWallet[]>;
+  addLinkedWallet(wallet: InsertLinkedWallet): Promise<LinkedWallet>;
+  removeLinkedWallet(id: string): Promise<void>;
+  setActiveWallet(userId: string, walletId: string): Promise<void>;
+  getActiveWallet(userId: string): Promise<LinkedWallet | undefined>;
+
+  // Price Alerts
+  getPriceAlerts(userId: string): Promise<PriceAlert[]>;
+  getActivePriceAlerts(): Promise<PriceAlert[]>;
+  createPriceAlert(alert: InsertPriceAlert): Promise<PriceAlert>;
+  updatePriceAlert(id: string, updates: Partial<PriceAlert>): Promise<PriceAlert>;
+  deletePriceAlert(id: string): Promise<void>;
+  triggerPriceAlert(id: string): Promise<PriceAlert>;
+
+  // Multi-Token Settings
+  getMultiTokenSettings(userId: string): Promise<MultiTokenSettings[]>;
+  getActiveToken(userId: string): Promise<MultiTokenSettings | undefined>;
+  createMultiTokenSettings(settings: InsertMultiTokenSettings): Promise<MultiTokenSettings>;
+  updateMultiTokenSettings(id: string, settings: Partial<MultiTokenSettings>): Promise<MultiTokenSettings>;
+  deleteMultiTokenSettings(id: string): Promise<void>;
+  setActiveToken(userId: string, tokenId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -232,6 +255,121 @@ export class DatabaseStorage implements IStorage {
       const result = await db.insert(tokenSettings).values(settings).returning();
       return result[0];
     }
+  }
+
+  // Linked Wallets
+  async getLinkedWallets(userId: string): Promise<LinkedWallet[]> {
+    return await db.select()
+      .from(linkedWallets)
+      .where(eq(linkedWallets.userId, userId))
+      .orderBy(desc(linkedWallets.createdAt));
+  }
+
+  async addLinkedWallet(wallet: InsertLinkedWallet): Promise<LinkedWallet> {
+    const result = await db.insert(linkedWallets).values(wallet).returning();
+    return result[0];
+  }
+
+  async removeLinkedWallet(id: string): Promise<void> {
+    await db.delete(linkedWallets).where(eq(linkedWallets.id, id));
+  }
+
+  async setActiveWallet(userId: string, walletId: string): Promise<void> {
+    await db.update(linkedWallets)
+      .set({ isActive: false })
+      .where(eq(linkedWallets.userId, userId));
+    await db.update(linkedWallets)
+      .set({ isActive: true })
+      .where(eq(linkedWallets.id, walletId));
+  }
+
+  async getActiveWallet(userId: string): Promise<LinkedWallet | undefined> {
+    const result = await db.select()
+      .from(linkedWallets)
+      .where(and(eq(linkedWallets.userId, userId), eq(linkedWallets.isActive, true)))
+      .limit(1);
+    return result[0];
+  }
+
+  // Price Alerts
+  async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
+    return await db.select()
+      .from(priceAlerts)
+      .where(eq(priceAlerts.userId, userId))
+      .orderBy(desc(priceAlerts.createdAt));
+  }
+
+  async getActivePriceAlerts(): Promise<PriceAlert[]> {
+    return await db.select()
+      .from(priceAlerts)
+      .where(and(eq(priceAlerts.isActive, true), eq(priceAlerts.isTriggered, false)));
+  }
+
+  async createPriceAlert(alert: InsertPriceAlert): Promise<PriceAlert> {
+    const result = await db.insert(priceAlerts).values(alert).returning();
+    return result[0];
+  }
+
+  async updatePriceAlert(id: string, updates: Partial<PriceAlert>): Promise<PriceAlert> {
+    const result = await db.update(priceAlerts)
+      .set(updates)
+      .where(eq(priceAlerts.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deletePriceAlert(id: string): Promise<void> {
+    await db.delete(priceAlerts).where(eq(priceAlerts.id, id));
+  }
+
+  async triggerPriceAlert(id: string): Promise<PriceAlert> {
+    const result = await db.update(priceAlerts)
+      .set({ isTriggered: true, triggeredAt: new Date() })
+      .where(eq(priceAlerts.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Multi-Token Settings
+  async getMultiTokenSettings(userId: string): Promise<MultiTokenSettings[]> {
+    return await db.select()
+      .from(multiTokenSettings)
+      .where(eq(multiTokenSettings.userId, userId))
+      .orderBy(desc(multiTokenSettings.createdAt));
+  }
+
+  async getActiveToken(userId: string): Promise<MultiTokenSettings | undefined> {
+    const result = await db.select()
+      .from(multiTokenSettings)
+      .where(and(eq(multiTokenSettings.userId, userId), eq(multiTokenSettings.isActive, true)))
+      .limit(1);
+    return result[0];
+  }
+
+  async createMultiTokenSettings(settings: InsertMultiTokenSettings): Promise<MultiTokenSettings> {
+    const result = await db.insert(multiTokenSettings).values(settings).returning();
+    return result[0];
+  }
+
+  async updateMultiTokenSettings(id: string, settings: Partial<MultiTokenSettings>): Promise<MultiTokenSettings> {
+    const result = await db.update(multiTokenSettings)
+      .set({ ...settings, updatedAt: new Date() })
+      .where(eq(multiTokenSettings.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteMultiTokenSettings(id: string): Promise<void> {
+    await db.delete(multiTokenSettings).where(eq(multiTokenSettings.id, id));
+  }
+
+  async setActiveToken(userId: string, tokenId: string): Promise<void> {
+    await db.update(multiTokenSettings)
+      .set({ isActive: false })
+      .where(eq(multiTokenSettings.userId, userId));
+    await db.update(multiTokenSettings)
+      .set({ isActive: true })
+      .where(eq(multiTokenSettings.id, tokenId));
   }
 }
 

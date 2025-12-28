@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import express from "express";
 import path from "path";
 import { storage } from "./storage";
-import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema, insertTelegramSettingsSchema, insertTokenSettingsSchema } from "@shared/schema";
+import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema, insertTelegramSettingsSchema, insertTokenSettingsSchema, insertLinkedWalletSchema, insertPriceAlertSchema, insertMultiTokenSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 import { solanaService } from "./services/solana";
 import { getBot } from "./services/telegram";
@@ -559,6 +559,203 @@ export async function registerRoutes(
       return res.json({ success: true, message: "Test notification sent" });
     } catch (error: any) {
       console.error("Failed to send test notification:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== LINKED WALLETS (Multi-Wallet Support) =====
+  
+  // Get all linked wallets for a user
+  app.get("/api/linked-wallets/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const wallets = await storage.getLinkedWallets(userId);
+      return res.json(wallets);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Add a linked wallet
+  app.post("/api/linked-wallets", async (req, res) => {
+    try {
+      const validated = insertLinkedWalletSchema.parse(req.body);
+      
+      if (!(await solanaService.validateWalletAddress(validated.walletAddress))) {
+        return res.status(400).json({ error: "Invalid wallet address" });
+      }
+
+      const wallet = await storage.addLinkedWallet(validated);
+      return res.json(wallet);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Remove a linked wallet
+  app.delete("/api/linked-wallets/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.removeLinkedWallet(id);
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Set active wallet
+  app.post("/api/linked-wallets/:userId/set-active", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { walletId } = req.body;
+      
+      if (!walletId) {
+        return res.status(400).json({ error: "walletId is required" });
+      }
+
+      await storage.setActiveWallet(userId, walletId);
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get active wallet
+  app.get("/api/linked-wallets/:userId/active", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const wallet = await storage.getActiveWallet(userId);
+      return res.json(wallet || null);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== PRICE ALERTS =====
+  
+  // Get all price alerts for a user
+  app.get("/api/price-alerts/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const alerts = await storage.getPriceAlerts(userId);
+      return res.json(alerts);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create a price alert
+  app.post("/api/price-alerts", async (req, res) => {
+    try {
+      const validated = insertPriceAlertSchema.parse(req.body);
+      const alert = await storage.createPriceAlert(validated);
+      return res.json(alert);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update a price alert
+  app.patch("/api/price-alerts/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const alert = await storage.updatePriceAlert(id, req.body);
+      return res.json(alert);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete a price alert
+  app.delete("/api/price-alerts/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deletePriceAlert(id);
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== MULTI-TOKEN SETTINGS =====
+  
+  // Get all tokens for a user
+  app.get("/api/multi-token/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const tokens = await storage.getMultiTokenSettings(userId);
+      return res.json(tokens);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get active token
+  app.get("/api/multi-token/:userId/active", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const token = await storage.getActiveToken(userId);
+      return res.json(token || null);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create a token
+  app.post("/api/multi-token", async (req, res) => {
+    try {
+      const validated = insertMultiTokenSettingsSchema.parse(req.body);
+      const token = await storage.createMultiTokenSettings(validated);
+      return res.json(token);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update a token
+  app.patch("/api/multi-token/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const token = await storage.updateMultiTokenSettings(id, req.body);
+      return res.json(token);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete a token
+  app.delete("/api/multi-token/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteMultiTokenSettings(id);
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Set active token
+  app.post("/api/multi-token/:userId/set-active", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { tokenId } = req.body;
+      
+      if (!tokenId) {
+        return res.status(400).json({ error: "tokenId is required" });
+      }
+
+      await storage.setActiveToken(userId, tokenId);
+      return res.json({ success: true });
+    } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
   });

@@ -136,3 +136,69 @@ export const insertTokenSettingsSchema = createInsertSchema(tokenSettings).omit(
 });
 export type InsertTokenSettings = z.infer<typeof insertTokenSettingsSchema>;
 export type TokenSettings = typeof tokenSettings.$inferSelect;
+
+// Multi-wallet support - linked wallets per user
+export const linkedWallets = pgTable("linked_wallets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  walletAddress: text("wallet_address").notNull(),
+  label: text("label"),
+  isActive: boolean("is_active").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertLinkedWalletSchema = createInsertSchema(linkedWallets).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertLinkedWallet = z.infer<typeof insertLinkedWalletSchema>;
+export type LinkedWallet = typeof linkedWallets.$inferSelect;
+
+// Price alerts
+export const priceAlerts = pgTable("price_alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  tokenAddress: text("token_address").notNull(),
+  tokenSymbol: text("token_symbol").notNull(),
+  targetPrice: text("target_price").notNull(),
+  direction: text("direction").notNull(), // 'above' or 'below'
+  isActive: boolean("is_active").notNull().default(true),
+  isTriggered: boolean("is_triggered").notNull().default(false),
+  triggeredAt: timestamp("triggered_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertPriceAlertSchema = createInsertSchema(priceAlerts).omit({
+  id: true,
+  createdAt: true,
+  isTriggered: true,
+  triggeredAt: true,
+});
+export type InsertPriceAlert = z.infer<typeof insertPriceAlertSchema>;
+export type PriceAlert = typeof priceAlerts.$inferSelect;
+
+// Multi-token settings (separate from single token settings)
+export const multiTokenSettings = pgTable("multi_token_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  tokenName: text("token_name").notNull(),
+  tokenSymbol: text("token_symbol").notNull(),
+  contractAddress: text("contract_address").notNull(),
+  feeCollectionWallet: text("fee_collection_wallet"),
+  feePercentage: integer("fee_percentage").default(1),
+  isActive: boolean("is_active").notNull().default(false),
+  marketMaking: integer("market_making").notNull().default(25),
+  buyback: integer("buyback").notNull().default(25),
+  liquidity: integer("liquidity").notNull().default(25),
+  revenue: integer("revenue").notNull().default(25),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertMultiTokenSettingsSchema = createInsertSchema(multiTokenSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertMultiTokenSettings = z.infer<typeof insertMultiTokenSettingsSchema>;
+export type MultiTokenSettings = typeof multiTokenSettings.$inferSelect;
