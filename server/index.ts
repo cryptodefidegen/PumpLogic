@@ -5,6 +5,7 @@ import { createServer } from "http";
 import path from "path";
 import { initTelegramBot } from "./services/telegram";
 import { tokenMonitor } from "./services/tokenMonitor";
+import { startPriceAlertMonitor } from "./services/priceAlertMonitor";
 
 const app = express();
 const httpServer = createServer(app);
@@ -69,6 +70,7 @@ app.use((req, res, next) => {
 (async () => {
   initTelegramBot();
   tokenMonitor.start();
+  startPriceAlertMonitor();
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

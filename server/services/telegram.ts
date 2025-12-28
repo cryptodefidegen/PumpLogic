@@ -145,6 +145,32 @@ export async function sendLargeBuyNotification(chatId: string, buyer: string, am
   }
 }
 
+export async function sendPriceAlertNotification(
+  chatId: string,
+  tokenSymbol: string,
+  tokenAddress: string,
+  targetPrice: string,
+  direction: string,
+  currentPrice?: string
+) {
+  if (!bot || !chatId) return;
+
+  const arrow = direction === "above" ? "↑" : "↓";
+  const message = 
+    `*Price Alert Triggered*\n\n` +
+    `Token: *${tokenSymbol}*\n` +
+    `Target: $${targetPrice} (${direction})\n` +
+    `${currentPrice ? `Current: $${currentPrice}\n` : ""}` +
+    `\n${arrow} Your price alert has been triggered!\n\n` +
+    `[View on Solscan](https://solscan.io/token/${tokenAddress})`;
+
+  try {
+    await bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
+  } catch (error) {
+    console.error("Failed to send price alert notification:", error);
+  }
+}
+
 export function getBot() {
   return bot;
 }
