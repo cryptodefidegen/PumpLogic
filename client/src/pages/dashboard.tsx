@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell, Volume2, Coins } from "lucide-react";
+import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell, Volume2, Coins, Link2, Plus, Check, TrendingUp, TrendingDown, Target } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
@@ -32,11 +32,24 @@ import {
   deletePreset,
   getTelegramSettings,
   saveTelegramSettings,
-  getTokenSettings,
-  saveTokenSettings
+  getLinkedWallets,
+  addLinkedWallet,
+  removeLinkedWallet,
+  setActiveWallet,
+  getPriceAlerts,
+  createPriceAlert,
+  updatePriceAlert,
+  deletePriceAlert,
+  getMultiTokenSettings,
+  getActiveToken,
+  createMultiToken,
+  updateMultiToken,
+  deleteMultiToken,
+  setActiveToken
 } from "@/lib/api";
 import { Transaction } from "@solana/web3.js";
-import type { AllocationPreset } from "@shared/schema";
+import type { AllocationPreset, LinkedWallet, PriceAlert, MultiTokenSettings } from "@shared/schema";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -76,11 +89,21 @@ export default function Dashboard() {
   const [notifyDistribution, setNotifyDistribution] = useState(true);
   const [notifyFeeReady, setNotifyFeeReady] = useState(true);
   const [notifyLargeBuy, setNotifyLargeBuy] = useState(false);
-  const [tokenName, setTokenName] = useState("");
-  const [tokenSymbol, setTokenSymbol] = useState("");
-  const [contractAddress, setContractAddress] = useState("");
-  const [feeCollectionWallet, setFeeCollectionWallet] = useState("");
-  const [feePercentage, setFeePercentage] = useState(1);
+  const [newTokenName, setNewTokenName] = useState("");
+  const [newTokenSymbol, setNewTokenSymbol] = useState("");
+  const [newContractAddress, setNewContractAddress] = useState("");
+  const [newFeeCollectionWallet, setNewFeeCollectionWallet] = useState("");
+  const [newFeePercentage, setNewFeePercentage] = useState(1);
+  const [editingToken, setEditingToken] = useState<MultiTokenSettings | null>(null);
+  const [showEditTokenDialog, setShowEditTokenDialog] = useState(false);
+  const [showLinkedWallets, setShowLinkedWallets] = useState(false);
+  const [newWalletAddress, setNewWalletAddress] = useState("");
+  const [newWalletLabel, setNewWalletLabel] = useState("");
+  const [showPriceAlerts, setShowPriceAlerts] = useState(false);
+  const [newAlertTokenSymbol, setNewAlertTokenSymbol] = useState("");
+  const [newAlertTokenAddress, setNewAlertTokenAddress] = useState("");
+  const [newAlertTargetPrice, setNewAlertTargetPrice] = useState("");
+  const [newAlertDirection, setNewAlertDirection] = useState<"above" | "below">("above");
 
   // Fetch allocation data
   const { data: allocationData } = useQuery({
@@ -139,10 +162,31 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  // Fetch token settings
-  const { data: tokenData } = useQuery({
-    queryKey: ['tokenSettings', user?.id],
-    queryFn: () => getTokenSettings(user!.id),
+  // Fetch multi-token settings
+  const { data: multiTokens = [] } = useQuery({
+    queryKey: ['multiTokenSettings', user?.id],
+    queryFn: () => getMultiTokenSettings(user!.id),
+    enabled: !!user,
+  });
+
+  // Fetch active token
+  const { data: activeToken } = useQuery({
+    queryKey: ['activeToken', user?.id],
+    queryFn: () => getActiveToken(user!.id),
+    enabled: !!user,
+  });
+
+  // Fetch linked wallets
+  const { data: linkedWallets = [] } = useQuery({
+    queryKey: ['linkedWallets', user?.id],
+    queryFn: () => getLinkedWallets(user!.id),
+    enabled: !!user,
+  });
+
+  // Fetch price alerts
+  const { data: priceAlerts = [] } = useQuery({
+    queryKey: ['priceAlerts', user?.id],
+    queryFn: () => getPriceAlerts(user!.id),
     enabled: !!user,
   });
 
@@ -205,16 +249,6 @@ export default function Dashboard() {
     }
   }, [telegramData]);
 
-  // Update token settings state when data loads
-  useEffect(() => {
-    if (tokenData) {
-      setTokenName(tokenData.tokenName || "");
-      setTokenSymbol(tokenData.tokenSymbol || "");
-      setContractAddress(tokenData.contractAddress || "");
-      setFeeCollectionWallet(tokenData.feeCollectionWallet || "");
-      setFeePercentage(tokenData.feePercentage ?? 1);
-    }
-  }, [tokenData]);
 
   // Save allocation mutation
   const saveMutation = useMutation({
@@ -320,6 +354,230 @@ export default function Dashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['presets', user?.id] });
       toast({ title: "Preset Deleted" });
+    },
+  });
+
+  // Linked wallet mutations
+  const addLinkedWalletMutation = useMutation({
+    mutationFn: () => addLinkedWallet(user!.id, newWalletAddress, newWalletLabel || undefined),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['linkedWallets', user?.id] });
+      setNewWalletAddress("");
+      setNewWalletLabel("");
+      playSound('success');
+      toast({
+        title: "Wallet Added",
+        description: "The wallet has been linked to your account.",
+        className: "bg-primary text-black font-bold"
+      });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Add Wallet",
+        description: error.message || "Could not add the wallet",
+      });
+    },
+  });
+
+  const removeLinkedWalletMutation = useMutation({
+    mutationFn: (id: string) => removeLinkedWallet(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['linkedWallets', user?.id] });
+      toast({ title: "Wallet Removed" });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Remove Wallet",
+        description: error.message || "Could not remove the wallet",
+      });
+    },
+  });
+
+  const setActiveWalletMutation = useMutation({
+    mutationFn: (walletId: string) => setActiveWallet(user!.id, walletId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['linkedWallets', user?.id] });
+      playSound('success');
+      toast({
+        title: "Active Wallet Changed",
+        description: "Your active wallet has been updated.",
+        className: "bg-primary text-black font-bold"
+      });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Set Active Wallet",
+        description: error.message || "Could not set the active wallet",
+      });
+    },
+  });
+
+  // Price alert mutations
+  const createPriceAlertMutation = useMutation({
+    mutationFn: () => createPriceAlert(user!.id, {
+      tokenSymbol: newAlertTokenSymbol,
+      tokenAddress: newAlertTokenAddress,
+      targetPrice: newAlertTargetPrice,
+      direction: newAlertDirection,
+      isActive: true,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['priceAlerts', user?.id] });
+      setNewAlertTokenSymbol("");
+      setNewAlertTokenAddress("");
+      setNewAlertTargetPrice("");
+      setNewAlertDirection("above");
+      playSound('success');
+      toast({
+        title: "Price Alert Created",
+        description: "You'll be notified when the price condition is met.",
+        className: "bg-primary text-black font-bold"
+      });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Create Alert",
+        description: error.message || "Could not create price alert",
+      });
+    },
+  });
+
+  const updatePriceAlertMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<PriceAlert> }) => 
+      updatePriceAlert(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['priceAlerts', user?.id] });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Update Alert",
+        description: error.message || "Could not update price alert",
+      });
+    },
+  });
+
+  const deletePriceAlertMutation = useMutation({
+    mutationFn: (id: string) => deletePriceAlert(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['priceAlerts', user?.id] });
+      toast({ title: "Price Alert Deleted" });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Delete Alert",
+        description: error.message || "Could not delete price alert",
+      });
+    },
+  });
+
+  // Multi-Token mutations
+  const createMultiTokenMutation = useMutation({
+    mutationFn: () => createMultiToken(user!.id, {
+      tokenName: newTokenName,
+      tokenSymbol: newTokenSymbol,
+      contractAddress: newContractAddress,
+      feeCollectionWallet: newFeeCollectionWallet || null,
+      feePercentage: newFeePercentage,
+      isActive: multiTokens.length === 0,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['multiTokenSettings', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['activeToken', user?.id] });
+      setNewTokenName("");
+      setNewTokenSymbol("");
+      setNewContractAddress("");
+      setNewFeeCollectionWallet("");
+      setNewFeePercentage(1);
+      playSound('success');
+      toast({
+        title: "Token Added",
+        description: "Your token has been added to the list.",
+        className: "bg-primary text-black font-bold"
+      });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Add Token",
+        description: error.message || "Could not add token",
+      });
+    },
+  });
+
+  const updateMultiTokenMutation = useMutation({
+    mutationFn: ({ id, settings }: { id: string; settings: Partial<MultiTokenSettings> }) => 
+      updateMultiToken(id, settings),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['multiTokenSettings', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['activeToken', user?.id] });
+      setShowEditTokenDialog(false);
+      setEditingToken(null);
+      playSound('success');
+      toast({
+        title: "Token Updated",
+        description: "Token settings have been updated.",
+        className: "bg-primary text-black font-bold"
+      });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Update Token",
+        description: error.message || "Could not update token",
+      });
+    },
+  });
+
+  const deleteMultiTokenMutation = useMutation({
+    mutationFn: (id: string) => deleteMultiToken(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['multiTokenSettings', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['activeToken', user?.id] });
+      toast({ title: "Token Deleted" });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Delete Token",
+        description: error.message || "Could not delete token",
+      });
+    },
+  });
+
+  const setActiveTokenMutation = useMutation({
+    mutationFn: (tokenId: string) => setActiveToken(user!.id, tokenId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['multiTokenSettings', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['activeToken', user?.id] });
+      playSound('success');
+      toast({
+        title: "Active Token Changed",
+        description: "Your active token has been updated.",
+        className: "bg-primary text-black font-bold"
+      });
+    },
+    onError: (error: any) => {
+      playSound('error');
+      toast({
+        variant: "destructive",
+        title: "Failed to Set Active Token",
+        description: error.message || "Could not set active token",
+      });
     },
   });
 
@@ -548,6 +806,17 @@ export default function Dashboard() {
             <Button 
               variant="outline" 
               size="sm" 
+              onClick={() => setShowLinkedWallets(true)}
+              disabled={isPreviewMode}
+              className="border-white/10 text-xs"
+              data-testid="button-linked-wallets"
+            >
+              <Link2 className="h-4 w-4 mr-1" />
+              Linked
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
               onClick={() => setShowTelegramSettings(true)}
               disabled={isPreviewMode}
               className="border-white/10 text-xs"
@@ -565,6 +834,17 @@ export default function Dashboard() {
             >
               <Volume2 className="h-4 w-4 mr-1" />
               Sounds
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowPriceAlerts(true)}
+              disabled={isPreviewMode}
+              className="border-white/10 text-xs"
+              data-testid="button-price-alerts"
+            >
+              <Target className="h-4 w-4 mr-1" />
+              Price Alerts
             </Button>
             <Button 
               variant="outline" 
@@ -1272,127 +1552,651 @@ export default function Dashboard() {
 
       <SoundSettingsDialog open={showSoundSettings} onOpenChange={setShowSoundSettings} />
 
-      {/* Token Settings Dialog */}
+      {/* Multi-Token Management Dialog */}
       <Dialog open={showTokenSettings} onOpenChange={setShowTokenSettings}>
-        <DialogContent className="bg-card border-white/10">
+        <DialogContent className="bg-card border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Coins className="h-5 w-5 text-primary" />
-              Token Settings
+              Multi-Token Management
             </DialogTitle>
             <DialogDescription>
-              Configure your token details for fee tracking
+              Manage multiple tokens and configure their fee distribution settings
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="tokenName" className="text-white text-sm">Token Name</Label>
+          <div className="py-4 space-y-6">
+            {/* Add New Token Form */}
+            <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-4">
+              <h4 className="text-sm font-medium text-white flex items-center gap-2">
+                <Plus className="h-4 w-4 text-primary" />
+                Add New Token
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-white text-xs">Token Name *</Label>
+                  <Input 
+                    placeholder="e.g., MyToken"
+                    value={newTokenName}
+                    onChange={(e) => setNewTokenName(e.target.value)}
+                    className="bg-black/40 border-white/10 text-sm"
+                    data-testid="input-new-token-name"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-white text-xs">Token Symbol *</Label>
+                  <Input 
+                    placeholder="e.g., MTK"
+                    value={newTokenSymbol}
+                    onChange={(e) => setNewTokenSymbol(e.target.value)}
+                    className="bg-black/40 border-white/10 text-sm"
+                    data-testid="input-new-token-symbol"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-white text-xs">Contract Address *</Label>
                 <Input 
-                  id="tokenName"
-                  placeholder="e.g., MyToken"
-                  value={tokenName}
-                  onChange={(e) => setTokenName(e.target.value)}
-                  className="bg-black/20 border-white/10"
-                  data-testid="input-token-name"
+                  placeholder="Enter your token's Solana mint address"
+                  value={newContractAddress}
+                  onChange={(e) => setNewContractAddress(e.target.value)}
+                  className="bg-black/40 border-white/10 font-mono text-xs"
+                  data-testid="input-new-contract-address"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="tokenSymbol" className="text-white text-sm">Token Symbol</Label>
-                <Input 
-                  id="tokenSymbol"
-                  placeholder="e.g., MTK"
-                  value={tokenSymbol}
-                  onChange={(e) => setTokenSymbol(e.target.value)}
-                  className="bg-black/20 border-white/10"
-                  data-testid="input-token-symbol"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-white text-xs">Fee Collection Wallet</Label>
+                  <Input 
+                    placeholder="Optional"
+                    value={newFeeCollectionWallet}
+                    onChange={(e) => setNewFeeCollectionWallet(e.target.value)}
+                    className="bg-black/40 border-white/10 font-mono text-xs"
+                    data-testid="input-new-fee-wallet"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-white text-xs">Fee Percentage</Label>
+                  <div className="flex items-center gap-2">
+                    <Slider 
+                      value={[newFeePercentage]} 
+                      max={10} 
+                      min={1}
+                      step={1} 
+                      onValueChange={(v) => setNewFeePercentage(v[0])}
+                      className="flex-1"
+                    />
+                    <span className="font-mono text-white w-8 text-right text-sm">{newFeePercentage}%</span>
+                  </div>
+                </div>
               </div>
+              <Button
+                onClick={() => createMultiTokenMutation.mutate()}
+                disabled={!newTokenName.trim() || !newTokenSymbol.trim() || !newContractAddress.trim() || createMultiTokenMutation.isPending}
+                className="w-full bg-primary text-black hover:bg-primary/90"
+                data-testid="button-add-token"
+              >
+                {createMultiTokenMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Token
+                  </>
+                )}
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="contractAddress" className="text-white text-sm">Token Contract Address</Label>
-              <Input 
-                id="contractAddress"
-                placeholder="Enter your token's Solana address"
-                value={contractAddress}
-                onChange={(e) => setContractAddress(e.target.value)}
-                className="bg-black/20 border-white/10 font-mono text-xs"
-                data-testid="input-contract-address"
-              />
-              <p className="text-xs text-muted-foreground">
-                The mint address of your Pump.fun token
-              </p>
-            </div>
+            <Separator className="bg-white/10" />
 
-            <div className="space-y-2">
-              <Label htmlFor="feeCollectionWallet" className="text-white text-sm">Fee Collection Wallet</Label>
-              <Input 
-                id="feeCollectionWallet"
-                placeholder="Wallet that receives trading fees"
-                value={feeCollectionWallet}
-                onChange={(e) => setFeeCollectionWallet(e.target.value)}
-                className="bg-black/20 border-white/10 font-mono text-xs"
-                data-testid="input-fee-wallet"
-              />
-              <p className="text-xs text-muted-foreground">
-                This wallet accumulates fees that will be distributed via PumpLogic
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="feePercentage" className="text-white text-sm">Fee Percentage</Label>
-              <div className="flex items-center gap-3">
-                <Slider 
-                  value={[feePercentage]} 
-                  max={10} 
-                  min={1}
-                  step={1} 
-                  onValueChange={(v) => setFeePercentage(v[0])}
-                  className="flex-1"
-                />
-                <span className="font-mono text-white w-12 text-right">{feePercentage}%</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                The fee percentage set on your token (for tracking purposes)
-              </p>
+            {/* Token List */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Your Tokens</h4>
+              {multiTokens.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm border border-dashed border-white/10 rounded-lg">
+                  No tokens configured yet. Add one above to get started.
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {multiTokens.map((token: MultiTokenSettings) => (
+                    <div 
+                      key={token.id}
+                      className={cn(
+                        "p-4 rounded-lg border transition-colors",
+                        token.isActive 
+                          ? "bg-primary/10 border-primary/50" 
+                          : "bg-black/20 border-white/10 hover:border-white/20"
+                      )}
+                      data-testid={`token-item-${token.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {token.isActive && (
+                              <Badge className="bg-primary text-black text-[10px] px-1.5 py-0">
+                                <Check className="h-3 w-3 mr-0.5" />
+                                Active
+                              </Badge>
+                            )}
+                            <span className="text-white font-medium">
+                              {token.tokenName}
+                            </span>
+                            <span className="text-primary font-mono text-sm">
+                              ${token.tokenSymbol}
+                            </span>
+                          </div>
+                          <div className="text-xs font-mono text-muted-foreground mt-1">
+                            {token.contractAddress.substring(0, 12)}...{token.contractAddress.substring(token.contractAddress.length - 8)}
+                          </div>
+                          {token.feeCollectionWallet && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Fee Wallet: {token.feeCollectionWallet.substring(0, 8)}...
+                            </div>
+                          )}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Fee: {token.feePercentage}%
+                          </div>
+                          
+                          {/* Show allocation for active token */}
+                          {token.isActive && (
+                            <div className="mt-3 p-2 bg-black/30 rounded border border-primary/20">
+                              <div className="text-xs text-primary font-medium mb-2">Allocation Breakdown</div>
+                              <div className="grid grid-cols-4 gap-2 text-xs">
+                                <div className="text-center">
+                                  <div className="text-primary font-mono font-bold">{token.marketMaking}%</div>
+                                  <div className="text-muted-foreground">Market</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-secondary font-mono font-bold">{token.buyback}%</div>
+                                  <div className="text-muted-foreground">Buyback</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-blue-400 font-mono font-bold">{token.liquidity}%</div>
+                                  <div className="text-muted-foreground">Liquidity</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="text-yellow-400 font-mono font-bold">{token.revenue}%</div>
+                                  <div className="text-muted-foreground">Revenue</div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {!token.isActive && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveTokenMutation.mutate(token.id)}
+                              disabled={setActiveTokenMutation.isPending}
+                              className="text-primary hover:bg-primary/10 h-8 px-2 text-xs"
+                              data-testid={`button-set-active-token-${token.id}`}
+                            >
+                              Set Active
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingToken(token);
+                              setShowEditTokenDialog(true);
+                            }}
+                            className="text-white/70 hover:bg-white/10 h-8 w-8 p-0"
+                            data-testid={`button-edit-token-${token.id}`}
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (confirm(`Delete token "${token.tokenName}"?`)) {
+                                deleteMultiTokenMutation.mutate(token.id);
+                              }
+                            }}
+                            disabled={deleteMultiTokenMutation.isPending}
+                            className="text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                            data-testid={`button-delete-token-${token.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowTokenSettings(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Token Dialog */}
+      <Dialog open={showEditTokenDialog} onOpenChange={(open) => {
+        setShowEditTokenDialog(open);
+        if (!open) setEditingToken(null);
+      }}>
+        <DialogContent className="bg-card border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Settings className="h-5 w-5 text-primary" />
+              Edit Token
+            </DialogTitle>
+            <DialogDescription>
+              Update token settings for {editingToken?.tokenName}
+            </DialogDescription>
+          </DialogHeader>
+          {editingToken && (
+            <div className="py-4 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-white text-xs">Token Name</Label>
+                  <Input 
+                    value={editingToken.tokenName}
+                    onChange={(e) => setEditingToken({...editingToken, tokenName: e.target.value})}
+                    className="bg-black/40 border-white/10 text-sm"
+                    data-testid="input-edit-token-name"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-white text-xs">Token Symbol</Label>
+                  <Input 
+                    value={editingToken.tokenSymbol}
+                    onChange={(e) => setEditingToken({...editingToken, tokenSymbol: e.target.value})}
+                    className="bg-black/40 border-white/10 text-sm"
+                    data-testid="input-edit-token-symbol"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-white text-xs">Contract Address</Label>
+                <Input 
+                  value={editingToken.contractAddress}
+                  onChange={(e) => setEditingToken({...editingToken, contractAddress: e.target.value})}
+                  className="bg-black/40 border-white/10 font-mono text-xs"
+                  data-testid="input-edit-contract-address"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-white text-xs">Fee Collection Wallet</Label>
+                <Input 
+                  value={editingToken.feeCollectionWallet || ""}
+                  onChange={(e) => setEditingToken({...editingToken, feeCollectionWallet: e.target.value || null})}
+                  className="bg-black/40 border-white/10 font-mono text-xs"
+                  placeholder="Optional"
+                  data-testid="input-edit-fee-wallet"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-white text-xs">Fee Percentage</Label>
+                <div className="flex items-center gap-2">
+                  <Slider 
+                    value={[editingToken.feePercentage ?? 1]} 
+                    max={10} 
+                    min={1}
+                    step={1} 
+                    onValueChange={(v) => setEditingToken({...editingToken, feePercentage: v[0]})}
+                    className="flex-1"
+                  />
+                  <span className="font-mono text-white w-8 text-right text-sm">{editingToken.feePercentage ?? 1}%</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowEditTokenDialog(false);
+              setEditingToken(null);
+            }}>
               Cancel
             </Button>
             <Button 
-              onClick={async () => {
-                try {
-                  await saveTokenSettings(user!.id, {
-                    tokenName: tokenName || null,
-                    tokenSymbol: tokenSymbol || null,
-                    contractAddress: contractAddress || null,
-                    feeCollectionWallet: feeCollectionWallet || null,
-                    feePercentage: feePercentage,
-                  });
-                  queryClient.invalidateQueries({ queryKey: ['tokenSettings', user?.id] });
-                  playSound('success');
-                  toast({
-                    title: "Token Settings Saved",
-                    description: "Your token configuration has been updated.",
-                    className: "bg-primary text-black font-bold"
-                  });
-                  setShowTokenSettings(false);
-                } catch (error: any) {
-                  playSound('error');
-                  toast({
-                    variant: "destructive",
-                    title: "Save Failed",
-                    description: error.message || "Failed to save token settings",
+              onClick={() => {
+                if (editingToken) {
+                  updateMultiTokenMutation.mutate({
+                    id: editingToken.id,
+                    settings: {
+                      tokenName: editingToken.tokenName,
+                      tokenSymbol: editingToken.tokenSymbol,
+                      contractAddress: editingToken.contractAddress,
+                      feeCollectionWallet: editingToken.feeCollectionWallet,
+                      feePercentage: editingToken.feePercentage,
+                    }
                   });
                 }
               }}
+              disabled={updateMultiTokenMutation.isPending}
               className="bg-primary text-black"
-              data-testid="button-save-token-settings"
+              data-testid="button-save-edit-token"
             >
-              Save Settings
+              {updateMultiTokenMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Linked Wallets Dialog */}
+      <Dialog open={showLinkedWallets} onOpenChange={setShowLinkedWallets}>
+        <DialogContent className="bg-card border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link2 className="h-5 w-5 text-primary" />
+              Linked Wallets
+            </DialogTitle>
+            <DialogDescription>
+              Manage multiple wallets for your account. Set one as active for transactions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            {/* Add New Wallet Form */}
+            <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+              <h4 className="text-sm font-medium text-white flex items-center gap-2">
+                <Plus className="h-4 w-4 text-primary" />
+                Add New Wallet
+              </h4>
+              <div className="space-y-2">
+                <Input 
+                  placeholder="Wallet address"
+                  value={newWalletAddress}
+                  onChange={(e) => setNewWalletAddress(e.target.value)}
+                  className="bg-black/40 border-white/10 font-mono text-xs"
+                  data-testid="input-new-wallet-address"
+                />
+                <Input 
+                  placeholder="Label (optional, e.g., 'Trading Wallet')"
+                  value={newWalletLabel}
+                  onChange={(e) => setNewWalletLabel(e.target.value)}
+                  className="bg-black/40 border-white/10"
+                  data-testid="input-new-wallet-label"
+                />
+                <Button
+                  onClick={() => addLinkedWalletMutation.mutate()}
+                  disabled={!newWalletAddress.trim() || addLinkedWalletMutation.isPending}
+                  className="w-full bg-primary text-black hover:bg-primary/90"
+                  data-testid="button-add-wallet"
+                >
+                  {addLinkedWalletMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Wallet
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <Separator className="bg-white/10" />
+
+            {/* Linked Wallets List */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Your Wallets</h4>
+              {linkedWallets.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground text-sm">
+                  No linked wallets yet. Add one above.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {linkedWallets.map((wallet: LinkedWallet) => (
+                    <div 
+                      key={wallet.id}
+                      className={cn(
+                        "flex items-center justify-between p-3 rounded-lg border transition-colors",
+                        wallet.isActive 
+                          ? "bg-primary/10 border-primary/50" 
+                          : "bg-black/20 border-white/10 hover:border-white/20"
+                      )}
+                      data-testid={`wallet-item-${wallet.id}`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          {wallet.isActive && (
+                            <Badge className="bg-primary text-black text-[10px] px-1.5 py-0">
+                              <Check className="h-3 w-3 mr-0.5" />
+                              Active
+                            </Badge>
+                          )}
+                          <span className="text-white text-sm font-medium truncate">
+                            {wallet.label || "Unnamed Wallet"}
+                          </span>
+                        </div>
+                        <div className="text-xs font-mono text-muted-foreground mt-1">
+                          {wallet.walletAddress.substring(0, 8)}...{wallet.walletAddress.substring(wallet.walletAddress.length - 6)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 ml-2">
+                        {!wallet.isActive && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setActiveWalletMutation.mutate(wallet.id)}
+                            disabled={setActiveWalletMutation.isPending}
+                            className="text-primary hover:bg-primary/10 h-8 px-2"
+                            data-testid={`button-set-active-${wallet.id}`}
+                          >
+                            Set Active
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeLinkedWalletMutation.mutate(wallet.id)}
+                          disabled={removeLinkedWalletMutation.isPending}
+                          className="text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                          data-testid={`button-remove-wallet-${wallet.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              The active wallet is used for fee distributions and transactions.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLinkedWallets(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Price Alerts Dialog */}
+      <Dialog open={showPriceAlerts} onOpenChange={setShowPriceAlerts}>
+        <DialogContent className="bg-card border-white/10 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Price Alerts
+            </DialogTitle>
+            <DialogDescription>
+              Get notified when token prices reach your target levels.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            {/* Create New Alert Form */}
+            <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+              <h4 className="text-sm font-medium text-white flex items-center gap-2">
+                <Plus className="h-4 w-4 text-primary" />
+                Create New Alert
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Token Symbol</Label>
+                  <Input 
+                    placeholder="e.g., SOL"
+                    value={newAlertTokenSymbol}
+                    onChange={(e) => setNewAlertTokenSymbol(e.target.value.toUpperCase())}
+                    className="bg-black/40 border-white/10"
+                    data-testid="input-alert-token-symbol"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Target Price (USD)</Label>
+                  <Input 
+                    type="number"
+                    step="any"
+                    placeholder="0.00"
+                    value={newAlertTargetPrice}
+                    onChange={(e) => setNewAlertTargetPrice(e.target.value)}
+                    className="bg-black/40 border-white/10 font-mono"
+                    data-testid="input-alert-target-price"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Token Contract Address</Label>
+                <Input 
+                  placeholder="Enter Solana token address"
+                  value={newAlertTokenAddress}
+                  onChange={(e) => setNewAlertTokenAddress(e.target.value)}
+                  className="bg-black/40 border-white/10 font-mono text-xs"
+                  data-testid="input-alert-token-address"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Alert Direction</Label>
+                <Select value={newAlertDirection} onValueChange={(v) => setNewAlertDirection(v as "above" | "below")}>
+                  <SelectTrigger className="bg-black/40 border-white/10" data-testid="select-alert-direction">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-white/10">
+                    <SelectItem value="above">
+                      <span className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                        Above - Alert when price goes up
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="below">
+                      <span className="flex items-center gap-2">
+                        <TrendingDown className="h-4 w-4 text-red-500" />
+                        Below - Alert when price goes down
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={() => createPriceAlertMutation.mutate()}
+                disabled={!newAlertTokenSymbol.trim() || !newAlertTokenAddress.trim() || !newAlertTargetPrice || createPriceAlertMutation.isPending}
+                className="w-full bg-primary text-black hover:bg-primary/90"
+                data-testid="button-create-alert"
+              >
+                {createPriceAlertMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Alert
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <Separator className="bg-white/10" />
+
+            {/* Price Alerts List */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Your Alerts</h4>
+              {priceAlerts.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground text-sm">
+                  No price alerts yet. Create one above.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {priceAlerts.map((alert: PriceAlert) => (
+                    <div 
+                      key={alert.id}
+                      className={cn(
+                        "flex items-center justify-between p-3 rounded-lg border transition-colors",
+                        alert.isTriggered 
+                          ? "bg-yellow-500/10 border-yellow-500/30" 
+                          : alert.isActive 
+                            ? "bg-black/20 border-white/10" 
+                            : "bg-black/10 border-white/5 opacity-60"
+                      )}
+                      data-testid={`price-alert-item-${alert.id}`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-bold text-sm">{alert.tokenSymbol}</span>
+                          {alert.direction === "above" ? (
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4 text-red-500" />
+                          )}
+                          <span className="font-mono text-primary text-sm">${alert.targetPrice}</span>
+                          {alert.isTriggered ? (
+                            <Badge className="bg-yellow-500 text-black text-[10px] px-1.5 py-0">
+                              Triggered
+                            </Badge>
+                          ) : alert.isActive ? (
+                            <Badge className="bg-primary/20 text-primary border border-primary/50 text-[10px] px-1.5 py-0">
+                              Active
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-zinc-700 text-zinc-400 text-[10px] px-1.5 py-0">
+                              Inactive
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-xs font-mono text-muted-foreground mt-1">
+                          {alert.tokenAddress.substring(0, 8)}...{alert.tokenAddress.substring(alert.tokenAddress.length - 6)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 ml-2">
+                        <Switch
+                          checked={alert.isActive}
+                          onCheckedChange={(checked) => 
+                            updatePriceAlertMutation.mutate({ id: alert.id, updates: { isActive: checked } })
+                          }
+                          disabled={updatePriceAlertMutation.isPending || alert.isTriggered}
+                          data-testid={`switch-alert-${alert.id}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deletePriceAlertMutation.mutate(alert.id)}
+                          disabled={deletePriceAlertMutation.isPending}
+                          className="text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                          data-testid={`button-delete-alert-${alert.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Price alerts will notify you via Telegram when configured.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPriceAlerts(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

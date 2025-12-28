@@ -1,4 +1,4 @@
-import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets, AllocationPreset, TelegramSettings, TokenSettings } from "@shared/schema";
+import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets, AllocationPreset, TelegramSettings, TokenSettings, LinkedWallet, PriceAlert, MultiTokenSettings } from "@shared/schema";
 
 export async function authenticateWallet(walletAddress: string): Promise<User> {
   const response = await fetch("/api/auth/wallet", {
@@ -317,4 +317,204 @@ export async function saveTokenSettings(userId: string, settings: {
   }
   
   return await response.json();
+}
+
+// ===== LINKED WALLETS (Multi-Wallet Support) =====
+
+export async function getLinkedWallets(userId: string): Promise<LinkedWallet[]> {
+  const response = await fetch(`/api/linked-wallets/${userId}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch linked wallets");
+  }
+  
+  return await response.json();
+}
+
+export async function addLinkedWallet(userId: string, walletAddress: string, label?: string): Promise<LinkedWallet> {
+  const response = await fetch("/api/linked-wallets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, walletAddress, label, isActive: false }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to add linked wallet");
+  }
+  
+  return await response.json();
+}
+
+export async function removeLinkedWallet(id: string): Promise<void> {
+  const response = await fetch(`/api/linked-wallets/${id}`, {
+    method: "DELETE",
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to remove linked wallet");
+  }
+}
+
+export async function setActiveWallet(userId: string, walletId: string): Promise<void> {
+  const response = await fetch(`/api/linked-wallets/${userId}/set-active`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ walletId }),
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to set active wallet");
+  }
+}
+
+export async function getActiveWallet(userId: string): Promise<LinkedWallet | null> {
+  const response = await fetch(`/api/linked-wallets/${userId}/active`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch active wallet");
+  }
+  
+  return await response.json();
+}
+
+// ===== PRICE ALERTS =====
+
+export async function getPriceAlerts(userId: string): Promise<PriceAlert[]> {
+  const response = await fetch(`/api/price-alerts/${userId}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch price alerts");
+  }
+  
+  return await response.json();
+}
+
+export async function createPriceAlert(userId: string, alert: {
+  tokenAddress: string;
+  tokenSymbol: string;
+  targetPrice: string;
+  direction: string;
+  isActive?: boolean;
+}): Promise<PriceAlert> {
+  const response = await fetch("/api/price-alerts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, ...alert }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to create price alert");
+  }
+  
+  return await response.json();
+}
+
+export async function updatePriceAlert(id: string, updates: Partial<PriceAlert>): Promise<PriceAlert> {
+  const response = await fetch(`/api/price-alerts/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updates),
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to update price alert");
+  }
+  
+  return await response.json();
+}
+
+export async function deletePriceAlert(id: string): Promise<void> {
+  const response = await fetch(`/api/price-alerts/${id}`, {
+    method: "DELETE",
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to delete price alert");
+  }
+}
+
+// ===== MULTI-TOKEN SETTINGS =====
+
+export async function getMultiTokenSettings(userId: string): Promise<MultiTokenSettings[]> {
+  const response = await fetch(`/api/multi-token/${userId}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch token settings");
+  }
+  
+  return await response.json();
+}
+
+export async function getActiveToken(userId: string): Promise<MultiTokenSettings | null> {
+  const response = await fetch(`/api/multi-token/${userId}/active`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch active token");
+  }
+  
+  return await response.json();
+}
+
+export async function createMultiToken(userId: string, settings: {
+  tokenName: string;
+  tokenSymbol: string;
+  contractAddress: string;
+  feeCollectionWallet?: string | null;
+  feePercentage?: number;
+  isActive?: boolean;
+  marketMaking?: number;
+  buyback?: number;
+  liquidity?: number;
+  revenue?: number;
+}): Promise<MultiTokenSettings> {
+  const response = await fetch("/api/multi-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, ...settings }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to create token");
+  }
+  
+  return await response.json();
+}
+
+export async function updateMultiToken(id: string, settings: Partial<MultiTokenSettings>): Promise<MultiTokenSettings> {
+  const response = await fetch(`/api/multi-token/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(settings),
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to update token");
+  }
+  
+  return await response.json();
+}
+
+export async function deleteMultiToken(id: string): Promise<void> {
+  const response = await fetch(`/api/multi-token/${id}`, {
+    method: "DELETE",
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to delete token");
+  }
+}
+
+export async function setActiveToken(userId: string, tokenId: string): Promise<void> {
+  const response = await fetch(`/api/multi-token/${userId}/set-active`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tokenId }),
+  });
+  
+  if (!response.ok) {
+    throw new Error("Failed to set active token");
+  }
 }
