@@ -22,14 +22,14 @@ async function captureScreenshots(page: Page) {
 
   // Home page
   console.log('Capturing home page...');
-  await page.goto(`${APP_URL}/`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.goto(`${APP_URL}/?demo=true`, { waitUntil: 'networkidle2', timeout: 30000 });
   await delay(1500);
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'home.png'), fullPage: false });
   screenshots['home'] = 'home.png';
 
-  // Dashboard page
+  // Dashboard page with demo mode (route is /app, not /dashboard)
   console.log('Capturing dashboard...');
-  await page.goto(`${APP_URL}/dashboard`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.goto(`${APP_URL}/app?demo=true`, { waitUntil: 'networkidle2', timeout: 30000 });
   await delay(2000);
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'dashboard.png'), fullPage: false });
   screenshots['dashboard'] = 'dashboard.png';
@@ -102,7 +102,7 @@ async function captureScreenshots(page: Page) {
 
   // Docs page
   console.log('Capturing docs page...');
-  await page.goto(`${APP_URL}/docs`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.goto(`${APP_URL}/docs?demo=true`, { waitUntil: 'networkidle2', timeout: 30000 });
   await delay(1000);
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'docs.png'), fullPage: false });
   screenshots['docs'] = 'docs.png';

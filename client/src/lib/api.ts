@@ -1,6 +1,10 @@
 import type { User, Allocation, Transaction, AutomationConfig, DestinationWallets, AllocationPreset, TelegramSettings, TokenSettings } from "@shared/schema";
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
+function isDemoMode() {
+  if (typeof window === 'undefined') return false;
+  const urlParams = new URLSearchParams(window.location.search);
+  return import.meta.env.VITE_DEMO_MODE === 'true' || urlParams.get('demo') === 'true';
+}
 
 const DEMO_ALLOCATION: Allocation = {
   id: 'demo-alloc-1',
@@ -129,7 +133,7 @@ export async function getNetworkStats(): Promise<{
 }
 
 export async function getDestinationWallets(userId: string): Promise<DestinationWallets> {
-  if (DEMO_MODE) return DEMO_WALLETS;
+  if (isDemoMode()) return DEMO_WALLETS;
   
   const response = await fetch(`/api/destination-wallets/${userId}`);
   
@@ -204,7 +208,7 @@ export async function recordTransaction(userId: string, signature: string, amoun
 }
 
 export async function getAllocation(userId: string): Promise<Allocation> {
-  if (DEMO_MODE) return DEMO_ALLOCATION;
+  if (isDemoMode()) return DEMO_ALLOCATION;
   
   const response = await fetch(`/api/allocations/${userId}`);
   
@@ -236,7 +240,7 @@ export async function saveAllocation(userId: string, allocations: {
 }
 
 export async function getTransactions(userId: string, limit?: number): Promise<Transaction[]> {
-  if (DEMO_MODE) return DEMO_TRANSACTIONS;
+  if (isDemoMode()) return DEMO_TRANSACTIONS;
   
   const url = `/api/transactions/${userId}${limit ? `?limit=${limit}` : ""}`;
   const response = await fetch(url);
@@ -269,7 +273,7 @@ export async function createTransaction(transaction: {
 }
 
 export async function getAutomationConfig(userId: string): Promise<AutomationConfig> {
-  if (DEMO_MODE) return DEMO_AUTOMATION;
+  if (isDemoMode()) return DEMO_AUTOMATION;
   
   const response = await fetch(`/api/automation/${userId}`);
   
@@ -312,7 +316,7 @@ export async function runOptimizer(userId: string): Promise<Allocation> {
 
 // Allocation Presets
 export async function getPresets(userId: string): Promise<AllocationPreset[]> {
-  if (DEMO_MODE) return DEMO_PRESETS;
+  if (isDemoMode()) return DEMO_PRESETS;
   
   const response = await fetch(`/api/presets/${userId}`);
   
@@ -355,7 +359,7 @@ export async function deletePreset(id: string): Promise<void> {
 
 // Telegram Settings
 export async function getTelegramSettings(userId: string): Promise<TelegramSettings> {
-  if (DEMO_MODE) return DEMO_TELEGRAM;
+  if (isDemoMode()) return DEMO_TELEGRAM;
   
   const response = await fetch(`/api/telegram-settings/${userId}`);
   
@@ -389,7 +393,7 @@ export async function saveTelegramSettings(userId: string, settings: {
 
 // Token Settings
 export async function getTokenSettings(userId: string): Promise<TokenSettings> {
-  if (DEMO_MODE) return DEMO_TOKEN;
+  if (isDemoMode()) return DEMO_TOKEN;
   
   const response = await fetch(`/api/token-settings/${userId}`);
   

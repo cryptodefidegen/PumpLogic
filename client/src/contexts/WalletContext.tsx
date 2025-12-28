@@ -2,7 +2,11 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { authenticateWallet } from "@/lib/api";
 import type { User } from "@shared/schema";
 
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
+function isDemoMode() {
+  if (typeof window === 'undefined') return false;
+  const urlParams = new URLSearchParams(window.location.search);
+  return import.meta.env.VITE_DEMO_MODE === 'true' || urlParams.get('demo') === 'true';
+}
 
 const DEMO_USER: User = {
   id: 'demo-user-id',
@@ -38,13 +42,14 @@ interface WalletContextType {
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null);
-  const [walletAddress, setWalletAddress] = useState<string | null>(DEMO_MODE ? DEMO_USER.walletAddress : null);
-  const [isConnected, setIsConnected] = useState(DEMO_MODE);
-  const [isPhantomInstalled, setIsPhantomInstalled] = useState(DEMO_MODE);
+  const demoMode = isDemoMode();
+  const [user, setUser] = useState<User | null>(demoMode ? DEMO_USER : null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(demoMode ? DEMO_USER.walletAddress : null);
+  const [isConnected, setIsConnected] = useState(demoMode);
+  const [isPhantomInstalled, setIsPhantomInstalled] = useState(demoMode);
 
   useEffect(() => {
-    if (DEMO_MODE) {
+    if (demoMode) {
       return;
     }
     
