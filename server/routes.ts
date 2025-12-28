@@ -14,6 +14,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   app.use('/downloads', express.static(path.join(process.cwd(), 'attached_assets/generated_images')));
+  app.use('/guides', express.static(path.join(process.cwd(), 'public')));
   // Get or create user by wallet address
   app.post("/api/auth/wallet", async (req, res) => {
     try {

@@ -1,10 +1,12 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { Page } from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 
 const APP_URL = 'http://localhost:5000';
 const OUTPUT_DIR = path.join(process.cwd(), 'public');
 const SCREENSHOTS_DIR = path.join(OUTPUT_DIR, 'guide-screenshots');
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function ensureDirectories() {
   if (!fs.existsSync(OUTPUT_DIR)) {
@@ -15,20 +17,20 @@ async function ensureDirectories() {
   }
 }
 
-async function captureScreenshots(page: puppeteer.Page) {
+async function captureScreenshots(page: Page) {
   const screenshots: Record<string, string> = {};
 
   // Home page
   console.log('Capturing home page...');
   await page.goto(`${APP_URL}/`, { waitUntil: 'networkidle2', timeout: 30000 });
-  await page.waitForTimeout(1000);
+  await delay(1000);
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'home.png'), fullPage: false });
   screenshots['home'] = 'home.png';
 
   // Dashboard page - simulate wallet connection by setting localStorage
   console.log('Capturing dashboard...');
   await page.goto(`${APP_URL}/dashboard`, { waitUntil: 'networkidle2', timeout: 30000 });
-  await page.waitForTimeout(2000);
+  await delay(2000);
   
   // Take dashboard screenshot
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'dashboard.png'), fullPage: false });
@@ -40,7 +42,7 @@ async function captureScreenshots(page: puppeteer.Page) {
     const element = document.querySelector('[data-testid="slider-market-making"]');
     if (element) element.scrollIntoView({ behavior: 'instant', block: 'center' });
   });
-  await page.waitForTimeout(500);
+  await delay(500);
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'allocations.png'), fullPage: false });
   screenshots['allocations'] = 'allocations.png';
 
@@ -48,12 +50,12 @@ async function captureScreenshots(page: puppeteer.Page) {
   console.log('Capturing wallet dialog...');
   try {
     await page.click('[data-testid="button-configure-wallets"]');
-    await page.waitForTimeout(1000);
+    await delay(1000);
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'wallets.png'), fullPage: false });
     screenshots['wallets'] = 'wallets.png';
     // Close dialog
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
+    await delay(500);
   } catch (e) {
     console.log('Could not capture wallet dialog');
   }
@@ -62,7 +64,7 @@ async function captureScreenshots(page: puppeteer.Page) {
   console.log('Capturing AI optimizer...');
   try {
     await page.click('[data-testid="button-run-ai"]');
-    await page.waitForTimeout(2000);
+    await delay(2000);
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'ai-optimizer.png'), fullPage: false });
     screenshots['ai-optimizer'] = 'ai-optimizer.png';
   } catch (e) {
@@ -73,11 +75,11 @@ async function captureScreenshots(page: puppeteer.Page) {
   console.log('Capturing notifications dialog...');
   try {
     await page.click('[data-testid="button-notifications"]');
-    await page.waitForTimeout(1000);
+    await delay(1000);
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'notifications.png'), fullPage: false });
     screenshots['notifications'] = 'notifications.png';
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
+    await delay(500);
   } catch (e) {
     console.log('Could not capture notifications dialog');
   }
@@ -86,11 +88,11 @@ async function captureScreenshots(page: puppeteer.Page) {
   console.log('Capturing token settings...');
   try {
     await page.click('[data-testid="button-token-settings"]');
-    await page.waitForTimeout(1000);
+    await delay(1000);
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'token-settings.png'), fullPage: false });
     screenshots['token-settings'] = 'token-settings.png';
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
+    await delay(500);
   } catch (e) {
     console.log('Could not capture token settings dialog');
   }
@@ -101,7 +103,7 @@ async function captureScreenshots(page: puppeteer.Page) {
     const element = document.querySelector('[data-testid="input-distribution-amount"]');
     if (element) element.scrollIntoView({ behavior: 'instant', block: 'center' });
   });
-  await page.waitForTimeout(500);
+  await delay(500);
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'distribution.png'), fullPage: false });
   screenshots['distribution'] = 'distribution.png';
 
@@ -111,14 +113,14 @@ async function captureScreenshots(page: puppeteer.Page) {
     const element = document.querySelector('[data-testid="section-activity-log"]');
     if (element) element.scrollIntoView({ behavior: 'instant', block: 'center' });
   });
-  await page.waitForTimeout(500);
+  await delay(500);
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'activity-log.png'), fullPage: false });
   screenshots['activity-log'] = 'activity-log.png';
 
   // Docs page
   console.log('Capturing docs page...');
   await page.goto(`${APP_URL}/docs`, { waitUntil: 'networkidle2', timeout: 30000 });
-  await page.waitForTimeout(1000);
+  await delay(1000);
   await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'docs.png'), fullPage: false });
   screenshots['docs'] = 'docs.png';
 
