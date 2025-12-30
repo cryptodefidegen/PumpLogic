@@ -786,32 +786,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Token Contract Address */}
-        <div className="flex justify-center mb-6">
-          <div className="bg-black/60 border border-primary/30 rounded-lg px-4 py-2.5 flex items-center gap-3">
-            <span className="text-primary font-mono text-sm truncate max-w-[200px] sm:max-w-[350px]">
-              63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-primary/50 text-primary hover:bg-primary hover:text-black shrink-0"
-              onClick={() => {
-                navigator.clipboard.writeText("63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump");
-                toast({
-                  title: "Copied!",
-                  description: "Contract address copied to clipboard",
-                  className: "bg-primary text-black font-bold"
-                });
-              }}
-              data-testid="button-copy-ca"
-            >
-              <Copy className="h-4 w-4 mr-1" />
-              Copy CA
-            </Button>
-          </div>
-        </div>
-
         {/* Top Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
           <div>
