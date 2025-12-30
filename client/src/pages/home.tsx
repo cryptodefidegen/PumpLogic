@@ -57,20 +57,37 @@ export default function Home() {
 
           {/* Contract Address */}
           <div className="flex justify-center pt-6">
-            <div className="bg-black/60 border border-primary/30 rounded-lg px-4 py-2.5 flex items-center gap-3">
-              <span className="text-primary font-mono text-sm truncate max-w-[180px] sm:max-w-[350px]">
+            <div className="bg-black/60 border border-primary/30 rounded-lg px-4 py-2.5 flex flex-wrap items-center justify-center gap-3">
+              <span className="text-primary font-mono text-sm truncate max-w-[180px] sm:max-w-[280px]">
                 63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-primary/50 text-primary hover:bg-primary hover:text-black shrink-0"
-                onClick={copyContractAddress}
-                data-testid="button-copy-ca-home"
-              >
-                <Copy className="h-4 w-4 mr-1" />
-                Copy CA
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-primary/50 text-primary hover:bg-primary hover:text-black shrink-0"
+                  onClick={copyContractAddress}
+                  data-testid="button-copy-ca-home"
+                >
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copy CA
+                </Button>
+                <a 
+                  href="https://pump.fun/coin/63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-primary/50 text-primary hover:bg-primary hover:text-black shrink-0"
+                    data-testid="button-buy-pumpfun"
+                  >
+                    <ArrowRight className="h-4 w-4 mr-1" />
+                    Buy
+                  </Button>
+                </a>
+              </div>
             </div>
           </div>
           
