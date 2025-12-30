@@ -35,7 +35,7 @@ const phases = [
   {
     id: 3,
     title: "PumpLogic Sniper",
-    status: "planned",
+    status: "in_progress",
     icon: Target,
     description: "Lightning-fast token launch sniping tool",
     features: [
@@ -76,6 +76,14 @@ function StatusBadge({ status }: { status: string }) {
       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-500 text-xs font-medium">
         <Clock className="h-3 w-3" />
         UPCOMING
+      </span>
+    );
+  }
+  if (status === "in_progress") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs font-medium">
+        <Clock className="h-3 w-3" />
+        IN PROGRESS
       </span>
     );
   }
