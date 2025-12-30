@@ -1,9 +1,21 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, MessageCircle } from "lucide-react";
+import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, MessageCircle, Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
+  const { toast } = useToast();
+  
+  const copyContractAddress = () => {
+    navigator.clipboard.writeText("63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump");
+    toast({
+      title: "Copied!",
+      description: "Contract address copied to clipboard",
+      className: "bg-primary text-black font-bold"
+    });
+  };
+  
   return (
     <div className="min-h-screen text-foreground overflow-hidden">
       {/* Hero Section */}
@@ -41,6 +53,25 @@ export default function Home() {
                 View Docs
               </Button>
             </Link>
+          </div>
+
+          {/* Contract Address */}
+          <div className="flex justify-center pt-6">
+            <div className="bg-black/60 border border-primary/30 rounded-lg px-4 py-2.5 flex items-center gap-3">
+              <span className="text-primary font-mono text-sm truncate max-w-[180px] sm:max-w-[350px]">
+                63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-primary/50 text-primary hover:bg-primary hover:text-black shrink-0"
+                onClick={copyContractAddress}
+                data-testid="button-copy-ca-home"
+              >
+                <Copy className="h-4 w-4 mr-1" />
+                Copy CA
+              </Button>
+            </div>
           </div>
           
           <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto border-t border-white/5 mt-12">
