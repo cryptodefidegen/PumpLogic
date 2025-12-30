@@ -82,6 +82,12 @@ export function Navbar() {
           >
             Docs
           </Link>
+          <Link 
+            href="/roadmap" 
+            className={cn("text-sm font-medium transition-colors hover:text-primary", location === "/roadmap" ? "text-primary" : "text-muted-foreground")}
+          >
+            Roadmap
+          </Link>
           <div className="flex items-center gap-3 ml-2 border-l border-white/10 pl-4">
             <a 
               href="https://x.com/i/communities/2004770032832929819" 
@@ -139,6 +145,9 @@ export function Navbar() {
             </Link>
             <Link href="/docs" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               Docs
+            </Link>
+            <Link href="/roadmap" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
+              Roadmap
             </Link>
             <div className="flex items-center gap-4 pt-2 border-t border-white/10">
               <a 
