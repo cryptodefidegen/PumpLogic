@@ -109,6 +109,67 @@ export default function Home() {
               <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Execution</div>
             </div>
           </div>
+
+          {/* Coming Soon - PumpLogic Sniper */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-16"
+          >
+            <div className="relative bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-primary/10 border border-blue-500/30 rounded-2xl p-6 md:p-8 overflow-hidden">
+              {/* Animated background elements */}
+              <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+              
+              {/* Coming Soon Badge */}
+              <div className="absolute top-3 right-3 md:top-4 md:right-4">
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-500/50 text-blue-400 text-xs font-bold animate-pulse">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-400"></span>
+                  </span>
+                  COMING SOON
+                </span>
+              </div>
+
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                {/* Icon/Logo */}
+                <div className="shrink-0">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-gradient-to-br from-blue-500/30 to-purple-500/30 border border-blue-500/50 flex items-center justify-center">
+                    <Target className="w-8 h-8 md:w-10 md:h-10 text-blue-400" />
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl font-bold font-display mb-2">
+                    <span className="text-white">PumpLogic</span>{" "}
+                    <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Sniper</span>
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Lightning-fast token launch sniping tool with sub-second execution.
+                  </p>
+
+                  {/* CTA */}
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                    <a href="https://t.me/PumpLogicSol" target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-4">
+                        <MessageCircle className="h-4 w-4 mr-1" />
+                        Join Waitlist
+                      </Button>
+                    </a>
+                    <Link href="/roadmap">
+                      <Button size="sm" variant="outline" className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 rounded-full px-4">
+                        View Roadmap
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       </section>
 
