@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, MessageCircle, Copy } from "lucide-react";
+import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, MessageCircle, Copy, Target, Crosshair, Shield, BarChart3, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
@@ -143,6 +143,89 @@ export default function Home() {
             />
           </div>
         </div>
+      </section>
+
+      {/* Coming Soon - PumpLogic Sniper */}
+      <section className="py-24 container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="max-w-5xl mx-auto"
+        >
+          <div className="relative bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-primary/10 border border-blue-500/30 rounded-3xl p-8 md:p-12 overflow-hidden">
+            {/* Animated background elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+            
+            {/* Coming Soon Badge */}
+            <div className="absolute top-4 right-4 md:top-6 md:right-6">
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/20 border border-blue-500/50 text-blue-400 text-sm font-bold animate-pulse">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-400"></span>
+                </span>
+                COMING SOON
+              </span>
+            </div>
+
+            <div className="relative z-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+              {/* Icon/Logo */}
+              <div className="shrink-0">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-gradient-to-br from-blue-500/30 to-purple-500/30 border border-blue-500/50 flex items-center justify-center">
+                  <Target className="w-12 h-12 md:w-16 md:h-16 text-blue-400" />
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 text-center lg:text-left">
+                <h2 className="text-3xl md:text-4xl font-bold font-display mb-3">
+                  <span className="text-white">PumpLogic</span>{" "}
+                  <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Sniper</span>
+                </h2>
+                <p className="text-lg text-muted-foreground mb-6 max-w-xl">
+                  Lightning-fast token launch sniping tool. Get in early on the hottest Pump.fun launches with sub-second execution.
+                </p>
+
+                {/* Features Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="flex items-center gap-2 text-sm text-white/80">
+                    <Crosshair className="h-4 w-4 text-blue-400 shrink-0" />
+                    <span>Sub-second alerts</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-white/80">
+                    <Zap className="h-4 w-4 text-yellow-400 shrink-0" />
+                    <span>Auto-snipe presets</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-white/80">
+                    <Shield className="h-4 w-4 text-green-400 shrink-0" />
+                    <span>Risk controls</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-white/80">
+                    <BarChart3 className="h-4 w-4 text-purple-400 shrink-0" />
+                    <span>PnL tracking</span>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
+                  <a href="https://t.me/PumpLogicSol" target="_blank" rel="noopener noreferrer">
+                    <Button className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-6">
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Join Waitlist
+                    </Button>
+                  </a>
+                  <Link href="/roadmap">
+                    <Button variant="outline" className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 rounded-full px-6">
+                      View Roadmap
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* CTA Section */}
