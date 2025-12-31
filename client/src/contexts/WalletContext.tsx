@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { authenticateWallet } from "@/lib/api";
+import { authenticateWallet, checkTokenGate, type TokenGateResult } from "@/lib/api";
 import type { User } from "@shared/schema";
 
 declare global {
@@ -24,7 +24,11 @@ interface WalletContextType {
   connect: () => Promise<void>;
   disconnect: () => void;
   walletAddress: string | null;
+  fullWalletAddress: string | null;
   isPhantomInstalled: boolean;
+  tokenGate: TokenGateResult | null;
+  isTokenGateLoading: boolean;
+  refreshTokenGate: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -32,8 +36,11 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [fullWalletAddress, setFullWalletAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isPhantomInstalled, setIsPhantomInstalled] = useState(false);
+  const [tokenGate, setTokenGate] = useState<TokenGateResult | null>(null);
+  const [isTokenGateLoading, setIsTokenGateLoading] = useState(false);
 
   useEffect(() => {
     
@@ -52,8 +59,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const savedUser = localStorage.getItem("user");
         if (savedWallet && savedUser) {
           setWalletAddress(savedWallet);
+          setFullWalletAddress(savedWallet);
           setUser(JSON.parse(savedUser));
           setIsConnected(true);
+          // Also check token gate for restored sessions
+          checkGateWithBlocking(savedWallet);
         }
       }
     };
@@ -72,14 +82,47 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const checkGateWithBlocking = async (address: string) => {
+    setIsTokenGateLoading(true);
+    try {
+      const result = await checkTokenGate(address);
+      setTokenGate(result);
+      return result;
+    } catch (error) {
+      console.error("Failed to check token gate:", error);
+      // On error, set a blocked state to prevent access
+      setTokenGate({
+        allowed: false,
+        reason: "Failed to verify token holdings. Please try again.",
+        tokenBalance: 0,
+        tokenPriceUsd: 0,
+        valueUsd: 0,
+        minRequired: 50,
+        isWhitelisted: false,
+      });
+      return null;
+    } finally {
+      setIsTokenGateLoading(false);
+    }
+  };
+
+  const refreshTokenGate = async () => {
+    if (fullWalletAddress) {
+      await checkGateWithBlocking(fullWalletAddress);
+    }
+  };
+
   const restoreConnection = async (address: string) => {
     try {
       const authenticatedUser = await authenticateWallet(address);
       setWalletAddress(address);
+      setFullWalletAddress(address);
       setUser(authenticatedUser);
       setIsConnected(true);
       localStorage.setItem("wallet_address", address);
       localStorage.setItem("user", JSON.stringify(authenticatedUser));
+      
+      await checkGateWithBlocking(address);
     } catch (error) {
       console.error("Failed to restore connection:", error);
     }
@@ -102,12 +145,16 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       const authenticatedUser = await authenticateWallet(address);
       
       setWalletAddress(address);
+      setFullWalletAddress(address);
       setUser(authenticatedUser);
       setIsConnected(true);
       
       // Save to localStorage
       localStorage.setItem("wallet_address", address);
       localStorage.setItem("user", JSON.stringify(authenticatedUser));
+      
+      // Check token gate
+      await checkGateWithBlocking(address);
     } catch (error: any) {
       console.error("Failed to connect wallet:", error);
       throw new Error(error.message || "Failed to connect to Phantom wallet");
@@ -126,7 +173,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     
     setUser(null);
     setWalletAddress(null);
+    setFullWalletAddress(null);
     setIsConnected(false);
+    setTokenGate(null);
     localStorage.removeItem("wallet_address");
     localStorage.removeItem("user");
   };
@@ -145,7 +194,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       connect, 
       disconnect, 
       walletAddress: formatAddress(walletAddress),
-      isPhantomInstalled 
+      fullWalletAddress,
+      isPhantomInstalled,
+      tokenGate,
+      isTokenGateLoading,
+      refreshTokenGate,
     }}>
       {children}
     </WalletContext.Provider>

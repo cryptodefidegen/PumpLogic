@@ -518,3 +518,25 @@ export async function setActiveToken(userId: string, tokenId: string): Promise<v
     throw new Error("Failed to set active token");
   }
 }
+
+// ===== TOKEN GATING =====
+
+export interface TokenGateResult {
+  allowed: boolean;
+  reason: string;
+  tokenBalance: number;
+  tokenPriceUsd: number;
+  valueUsd: number;
+  minRequired: number;
+  isWhitelisted: boolean;
+}
+
+export async function checkTokenGate(walletAddress: string): Promise<TokenGateResult> {
+  const response = await fetch(`/api/token-gate/${walletAddress}`);
+  
+  if (!response.ok) {
+    throw new Error("Failed to check token gate");
+  }
+  
+  return await response.json();
+}

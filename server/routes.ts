@@ -8,6 +8,7 @@ import { z } from "zod";
 import { solanaService } from "./services/solana";
 import { getBot } from "./services/telegram";
 import { tokenMonitor } from "./services/tokenMonitor";
+import { checkTokenGate } from "./services/tokenGating";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -31,6 +32,22 @@ export async function registerRoutes(
       }
 
       return res.json({ user });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Check token gate for a wallet address
+  app.get("/api/token-gate/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      if (!walletAddress) {
+        return res.status(400).json({ error: "Wallet address is required" });
+      }
+
+      const result = await checkTokenGate(walletAddress);
+      return res.json(result);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
