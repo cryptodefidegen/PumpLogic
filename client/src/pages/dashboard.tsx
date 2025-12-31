@@ -54,7 +54,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function Dashboard() {
   const { toast } = useToast();
-  const { user, isConnected, connect } = useWallet();
+  const { user, isConnected, connect, tokenGate } = useWallet();
   const queryClient = useQueryClient();
   
   const [allocations, setAllocations] = useState({
@@ -776,6 +776,32 @@ export default function Dashboard() {
               <Wallet className="mr-2 h-4 w-4" />
               Connect Wallet
             </Button>
+          </div>
+        )}
+
+        {/* Token Gate Warning - show when connected but doesn't meet requirements */}
+        {!isPreviewMode && tokenGate && !tokenGate.allowed && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex gap-3 items-start">
+              <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <strong className="text-red-400 block mb-1">TOKEN REQUIREMENT NOT MET</strong>
+                <span className="text-white/80">
+                  Full dashboard features require holding at least <span className="text-primary font-bold">${tokenGate.minRequired}</span> worth of $PUMPLOGIC tokens. 
+                  Your current holdings: <span className="font-bold">${tokenGate.valueUsd.toFixed(2)}</span>
+                </span>
+              </div>
+            </div>
+            <a 
+              href="https://pump.fun/coin/63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button size="sm" className="bg-primary text-black hover:bg-primary/90 shrink-0">
+                <ExternalLink className="h-4 w-4 mr-1" />
+                Buy $PUMPLOGIC
+              </Button>
+            </a>
           </div>
         )}
 

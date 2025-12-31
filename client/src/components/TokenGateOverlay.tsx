@@ -1,14 +1,16 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, ExternalLink, RefreshCw, Loader2 } from "lucide-react";
+import { ShieldAlert, ExternalLink, RefreshCw, Loader2, X } from "lucide-react";
 import { useWallet } from "@/contexts/WalletContext";
 
 const PUMPLOGIC_TOKEN = "63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump";
 
 export function TokenGateOverlay() {
   const { tokenGate, isTokenGateLoading, refreshTokenGate } = useWallet();
+  const [dismissed, setDismissed] = useState(false);
 
-  if (!tokenGate || tokenGate.allowed) {
+  if (!tokenGate || tokenGate.allowed || dismissed) {
     return null;
   }
 
@@ -34,6 +36,13 @@ export function TokenGateOverlay() {
         transition={{ delay: 0.1 }}
         className="max-w-md w-full bg-gradient-to-br from-gray-900 to-gray-950 border border-red-500/30 rounded-2xl p-8 text-center"
       >
+        <button
+          onClick={() => setDismissed(true)}
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <X className="w-5 h-5 text-muted-foreground" />
+        </button>
+
         <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
           <ShieldAlert className="w-10 h-10 text-red-400" />
         </div>
