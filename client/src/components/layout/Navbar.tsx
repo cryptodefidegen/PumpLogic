@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, MessageCircle } from "lucide-react";
+import { Wallet, Menu, X, Loader2, MessageCircle, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -88,6 +88,11 @@ export function Navbar() {
           >
             Roadmap
           </Link>
+          <div className="flex items-center gap-1.5 text-sm font-medium text-blue-400 cursor-default">
+            <Target className="h-4 w-4" />
+            <span>Sniper</span>
+            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-500/20 border border-blue-500/50 rounded-full">SOON</span>
+          </div>
           <div className="flex items-center gap-3 ml-2 border-l border-white/10 pl-4">
             <a 
               href="https://x.com/i/communities/2004770032832929819" 
@@ -149,6 +154,11 @@ export function Navbar() {
             <Link href="/roadmap" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               Roadmap
             </Link>
+            <div className="flex items-center gap-2 text-sm font-medium text-blue-400">
+              <Target className="h-4 w-4" />
+              <span>Sniper</span>
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-500/20 border border-blue-500/50 rounded-full">COMING SOON</span>
+            </div>
             <div className="flex items-center gap-4 pt-2 border-t border-white/10">
               <a 
                 href="https://x.com/i/communities/2004770032832929819" 
