@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
 import { SoundSettingsDialog } from "@/components/SoundSettings";
-import { TokenGateOverlay } from "@/components/TokenGateOverlay";
 import { playSound } from "@/lib/sounds";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
@@ -757,9 +756,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen text-foreground pb-20">
-      {/* Token Gate Overlay - blocks access if user doesn't hold enough tokens */}
-      {!isPreviewMode && <TokenGateOverlay />}
-      
       <div className="container mx-auto px-4 pt-8">
         
         {/* Preview Mode Warning Banner */}
