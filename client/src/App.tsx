@@ -11,6 +11,7 @@ import Docs from "@/pages/docs";
 import TelegramDocs from "@/pages/telegram-docs";
 import Roadmap from "@/pages/roadmap";
 import Analytics from "@/pages/analytics";
+import Guard from "@/pages/guard";
 import { Navbar } from "@/components/layout/Navbar";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/docs/telegram" component={TelegramDocs} />
       <Route path="/roadmap" component={Roadmap} />
       <Route path="/analytics" component={Analytics} />
+      <Route path="/guard" component={Guard} />
       <Route component={NotFound} />
     </Switch>
   );

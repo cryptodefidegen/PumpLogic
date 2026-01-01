@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, MessageCircle, Target, BarChart3 } from "lucide-react";
+import { Wallet, Menu, X, Loader2, MessageCircle, Target, BarChart3, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -7,12 +7,16 @@ import { useWallet } from "@/contexts/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import logoImage from "@assets/generated_images/pump_logic_logo.png";
 
+const GUARD_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
+
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [location] = useLocation();
-  const { isConnected, walletAddress, connect, disconnect, isPhantomInstalled } = useWallet();
+  const { isConnected, walletAddress, user, connect, disconnect, isPhantomInstalled } = useWallet();
   const { toast } = useToast();
+  
+  const isGuardWhitelisted = user?.walletAddress && GUARD_WHITELIST.includes(user.walletAddress);
 
   const toggleMenu = () => setIsOpen(!isOpen);
   
@@ -95,6 +99,22 @@ export function Navbar() {
           >
             Roadmap
           </Link>
+          {isGuardWhitelisted ? (
+            <Link 
+              href="/guard" 
+              className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/guard" ? "text-primary" : "text-muted-foreground")}
+            >
+              <Shield className="h-4 w-4" />
+              Guard
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
+            </Link>
+          ) : (
+            <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground/50 cursor-not-allowed">
+              <Shield className="h-4 w-4" />
+              Guard
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-white/10 border border-white/20 rounded-full">SOON</span>
+            </div>
+          )}
           <div className="flex items-center gap-3 ml-2 border-l border-white/10 pl-4">
             <a 
               href="https://x.com/i/communities/2004770032832929819" 
@@ -160,6 +180,19 @@ export function Navbar() {
             <Link href="/roadmap" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               Roadmap
             </Link>
+            {isGuardWhitelisted ? (
+              <Link href="/guard" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                <Shield className="h-4 w-4" />
+                Guard
+                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground/50">
+                <Shield className="h-4 w-4" />
+                Guard
+                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-white/10 border border-white/20 rounded-full">SOON</span>
+              </div>
+            )}
             <div className="flex items-center gap-4 pt-2 border-t border-white/10">
               <a 
                 href="https://x.com/i/communities/2004770032832929819" 

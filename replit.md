@@ -70,3 +70,14 @@ Preferred communication style: Simple, everyday language.
 - **shadcn/ui**: Pre-styled component collection
 - **Tailwind CSS**: Utility-first styling
 - **Lucide React**: Icon library
+
+## Feature Notes
+
+### PumpLogic Guard (Beta)
+- **Location**: `/guard` route, restricted to whitelisted addresses only
+- **Whitelist**: Deployer address `9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8`
+- **Features**:
+  - Token Scanner: Analyze any Solana token for rug-pull risks (liquidity lock, holder concentration, authority status)
+  - Risk Alerts: Real-time monitoring with sample alerts for large holder movements, liquidity changes
+  - Tax Reports: Date range selection and CSV export for transaction history
+- **Access Control**: Non-whitelisted users see "SOON" badge in navbar (non-clickable), whitelisted see "BETA" badge (clickable)

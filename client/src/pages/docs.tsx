@@ -296,6 +296,110 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
+          <AccordionItem value="guard" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-primary" />
+                PumpLogic Guard
+                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
+              <p>
+                PumpLogic Guard is your security toolkit for Solana token analysis. It provides real-time risk assessment, 
+                rug-pull pattern detection, and tax reporting tools to help you make informed decisions and stay safe in DeFi.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Token Scanner</h4>
+                <div className="space-y-3">
+                  <p className="text-sm">
+                    Enter any Solana token address to get a comprehensive security analysis. The scanner checks for common 
+                    rug-pull indicators and provides a risk score from 0-100.
+                  </p>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
+                      <Shield className="h-4 w-4 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Liquidity Lock Status</p>
+                      <p className="text-xs">Checks if liquidity is locked and for how long</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center shrink-0">
+                      <Activity className="h-4 w-4 text-yellow-500" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Holder Concentration</p>
+                      <p className="text-xs">Analyzes top holder distribution for whale risk</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Settings className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Authority Status</p>
+                      <p className="text-xs">Verifies if mint and freeze authorities are disabled</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Risk Alerts</h4>
+                <p className="text-sm mb-3">
+                  Add tokens to your watchlist to receive real-time alerts for suspicious activity:
+                </p>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-xs">Large holder movements to exchange wallets</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-xs">Liquidity removal or unlock events</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-xs">Authority changes or minting activity</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-xs">Contract upgrades or suspicious transactions</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Tax Reports</h4>
+                <p className="text-sm mb-3">
+                  Generate tax-ready reports for your Solana transactions. Features include:
+                </p>
+                <div className="space-y-3">
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">Date Range Selection</h5>
+                    <p className="text-xs">Choose custom date ranges for quarterly or annual tax filing.</p>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">CSV Export</h5>
+                    <p className="text-xs">Download formatted transaction data compatible with tax software.</p>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-4 border border-white/10">
+                    <h5 className="text-white text-sm font-medium mb-2">P&L Summary</h5>
+                    <p className="text-xs">View total gains, losses, and net profit/loss at a glance.</p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                PumpLogic Guard is currently in beta and available to whitelisted users only. Features are read-only 
+                and do not execute any blockchain transactions.
+              </p>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="telegram" className="bg-card border border-white/5 rounded-lg px-6">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
