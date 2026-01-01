@@ -790,13 +790,13 @@ export async function registerRoutes(
       const allTransactions = await storage.getTransactions(userId, 100);
       
       // Get user's active token or specified token
+      // If tokenAddress is "default" or undefined, use PLOGIC token
       let activeToken = null;
-      if (tokenAddress) {
+      if (tokenAddress && tokenAddress !== "default") {
         const tokens = await storage.getMultiTokenSettings(userId);
         activeToken = tokens.find(t => t.contractAddress === tokenAddress);
-      } else {
-        activeToken = await storage.getActiveToken(userId);
       }
+      // If no token specified or "default", activeToken stays null and we use PLOGIC defaults below
       
       // Get all tokens for the user
       const allTokens = await storage.getMultiTokenSettings(userId);
