@@ -38,9 +38,10 @@ Preferred communication style: Simple, everyday language.
   - `destinationWallets`: Target wallets for each allocation category
 
 ### Authentication
-- Wallet-based authentication using Phantom wallet
+- Multi-wallet support: Phantom, Solflare, and Backpack wallets
 - No traditional username/password - users authenticate by connecting their Solana wallet
-- Session persistence via localStorage with wallet address
+- Session persistence via localStorage with wallet address and provider name
+- Wallet selection modal shows all supported wallets with install links for missing ones
 
 ### Key Design Patterns
 - **Shared Types**: Schema types are shared between frontend and backend via `@shared/*` path alias
@@ -81,3 +82,14 @@ Preferred communication style: Simple, everyday language.
   - Risk Alerts: Real-time monitoring with sample alerts for large holder movements, liquidity changes
   - Tax Reports: Date range selection and CSV export for transaction history
 - **Access Control**: Non-whitelisted users see "SOON" badge in navbar (non-clickable), whitelisted see "BETA" badge (clickable)
+
+### Token Burn Feature
+- **Location**: `/burn` route, accessible to all connected users
+- **Features**:
+  - Manual token burning for any SPL token
+  - Enter token mint address to check balance
+  - Fetches token symbol from DexScreener API
+  - Enter custom burn amount with max button
+  - Shows warning about irreversible action
+  - Links to Solscan for transaction verification
+- **Implementation**: Uses native @solana/web3.js with manual SPL Token burn instruction (avoids Buffer polyfill issues)

@@ -12,7 +12,10 @@ import TelegramDocs from "@/pages/telegram-docs";
 import Roadmap from "@/pages/roadmap";
 import Analytics from "@/pages/analytics";
 import Guard from "@/pages/guard";
+import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/layout/Navbar";
+
+const Burn = lazy(() => import("@/pages/burn"));
 import { WalletModal } from "@/components/WalletModal";
 
 function Router() {
@@ -25,6 +28,13 @@ function Router() {
       <Route path="/roadmap" component={Roadmap} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/guard" component={Guard} />
+      <Route path="/burn">
+        {() => (
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
+            <Burn />
+          </Suspense>
+        )}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

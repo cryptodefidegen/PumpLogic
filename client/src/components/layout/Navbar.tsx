@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, MessageCircle, Target, BarChart3, Shield, Sliders } from "lucide-react";
+import { Wallet, Menu, X, Loader2, MessageCircle, Target, BarChart3, Shield, Sliders, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -92,6 +92,13 @@ export function Navbar() {
             <BarChart3 className="h-4 w-4" />
             Analytics
           </Link>
+          <Link 
+            href="/burn" 
+            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/burn" ? "text-primary" : "text-muted-foreground")}
+          >
+            <Flame className="h-4 w-4" />
+            Burn
+          </Link>
           {isGuardWhitelisted ? (
             <Link 
               href="/guard" 
@@ -179,6 +186,10 @@ export function Navbar() {
             <Link href="/analytics" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
               <BarChart3 className="h-4 w-4" />
               Analytics
+            </Link>
+            <Link href="/burn" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+              <Flame className="h-4 w-4" />
+              Burn
             </Link>
             {isGuardWhitelisted ? (
               <Link href="/guard" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
