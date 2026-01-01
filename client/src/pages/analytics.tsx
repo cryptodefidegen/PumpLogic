@@ -52,7 +52,8 @@ function formatNumber(num: number, decimals = 2): string {
 
 function formatPrice(price: number): string {
   if (price === 0) return "$0.00";
-  if (price < 0.0001) return `$${price.toExponential(4)}`;
+  if (price < 0.00001) return `$${price.toFixed(9)}`;
+  if (price < 0.0001) return `$${price.toFixed(8)}`;
   if (price < 0.01) return `$${price.toFixed(6)}`;
   if (price < 1) return `$${price.toFixed(4)}`;
   return `$${price.toFixed(2)}`;
