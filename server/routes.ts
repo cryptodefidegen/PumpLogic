@@ -843,7 +843,7 @@ export async function registerRoutes(
 
       // Fetch token data from DexScreener and Jupiter
       let tokenPrice = 0;
-      let tokenSymbol = activeToken?.tokenSymbol || "$PUMPLOGIC";
+      let tokenSymbol = activeToken?.tokenSymbol || "$PLOGIC";
       let tokenName = activeToken?.tokenName || "PumpLogic";
       const tokenMint = activeToken?.contractAddress || "63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump";
       

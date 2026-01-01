@@ -49,7 +49,7 @@ export function TokenGateOverlay() {
 
         <h2 className="text-2xl font-bold text-white mb-2">Token Gate Required</h2>
         <p className="text-muted-foreground mb-6">
-          You need to hold at least <span className="text-primary font-bold">${tokenGate.minRequired}</span> worth of $PUMPLOGIC tokens to access the dashboard.
+          You need to hold at least <span className="text-primary font-bold">${tokenGate.minRequired}</span> worth of $PLOGIC tokens to access the dashboard.
         </p>
 
         <div className="bg-black/50 rounded-xl p-4 mb-6 border border-white/5">
@@ -90,7 +90,7 @@ export function TokenGateOverlay() {
           >
             <Button className="w-full bg-primary text-black hover:bg-primary/90 font-bold">
               <ExternalLink className="w-4 h-4 mr-2" />
-              Buy $PUMPLOGIC on Pump.fun
+              Buy $PLOGIC on Pump.fun
             </Button>
           </a>
 

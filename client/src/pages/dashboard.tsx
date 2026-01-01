@@ -783,7 +783,7 @@ export default function Dashboard() {
               <div className="text-sm">
                 <strong className="text-red-400 block mb-1">TOKEN REQUIREMENT NOT MET</strong>
                 <span className="text-white/80">
-                  Full dashboard features require holding at least <span className="text-primary font-bold">${tokenGate.minRequired}</span> worth of $PUMPLOGIC tokens. 
+                  Full dashboard features require holding at least <span className="text-primary font-bold">${tokenGate.minRequired}</span> worth of $PLOGIC tokens. 
                   Your current holdings: <span className="font-bold">${tokenGate.valueUsd.toFixed(2)}</span>
                 </span>
               </div>
@@ -795,7 +795,7 @@ export default function Dashboard() {
             >
               <Button size="sm" className="bg-primary text-black hover:bg-primary/90 shrink-0">
                 <ExternalLink className="h-4 w-4 mr-1" />
-                Buy $PUMPLOGIC
+                Buy $PLOGIC
               </Button>
             </a>
           </div>

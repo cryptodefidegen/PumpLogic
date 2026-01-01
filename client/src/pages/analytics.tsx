@@ -142,7 +142,7 @@ export default function Analytics() {
                   <SelectValue placeholder="Select token" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="default">$PUMPLOGIC (Default)</SelectItem>
+                  <SelectItem value="default">$PLOGIC (Default)</SelectItem>
                   {analytics.availableTokens.map((token) => (
                     <SelectItem key={token.id} value={token.address}>
                       {token.symbol} {token.isActive && "✓"}

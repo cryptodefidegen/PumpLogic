@@ -43,7 +43,7 @@ export async function checkTokenGate(walletAddress: string): Promise<TokenGateRe
       allowed,
       reason: allowed
         ? "Sufficient token holdings"
-        : `Need at least $${MIN_USD_VALUE} worth of $PUMPLOGIC tokens`,
+        : `Need at least $${MIN_USD_VALUE} worth of $PLOGIC tokens`,
       tokenBalance,
       tokenPriceUsd,
       valueUsd,
