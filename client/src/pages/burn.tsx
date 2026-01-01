@@ -333,40 +333,32 @@ export default function Burn() {
   return (
     <TooltipProvider>
       <div className="min-h-screen pb-12">
-        {isPreviewMode && (
-          <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-b border-primary/30">
-            <div className="container mx-auto px-4 py-3">
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/20 rounded-lg">
-                    <Wallet className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-primary/30 text-primary border-primary/50 text-xs">PREVIEW MODE</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {!isConnected 
-                        ? "You're viewing Burn in preview mode. Connect your Phantom wallet to burn tokens."
-                        : "Token Burn is currently in beta. Only whitelisted addresses can execute burns."}
-                    </p>
-                  </div>
-                </div>
-                {!isConnected && (
-                  <Button 
-                    onClick={() => connect()}
-                    className="bg-primary text-black hover:bg-primary/90" 
-                    data-testid="button-connect-preview-burn"
-                  >
-                    <Wallet className="mr-2 h-4 w-4" />
-                    Connect Wallet
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
         <div className="container mx-auto px-4 pt-8">
+          {isPreviewMode && (
+            <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="flex gap-3 items-start">
+                <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <strong className="text-primary block mb-1">PREVIEW MODE</strong>
+                  <span className="text-white/80">
+                    {!isConnected 
+                      ? "You're viewing the burn feature in preview mode. Connect your Phantom wallet to burn tokens."
+                      : "Token Burn is currently in beta. Only whitelisted addresses can execute burns."}
+                  </span>
+                </div>
+              </div>
+              {!isConnected && (
+                <Button 
+                  onClick={() => connect()}
+                  className="bg-primary text-black hover:bg-primary/90 shrink-0" 
+                  data-testid="button-connect-preview-burn"
+                >
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Connect Wallet
+                </Button>
+              )}
+            </div>
+          )}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
