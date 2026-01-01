@@ -13,6 +13,7 @@ import Roadmap from "@/pages/roadmap";
 import Analytics from "@/pages/analytics";
 import Guard from "@/pages/guard";
 import { Navbar } from "@/components/layout/Navbar";
+import { WalletModal } from "@/components/WalletModal";
 
 function Router() {
   return (
@@ -40,6 +41,7 @@ function App() {
               <Router />
             </main>
             <Toaster />
+            <WalletModal />
           </div>
         </TooltipProvider>
       </WalletProvider>

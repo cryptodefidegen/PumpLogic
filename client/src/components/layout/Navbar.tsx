@@ -13,7 +13,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [location] = useLocation();
-  const { isConnected, walletAddress, user, connect, disconnect, isPhantomInstalled } = useWallet();
+  const { isConnected, walletAddress, user, connect, disconnect, availableWallets, connectedWallet, setShowWalletModal } = useWallet();
   const { toast } = useToast();
   
   const isGuardWhitelisted = user?.walletAddress && GUARD_WHITELIST.includes(user.walletAddress);
@@ -30,20 +30,24 @@ export function Navbar() {
     } else {
       setIsLoading(true);
       try {
-        await connect();
+        const result = await connect();
+        if (result === null) {
+          setIsLoading(false);
+          return;
+        }
         toast({
           title: "Wallet Connected",
-          description: "Your Phantom wallet has been connected successfully!",
+          description: `Your ${result.walletName} wallet has been connected successfully!`,
           className: "bg-primary text-black font-bold"
         });
       } catch (error: any) {
         console.error("Failed to connect wallet:", error);
         
-        if (!isPhantomInstalled) {
+        if (availableWallets.length === 0) {
           toast({
             variant: "destructive",
-            title: "Phantom Not Found",
-            description: "Please install Phantom wallet from phantom.app",
+            title: "No Wallet Found",
+            description: "Please install Phantom, Solflare, or Backpack wallet",
           });
         } else {
           toast({
