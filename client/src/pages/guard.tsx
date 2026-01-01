@@ -10,6 +10,7 @@ import {
   CheckCircle, 
   XCircle,
   TrendingDown,
+  TrendingUp,
   Users,
   Wallet,
   Clock,
@@ -22,7 +23,11 @@ import {
   Lock,
   Unlock,
   Eye,
-  Coins
+  Coins,
+  DollarSign,
+  BarChart3,
+  Droplets,
+  Zap
 } from "lucide-react";
 import { useWallet } from "@/contexts/WalletContext";
 import { cn } from "@/lib/utils";
@@ -47,6 +52,13 @@ interface TokenAnalysis {
   freezeDisabled: boolean;
   lpBurned: boolean;
   createdAt: string;
+  priceUsd: number;
+  priceChange24h: number;
+  volume24h: number;
+  liquidity: number;
+  marketCap: number;
+  pairAddress: string;
+  dexId: string;
 }
 
 function getRiskColor(level: string) {
@@ -69,45 +81,170 @@ function getRiskBg(level: string) {
   }
 }
 
+function formatPrice(price: number): string {
+  if (price === 0) return "$0.00";
+  if (price < 0.000001) return `$${price.toFixed(9)}`;
+  if (price < 0.01) return `$${price.toFixed(6)}`;
+  if (price < 1) return `$${price.toFixed(4)}`;
+  return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatLargeNumber(num: number): string {
+  if (num >= 1000000000) return `$${(num / 1000000000).toFixed(2)}B`;
+  if (num >= 1000000) return `$${(num / 1000000).toFixed(2)}M`;
+  if (num >= 1000) return `$${(num / 1000).toFixed(2)}K`;
+  return `$${num.toFixed(2)}`;
+}
+
 export default function Guard() {
   const { isConnected, user } = useWallet();
   const [tokenAddress, setTokenAddress] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<TokenAnalysis | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const analyzeToken = async () => {
     if (!tokenAddress) return;
     
     setIsAnalyzing(true);
+    setError(null);
+    setAnalysis(null);
     
-    // Simulate analysis with mock data for now
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Mock analysis result
-    const mockAnalysis: TokenAnalysis = {
-      address: tokenAddress,
-      name: "Sample Token",
-      symbol: "SAMPLE",
-      riskScore: 35,
-      riskLevel: "medium",
-      factors: [
-        { name: "Liquidity Lock", status: "safe", description: "Liquidity is locked for 6 months", weight: 20 },
-        { name: "Top 10 Holders", status: "warning", description: "Top 10 holders own 45% of supply", weight: 15 },
-        { name: "Mint Authority", status: "safe", description: "Mint authority is disabled", weight: 25 },
-        { name: "Freeze Authority", status: "safe", description: "Freeze authority is disabled", weight: 20 },
-        { name: "Contract Verified", status: "safe", description: "Contract source code is verified", weight: 10 },
-        { name: "Honeypot Check", status: "safe", description: "No honeypot patterns detected", weight: 10 },
-      ],
-      liquidityLocked: true,
-      topHoldersPercent: 45,
-      mintDisabled: true,
-      freezeDisabled: true,
-      lpBurned: false,
-      createdAt: new Date().toISOString(),
-    };
-    
-    setAnalysis(mockAnalysis);
-    setIsAnalyzing(false);
+    try {
+      // Fetch real token data from DexScreener
+      const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch token data");
+      }
+      
+      const data = await response.json();
+      
+      if (!data.pairs || data.pairs.length === 0) {
+        throw new Error("Token not found or no trading pairs available");
+      }
+      
+      // Get the pair with highest liquidity
+      const bestPair = data.pairs.reduce((best: any, pair: any) => {
+        const pairLiq = parseFloat(pair.liquidity?.usd || 0);
+        const bestLiq = parseFloat(best?.liquidity?.usd || 0);
+        return pairLiq > bestLiq ? pair : best;
+      }, data.pairs[0]);
+      
+      const tokenName = bestPair.baseToken?.name || "Unknown Token";
+      const tokenSymbol = bestPair.baseToken?.symbol || "???";
+      const priceUsd = parseFloat(bestPair.priceUsd) || 0;
+      const priceChange24h = parseFloat(bestPair.priceChange?.h24) || 0;
+      const volume24h = parseFloat(bestPair.volume?.h24) || 0;
+      const liquidity = parseFloat(bestPair.liquidity?.usd) || 0;
+      const marketCap = parseFloat(bestPair.marketCap) || parseFloat(bestPair.fdv) || 0;
+      const pairCreatedAt = bestPair.pairCreatedAt ? new Date(bestPair.pairCreatedAt).toISOString() : new Date().toISOString();
+      
+      // Calculate risk factors based on real data
+      const factors: RiskFactor[] = [];
+      let riskScore = 0;
+      
+      // Liquidity check
+      if (liquidity > 100000) {
+        factors.push({ name: "Liquidity Depth", status: "safe", description: `Strong liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
+      } else if (liquidity > 10000) {
+        factors.push({ name: "Liquidity Depth", status: "warning", description: `Moderate liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
+        riskScore += 15;
+      } else {
+        factors.push({ name: "Liquidity Depth", status: "danger", description: `Low liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
+        riskScore += 30;
+      }
+      
+      // Volume check
+      if (volume24h > 50000) {
+        factors.push({ name: "Trading Volume", status: "safe", description: `Healthy 24h volume: ${formatLargeNumber(volume24h)}`, weight: 15 });
+      } else if (volume24h > 5000) {
+        factors.push({ name: "Trading Volume", status: "warning", description: `Low 24h volume: ${formatLargeNumber(volume24h)}`, weight: 15 });
+        riskScore += 10;
+      } else {
+        factors.push({ name: "Trading Volume", status: "danger", description: `Very low 24h volume: ${formatLargeNumber(volume24h)}`, weight: 15 });
+        riskScore += 20;
+      }
+      
+      // Price volatility check
+      const absChange = Math.abs(priceChange24h);
+      if (absChange < 10) {
+        factors.push({ name: "Price Stability", status: "safe", description: `Stable price movement: ${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%`, weight: 15 });
+      } else if (absChange < 30) {
+        factors.push({ name: "Price Stability", status: "warning", description: `Moderate volatility: ${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%`, weight: 15 });
+        riskScore += 10;
+      } else {
+        factors.push({ name: "Price Stability", status: "danger", description: `High volatility: ${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%`, weight: 15 });
+        riskScore += 20;
+      }
+      
+      // Market cap check
+      if (marketCap > 1000000) {
+        factors.push({ name: "Market Cap", status: "safe", description: `Strong market cap: ${formatLargeNumber(marketCap)}`, weight: 20 });
+      } else if (marketCap > 100000) {
+        factors.push({ name: "Market Cap", status: "warning", description: `Small market cap: ${formatLargeNumber(marketCap)}`, weight: 20 });
+        riskScore += 15;
+      } else {
+        factors.push({ name: "Market Cap", status: "danger", description: `Micro cap: ${formatLargeNumber(marketCap)}`, weight: 20 });
+        riskScore += 25;
+      }
+      
+      // Age check (based on pair creation)
+      const ageInDays = (Date.now() - new Date(pairCreatedAt).getTime()) / (1000 * 60 * 60 * 24);
+      if (ageInDays > 30) {
+        factors.push({ name: "Token Age", status: "safe", description: `Established token: ${Math.floor(ageInDays)} days old`, weight: 15 });
+      } else if (ageInDays > 7) {
+        factors.push({ name: "Token Age", status: "warning", description: `Newer token: ${Math.floor(ageInDays)} days old`, weight: 15 });
+        riskScore += 10;
+      } else {
+        factors.push({ name: "Token Age", status: "danger", description: `Very new token: ${Math.floor(ageInDays)} days old`, weight: 15 });
+        riskScore += 20;
+      }
+      
+      // DEX check
+      const dexId = bestPair.dexId || "unknown";
+      if (dexId === "raydium" || dexId === "orca") {
+        factors.push({ name: "DEX Platform", status: "safe", description: `Trading on ${dexId.charAt(0).toUpperCase() + dexId.slice(1)}`, weight: 15 });
+      } else {
+        factors.push({ name: "DEX Platform", status: "warning", description: `Trading on ${dexId}`, weight: 15 });
+        riskScore += 5;
+      }
+      
+      // Determine risk level
+      let riskLevel: "low" | "medium" | "high" | "critical";
+      if (riskScore < 25) riskLevel = "low";
+      else if (riskScore < 50) riskLevel = "medium";
+      else if (riskScore < 75) riskLevel = "high";
+      else riskLevel = "critical";
+      
+      const tokenAnalysis: TokenAnalysis = {
+        address: tokenAddress,
+        name: tokenName,
+        symbol: tokenSymbol,
+        riskScore,
+        riskLevel,
+        factors,
+        liquidityLocked: liquidity > 50000,
+        topHoldersPercent: 45,
+        mintDisabled: true,
+        freezeDisabled: true,
+        lpBurned: false,
+        createdAt: pairCreatedAt,
+        priceUsd,
+        priceChange24h,
+        volume24h,
+        liquidity,
+        marketCap,
+        pairAddress: bestPair.pairAddress || "",
+        dexId,
+      };
+      
+      setAnalysis(tokenAnalysis);
+    } catch (err: any) {
+      setError(err.message || "Failed to analyze token");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   if (!isConnected) {
@@ -194,6 +331,12 @@ export default function Guard() {
                     {isAnalyzing ? "Analyzing..." : "Analyze"}
                   </Button>
                 </div>
+                {error && (
+                  <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
+                    <XCircle className="h-5 w-5 text-red-500 shrink-0" />
+                    <p className="text-sm text-red-400">{error}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -249,50 +392,83 @@ export default function Guard() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <Card className="bg-black/40 border-white/10">
                     <CardContent className="p-4 text-center">
-                      {analysis.liquidityLocked ? (
-                        <Lock className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                      ) : (
-                        <Unlock className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                      )}
+                      <DollarSign className="h-8 w-8 text-primary mx-auto mb-2" />
+                      <p className="text-sm font-medium text-white">Price</p>
+                      <p className="text-lg font-bold text-primary font-mono">{formatPrice(analysis.priceUsd)}</p>
+                      <p className={cn("text-xs mt-1", analysis.priceChange24h >= 0 ? "text-green-500" : "text-red-500")}>
+                        {analysis.priceChange24h >= 0 ? "+" : ""}{analysis.priceChange24h.toFixed(2)}%
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-black/40 border-white/10">
+                    <CardContent className="p-4 text-center">
+                      <BarChart3 className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-white">24h Volume</p>
+                      <p className="text-lg font-bold text-blue-400 font-mono">{formatLargeNumber(analysis.volume24h)}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-black/40 border-white/10">
+                    <CardContent className="p-4 text-center">
+                      <Droplets className="h-8 w-8 text-purple-400 mx-auto mb-2" />
                       <p className="text-sm font-medium text-white">Liquidity</p>
+                      <p className="text-lg font-bold text-purple-400 font-mono">{formatLargeNumber(analysis.liquidity)}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-black/40 border-white/10">
+                    <CardContent className="p-4 text-center">
+                      <Coins className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-white">Market Cap</p>
+                      <p className="text-lg font-bold text-yellow-400 font-mono">{formatLargeNumber(analysis.marketCap)}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card className="bg-black/40 border-white/10">
+                    <CardContent className="p-4 text-center">
+                      {analysis.liquidityLocked ? (
+                        <Lock className="h-6 w-6 text-green-500 mx-auto mb-2" />
+                      ) : (
+                        <Unlock className="h-6 w-6 text-red-500 mx-auto mb-2" />
+                      )}
+                      <p className="text-xs font-medium text-white">Liquidity Status</p>
                       <p className={cn("text-xs", analysis.liquidityLocked ? "text-green-500" : "text-red-500")}>
-                        {analysis.liquidityLocked ? "Locked" : "Unlocked"}
+                        {analysis.liquidityLocked ? "Strong" : "Low"}
                       </p>
                     </CardContent>
                   </Card>
 
                   <Card className="bg-black/40 border-white/10">
                     <CardContent className="p-4 text-center">
-                      <Users className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-white">Top 10 Holders</p>
-                      <p className="text-xs text-yellow-500">{analysis.topHoldersPercent}%</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-black/40 border-white/10">
-                    <CardContent className="p-4 text-center">
-                      {analysis.mintDisabled ? (
-                        <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                      ) : (
-                        <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                      )}
-                      <p className="text-sm font-medium text-white">Mint Authority</p>
-                      <p className={cn("text-xs", analysis.mintDisabled ? "text-green-500" : "text-red-500")}>
-                        {analysis.mintDisabled ? "Disabled" : "Enabled"}
+                      <Clock className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+                      <p className="text-xs font-medium text-white">Token Age</p>
+                      <p className="text-xs text-blue-400">
+                        {Math.floor((Date.now() - new Date(analysis.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days
                       </p>
                     </CardContent>
                   </Card>
 
                   <Card className="bg-black/40 border-white/10">
                     <CardContent className="p-4 text-center">
-                      {analysis.freezeDisabled ? (
-                        <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                      <Zap className="h-6 w-6 text-primary mx-auto mb-2" />
+                      <p className="text-xs font-medium text-white">DEX</p>
+                      <p className="text-xs text-primary capitalize">{analysis.dexId}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-black/40 border-white/10">
+                    <CardContent className="p-4 text-center">
+                      {analysis.priceChange24h >= 0 ? (
+                        <TrendingUp className="h-6 w-6 text-green-500 mx-auto mb-2" />
                       ) : (
-                        <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                        <TrendingDown className="h-6 w-6 text-red-500 mx-auto mb-2" />
                       )}
-                      <p className="text-sm font-medium text-white">Freeze Authority</p>
-                      <p className={cn("text-xs", analysis.freezeDisabled ? "text-green-500" : "text-red-500")}>
-                        {analysis.freezeDisabled ? "Disabled" : "Enabled"}
+                      <p className="text-xs font-medium text-white">24h Trend</p>
+                      <p className={cn("text-xs", analysis.priceChange24h >= 0 ? "text-green-500" : "text-red-500")}>
+                        {analysis.priceChange24h >= 0 ? "Bullish" : "Bearish"}
                       </p>
                     </CardContent>
                   </Card>
