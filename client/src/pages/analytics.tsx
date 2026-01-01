@@ -4,6 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   TrendingUp, 
   TrendingDown,
@@ -20,7 +28,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Droplets,
-  ShoppingCart
+  ShoppingCart,
+  Eye
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -72,10 +81,20 @@ const ALLOCATION_COLORS = {
   revenue: "#f59e0b",
 };
 
+interface PreviewBreakdown {
+  marketMaking: number;
+  buyback: number;
+  liquidity: number;
+  revenue: number;
+}
+
 export default function Analytics() {
   const { toast } = useToast();
   const { isConnected, user } = useWallet();
   const [selectedToken, setSelectedToken] = useState<string | undefined>(undefined);
+  const [previewAmount, setPreviewAmount] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewBreakdown, setPreviewBreakdown] = useState<PreviewBreakdown | null>(null);
 
   const { data: analytics, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['analytics', user?.id, selectedToken],
@@ -91,6 +110,27 @@ export default function Analytics() {
       description: "Analytics have been updated.",
       className: "bg-primary text-black font-bold"
     });
+  };
+
+  const showDistributionPreview = () => {
+    const amount = parseFloat(previewAmount);
+    if (!amount || amount <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Amount",
+        description: "Please enter a valid amount to preview."
+      });
+      return;
+    }
+    
+    const allocation = analytics?.allocation || { marketMaking: 25, buyback: 25, liquidity: 25, revenue: 25 };
+    setPreviewBreakdown({
+      marketMaking: (allocation.marketMaking / 100) * amount,
+      buyback: (allocation.buyback / 100) * amount,
+      liquidity: (allocation.liquidity / 100) * amount,
+      revenue: (allocation.revenue / 100) * amount,
+    });
+    setShowPreview(true);
   };
 
   const allocationData = analytics ? [
@@ -439,6 +479,29 @@ export default function Analytics() {
               <CardDescription>Your fee distribution settings</CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 p-3 rounded-lg bg-black/40 border border-white/10">
+                <p className="text-xs text-muted-foreground mb-2">Preview Distribution</p>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Enter SOL amount"
+                    value={previewAmount}
+                    onChange={(e) => setPreviewAmount(e.target.value)}
+                    className="flex-1 bg-black/40 border-white/20 text-white"
+                    data-testid="input-preview-amount"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-primary/50 text-primary hover:bg-primary/10"
+                    onClick={showDistributionPreview}
+                    data-testid="button-preview"
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    Preview
+                  </Button>
+                </div>
+              </div>
               <div className="h-[200px]" data-testid="chart-allocation">
                 {allocationData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -593,6 +656,55 @@ export default function Analytics() {
           )}
         </div>
       </div>
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="bg-card border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-primary" />
+              Distribution Preview
+            </DialogTitle>
+            <DialogDescription>
+              Review how {previewAmount} SOL will be distributed across channels.
+            </DialogDescription>
+          </DialogHeader>
+          {previewBreakdown && (
+            <div className="py-4 space-y-4">
+              <div className="space-y-3">
+                {previewBreakdown.marketMaking > 0 && (
+                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                    <span className="text-white">Market Making</span>
+                    <span className="text-primary font-mono font-bold">{previewBreakdown.marketMaking.toFixed(6)} SOL</span>
+                  </div>
+                )}
+                {previewBreakdown.buyback > 0 && (
+                  <div className="flex justify-between items-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                    <span className="text-white">Buyback</span>
+                    <span className="text-blue-400 font-mono font-bold">{previewBreakdown.buyback.toFixed(6)} SOL</span>
+                  </div>
+                )}
+                {previewBreakdown.liquidity > 0 && (
+                  <div className="flex justify-between items-center p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                    <span className="text-white">Liquidity Pool</span>
+                    <span className="text-purple-400 font-mono font-bold">{previewBreakdown.liquidity.toFixed(6)} SOL</span>
+                  </div>
+                )}
+                {previewBreakdown.revenue > 0 && (
+                  <div className="flex justify-between items-center p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                    <span className="text-white">Creator Revenue</span>
+                    <span className="text-amber-400 font-mono font-bold">{previewBreakdown.revenue.toFixed(6)} SOL</span>
+                  </div>
+                )}
+              </div>
+              <Separator className="bg-white/10" />
+              <div className="flex justify-between items-center">
+                <span className="text-white font-medium">Total</span>
+                <span className="text-white font-mono font-bold text-lg">{previewAmount} SOL</span>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
