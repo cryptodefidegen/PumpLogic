@@ -354,7 +354,7 @@ export default function Analytics() {
             </CardHeader>
             <CardContent>
               <div className="h-[300px]" data-testid="chart-volume">
-                {analytics?.dailyVolume && analytics.dailyVolume.length > 0 ? (
+                {analytics?.dailyVolume && analytics.dailyVolume.some(d => d.volume > 0) ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={analytics.dailyVolume}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#333" />
