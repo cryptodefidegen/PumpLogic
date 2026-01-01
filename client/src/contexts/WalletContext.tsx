@@ -116,19 +116,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const wallets = getAvailableWallets();
     setAvailableWallets(wallets);
 
-    if (wallets.length === 0) {
-      window.open("https://phantom.app/", "_blank");
-      throw new Error("No Solana wallet detected. Please install Phantom, Solflare, or Backpack.");
-    }
-
-    if (!providerName && wallets.length > 1) {
+    if (!providerName) {
       setShowWalletModal(true);
       return null;
     }
 
-    const wallet = providerName 
-      ? wallets.find(w => w.name === providerName) 
-      : wallets[0];
+    const wallet = wallets.find(w => w.name === providerName);
 
     if (!wallet) {
       throw new Error("Wallet not found");
