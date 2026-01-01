@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import Docs from "@/pages/docs";
 import TelegramDocs from "@/pages/telegram-docs";
 import Roadmap from "@/pages/roadmap";
+import Analytics from "@/pages/analytics";
 import { Navbar } from "@/components/layout/Navbar";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/docs" component={Docs} />
       <Route path="/docs/telegram" component={TelegramDocs} />
       <Route path="/roadmap" component={Roadmap} />
+      <Route path="/analytics" component={Analytics} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -551,15 +551,18 @@ export default function Analytics() {
           </CardContent>
         </Card>
 
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full">
+            <span className="text-xs text-amber-400">Note: Price data is live via Jupiter API. Volume, holder counts, and ROI metrics are simulated for demonstration.</span>
+          </div>
           <p className="text-xs text-muted-foreground">
-            Data refreshes automatically every 30 seconds. Price data provided by Jupiter API.
+            Data refreshes automatically every 30 seconds.
           </p>
           <a 
             href={`https://solscan.io/token/${PUMPLOGIC_TOKEN}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
             data-testid="link-solscan"
           >
             View on Solscan <ExternalLink className="h-3 w-3" />
