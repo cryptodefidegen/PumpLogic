@@ -88,10 +88,11 @@ Preferred communication style: Simple, everyday language.
 - **Whitelist**: Deployer address `9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8`
 - **Features**:
   - Manual token burning for any SPL token
-  - Enter token mint address to check balance
-  - Fetches token symbol from DexScreener API
-  - Enter custom burn amount with max button
-  - Shows warning about irreversible action
-  - Links to Solscan for transaction verification
+  - Token metadata display: name, image, symbol, price, FDV, 24h price change
+  - On-chain data: total supply, decimals, mint authority status, freeze authority status
+  - Burn impact calculation: USD value and percentage of total supply
+  - Two-step confirmation modal with burn summary before executing
+  - In-session burn history tracking with Solscan transaction links
+  - Enhanced UI with tooltips, animated transitions, two-column layout
 - **Access Control**: Non-whitelisted users see "SOON" badge in navbar (non-clickable), whitelisted see "BETA" badge (clickable)
 - **Implementation**: Uses native @solana/web3.js with manual SPL Token burn instruction (avoids Buffer polyfill issues)

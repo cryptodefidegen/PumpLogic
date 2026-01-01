@@ -1,18 +1,56 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/contexts/WalletContext";
-import { Flame, Loader2, AlertTriangle, Wallet, ExternalLink, Lock } from "lucide-react";
+import { 
+  Flame, Loader2, AlertTriangle, Wallet, ExternalLink, Lock, 
+  Info, TrendingDown, DollarSign, Percent, Shield, CheckCircle2,
+  Clock, Copy, X
+} from "lucide-react";
 import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const BURN_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 
 const SOLANA_RPC = "https://api.mainnet-beta.solana.com";
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+
+interface TokenMetadata {
+  name: string | null;
+  symbol: string | null;
+  image: string | null;
+  totalSupply: number | null;
+  price: number | null;
+  fdv: number | null;
+  priceChange24h: number | null;
+  freezeAuthority: string | null;
+  mintAuthority: string | null;
+}
+
+interface BurnRecord {
+  signature: string;
+  amount: number;
+  symbol: string | null;
+  tokenAddress: string;
+  timestamp: Date;
+}
 
 function createBurnInstruction(
   tokenAccount: PublicKey,
@@ -62,8 +100,19 @@ export default function Burn() {
   const [tokenDecimals, setTokenDecimals] = useState<number>(9);
   const [isLoading, setIsLoading] = useState(false);
   const [isBurning, setIsBurning] = useState(false);
-  const [tokenSymbol, setTokenSymbol] = useState<string | null>(null);
-
+  const [tokenMetadata, setTokenMetadata] = useState<TokenMetadata>({
+    name: null,
+    symbol: null,
+    image: null,
+    totalSupply: null,
+    price: null,
+    fdv: null,
+    priceChange24h: null,
+    freezeAuthority: null,
+    mintAuthority: null,
+  });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [burnHistory, setBurnHistory] = useState<BurnRecord[]>([]);
 
   if (!isConnected) {
     return (
@@ -135,6 +184,18 @@ export default function Burn() {
     }
 
     setIsLoading(true);
+    setTokenMetadata({
+      name: null,
+      symbol: null,
+      image: null,
+      totalSupply: null,
+      price: null,
+      fdv: null,
+      priceChange24h: null,
+      freezeAuthority: null,
+      mintAuthority: null,
+    });
+
     try {
       const connection = new Connection(SOLANA_RPC);
       const mintPubkey = new PublicKey(tokenAddress);
@@ -142,37 +203,74 @@ export default function Burn() {
       
       const ata = await getAssociatedTokenAddress(mintPubkey, ownerPubkey);
       
+      const [accountInfoResult, mintInfoResult] = await Promise.all([
+        connection.getParsedAccountInfo(ata),
+        connection.getParsedAccountInfo(mintPubkey),
+      ]);
+
+      let decimals = 9;
+      let balance = 0;
+
+      if (accountInfoResult.value && 'parsed' in accountInfoResult.value.data) {
+        const parsed = accountInfoResult.value.data.parsed;
+        decimals = parsed.info.tokenAmount.decimals;
+        balance = parseFloat(parsed.info.tokenAmount.uiAmount);
+      }
+
+      setTokenDecimals(decimals);
+      setTokenBalance(balance);
+
+      let totalSupply: number | null = null;
+      let freezeAuthority: string | null = null;
+      let mintAuthority: string | null = null;
+
+      if (mintInfoResult.value && 'parsed' in mintInfoResult.value.data) {
+        const mintParsed = mintInfoResult.value.data.parsed;
+        totalSupply = parseFloat(mintParsed.info.supply) / Math.pow(10, decimals);
+        freezeAuthority = mintParsed.info.freezeAuthority || null;
+        mintAuthority = mintParsed.info.mintAuthority || null;
+      }
+
       try {
-        const accountInfo = await connection.getParsedAccountInfo(ata);
-        
-        if (accountInfo.value && 'parsed' in accountInfo.value.data) {
-          const parsed = accountInfo.value.data.parsed;
-          const decimals = parsed.info.tokenAmount.decimals;
-          const balance = parseFloat(parsed.info.tokenAmount.uiAmount);
-          
-          setTokenDecimals(decimals);
-          setTokenBalance(balance);
+        const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
+        const data = await response.json();
+        if (data.pairs && data.pairs.length > 0) {
+          const pair = data.pairs[0];
+          setTokenMetadata({
+            name: pair.baseToken.name || null,
+            symbol: pair.baseToken.symbol || null,
+            image: pair.info?.imageUrl || null,
+            totalSupply,
+            price: parseFloat(pair.priceUsd) || null,
+            fdv: pair.fdv || null,
+            priceChange24h: pair.priceChange?.h24 || null,
+            freezeAuthority,
+            mintAuthority,
+          });
         } else {
-          throw new Error("No balance");
+          setTokenMetadata(prev => ({
+            ...prev,
+            totalSupply,
+            freezeAuthority,
+            mintAuthority,
+          }));
         }
+      } catch {
+        setTokenMetadata(prev => ({
+          ...prev,
+          totalSupply,
+          freezeAuthority,
+          mintAuthority,
+        }));
+      }
 
-        try {
-          const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
-          const data = await response.json();
-          if (data.pairs && data.pairs.length > 0) {
-            setTokenSymbol(data.pairs[0].baseToken.symbol);
-          }
-        } catch {
-          setTokenSymbol(null);
-        }
-
+      if (balance > 0) {
         toast({
           title: "Token Found",
           description: `Balance loaded successfully`,
           className: "bg-primary text-black font-bold"
         });
-      } catch (err) {
-        setTokenBalance(0);
+      } else {
         toast({
           variant: "destructive",
           title: "No Balance",
@@ -191,7 +289,7 @@ export default function Burn() {
     }
   };
 
-  const executeBurn = async () => {
+  const handleBurnClick = () => {
     if (!fullWalletAddress || !tokenAddress || !burnAmount) {
       toast({
         variant: "destructive",
@@ -220,17 +318,26 @@ export default function Burn() {
       return;
     }
 
+    setShowConfirmDialog(true);
+  };
+
+  const executeBurn = async () => {
+    setShowConfirmDialog(false);
     setIsBurning(true);
+
     try {
       const connection = new Connection(SOLANA_RPC);
       const mintPubkey = new PublicKey(tokenAddress);
-      const ownerPubkey = new PublicKey(fullWalletAddress);
+      const ownerPubkey = new PublicKey(fullWalletAddress!);
       
       const ata = await getAssociatedTokenAddress(mintPubkey, ownerPubkey);
       
-      const [whole, fractional = ""] = burnAmount.split(".");
-      const paddedFractional = fractional.padEnd(tokenDecimals, "0").slice(0, tokenDecimals);
-      const burnAmountRaw = BigInt(whole + paddedFractional);
+      const parsedAmount = parseFloat(burnAmount);
+      const multiplier = BigInt(10 ** tokenDecimals);
+      const wholeTokens = BigInt(Math.floor(parsedAmount));
+      const fractionalPart = parsedAmount - Math.floor(parsedAmount);
+      const fractionalRaw = BigInt(Math.round(fractionalPart * Number(multiplier)));
+      const burnAmountRaw = wholeTokens * multiplier + fractionalRaw;
       
       const burnInstruction = createBurnInstruction(
         ata,
@@ -259,11 +366,22 @@ export default function Burn() {
         lastValidBlockHeight
       }, "confirmed");
 
+      const amount = parseFloat(burnAmount);
+
+      const newBurnRecord: BurnRecord = {
+        signature,
+        amount,
+        symbol: tokenMetadata.symbol,
+        tokenAddress,
+        timestamp: new Date(),
+      };
+      setBurnHistory(prev => [newBurnRecord, ...prev]);
+
       toast({
         title: "Burn Successful!",
         description: (
           <div className="flex flex-col gap-2">
-            <span>Burned {amount.toLocaleString()} {tokenSymbol || 'tokens'}</span>
+            <span>Burned {amount.toLocaleString()} {tokenMetadata.symbol || 'tokens'}</span>
             <a 
               href={`https://solscan.io/tx/${signature}`}
               target="_blank"
@@ -300,210 +418,484 @@ export default function Burn() {
     }
   };
 
-  if (!isConnected) {
-    return (
+  const burnAmountNum = parseFloat(burnAmount) || 0;
+  const burnValueUsd = tokenMetadata.price ? burnAmountNum * tokenMetadata.price : null;
+  const supplyPercentage = tokenMetadata.totalSupply ? (burnAmountNum / tokenMetadata.totalSupply) * 100 : null;
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied",
+      description: "Address copied to clipboard",
+    });
+  };
+
+  return (
+    <TooltipProvider>
       <div className="min-h-screen pt-24 pb-12">
-        <div className="container mx-auto px-4 max-w-2xl">
+        <div className="container mx-auto px-4 max-w-4xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center"
+            className="space-y-6"
           >
-            <Card className="bg-black/40 border-white/10">
-              <CardContent className="pt-12 pb-12">
-                <Wallet className="h-16 w-16 text-primary mx-auto mb-6" />
-                <h2 className="text-2xl font-bold text-white mb-4">Connect Wallet</h2>
-                <p className="text-muted-foreground mb-8">
-                  Connect your wallet to access the token burn feature
-                </p>
-                <Button
-                  size="lg"
-                  className="bg-primary text-black hover:bg-primary/90"
-                  onClick={() => connect()}
-                  data-testid="button-connect-burn"
-                >
-                  Connect Wallet
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen pt-24 pb-12">
-      <div className="container mx-auto px-4 max-w-2xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-sm font-mono mb-4">
-              <Flame className="h-4 w-4" />
-              Token Burner
-            </div>
-            <h1 className="text-4xl font-bold text-white mb-2">Burn Tokens</h1>
-            <p className="text-muted-foreground">
-              Permanently remove tokens from circulation by burning them
-            </p>
-          </div>
-
-          <Card className="bg-black/40 border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Flame className="h-5 w-5 text-orange-500" />
-                Token Burn
-              </CardTitle>
-              <CardDescription>
-                Enter the token address and amount you want to burn. This action is irreversible.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5" />
-                  <div>
-                    <p className="text-orange-500 font-medium">Warning: Irreversible Action</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Burned tokens are permanently destroyed and cannot be recovered. Make sure you understand this before proceeding.
-                    </p>
-                  </div>
-                </div>
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-sm font-mono mb-4">
+                <Flame className="h-4 w-4" />
+                Token Burner
+                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
               </div>
+              <h1 className="text-4xl font-bold text-white mb-2">Burn Tokens</h1>
+              <p className="text-muted-foreground">
+                Permanently remove tokens from circulation by burning them
+              </p>
+            </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tokenAddress">Token Address</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="tokenAddress"
-                      placeholder="Enter SPL token mint address"
-                      value={tokenAddress}
-                      onChange={(e) => setTokenAddress(e.target.value)}
-                      className="bg-black/40 border-white/10"
-                      data-testid="input-token-address"
-                    />
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="bg-black/40 border-white/10">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Flame className="h-5 w-5 text-orange-500" />
+                    Token Burn
+                  </CardTitle>
+                  <CardDescription>
+                    Enter the token address and amount you want to burn
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-orange-500 font-medium">Irreversible Action</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Burned tokens are permanently destroyed and cannot be recovered.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="tokenAddress">Token Mint Address</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="tokenAddress"
+                          placeholder="Enter SPL token mint address"
+                          value={tokenAddress}
+                          onChange={(e) => setTokenAddress(e.target.value)}
+                          className="bg-black/40 border-white/10 font-mono text-sm"
+                          data-testid="input-token-address"
+                        />
+                        <Button
+                          onClick={fetchTokenBalance}
+                          disabled={isLoading || !tokenAddress}
+                          className="shrink-0"
+                          data-testid="button-fetch-balance"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "Check"
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <AnimatePresence>
+                      {tokenBalance !== null && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="p-4 rounded-lg bg-primary/5 border border-primary/20"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Your Balance</p>
+                              <p className="text-2xl font-bold text-white">
+                                {tokenBalance.toLocaleString()} {tokenMetadata.symbol && <span className="text-primary">{tokenMetadata.symbol}</span>}
+                              </p>
+                              {tokenMetadata.price && tokenBalance > 0 && (
+                                <p className="text-sm text-muted-foreground">
+                                  ≈ ${(tokenBalance * tokenMetadata.price).toLocaleString(undefined, { maximumFractionDigits: 2 })} USD
+                                </p>
+                              )}
+                            </div>
+                            {tokenAddress && (
+                              <a
+                                href={`https://solscan.io/token/${tokenAddress}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline flex items-center gap-1 text-sm"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="burnAmount">Amount to Burn</Label>
+                        {tokenBalance !== null && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={setMaxAmount}
+                            className="text-primary hover:text-primary/80 h-auto py-0"
+                            data-testid="button-max-amount"
+                          >
+                            Max
+                          </Button>
+                        )}
+                      </div>
+                      <Input
+                        id="burnAmount"
+                        type="number"
+                        placeholder="0.00"
+                        value={burnAmount}
+                        onChange={(e) => setBurnAmount(e.target.value)}
+                        className="bg-black/40 border-white/10 text-lg"
+                        disabled={tokenBalance === null}
+                        data-testid="input-burn-amount"
+                      />
+                    </div>
+
+                    <AnimatePresence>
+                      {burnAmountNum > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-2"
+                        >
+                          <div className="grid grid-cols-2 gap-3">
+                            {burnValueUsd !== null && (
+                              <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                                <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                                  <DollarSign className="h-3 w-3" />
+                                  Burn Value
+                                </div>
+                                <p className="text-white font-semibold">
+                                  ${burnValueUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                </p>
+                              </div>
+                            )}
+                            {supplyPercentage !== null && (
+                              <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                                <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                                  <Percent className="h-3 w-3" />
+                                  Supply Impact
+                                </div>
+                                <p className="text-white font-semibold">
+                                  {supplyPercentage < 0.01 ? '<0.01' : supplyPercentage.toFixed(4)}%
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <Button
-                      onClick={fetchTokenBalance}
-                      disabled={isLoading || !tokenAddress}
-                      className="shrink-0"
-                      data-testid="button-fetch-balance"
+                      size="lg"
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                      onClick={handleBurnClick}
+                      disabled={isBurning || !burnAmount || tokenBalance === null || burnAmountNum <= 0}
+                      data-testid="button-execute-burn"
                     >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                      {isBurning ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Burning...
+                        </>
                       ) : (
-                        "Check"
+                        <>
+                          <Flame className="mr-2 h-5 w-5" />
+                          Burn Tokens
+                        </>
                       )}
                     </Button>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
 
-                {tokenBalance !== null && (
+              <div className="space-y-6">
+                <AnimatePresence>
+                  {(tokenMetadata.name || tokenMetadata.totalSupply) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                    >
+                      <Card className="bg-black/40 border-white/10">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-white flex items-center gap-2 text-lg">
+                            <Info className="h-4 w-4 text-primary" />
+                            Token Details
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            {tokenMetadata.image ? (
+                              <img 
+                                src={tokenMetadata.image} 
+                                alt={tokenMetadata.name || "Token"} 
+                                className="h-12 w-12 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
+                                <Flame className="h-6 w-6 text-orange-500" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-semibold text-white">
+                                {tokenMetadata.name || "Unknown Token"}
+                              </p>
+                              {tokenMetadata.symbol && (
+                                <p className="text-sm text-muted-foreground">${tokenMetadata.symbol}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            {tokenMetadata.price !== null && (
+                              <div className="p-3 rounded-lg bg-white/5">
+                                <p className="text-xs text-muted-foreground mb-1">Price</p>
+                                <p className="text-white font-medium">
+                                  ${tokenMetadata.price < 0.01 ? tokenMetadata.price.toExponential(2) : tokenMetadata.price.toFixed(4)}
+                                </p>
+                                {tokenMetadata.priceChange24h !== null && (
+                                  <p className={`text-xs ${tokenMetadata.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                    {tokenMetadata.priceChange24h >= 0 ? '+' : ''}{tokenMetadata.priceChange24h.toFixed(2)}% (24h)
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            {tokenMetadata.fdv !== null && (
+                              <div className="p-3 rounded-lg bg-white/5">
+                                <p className="text-xs text-muted-foreground mb-1">FDV</p>
+                                <p className="text-white font-medium">
+                                  ${tokenMetadata.fdv >= 1e9 
+                                    ? (tokenMetadata.fdv / 1e9).toFixed(2) + 'B'
+                                    : tokenMetadata.fdv >= 1e6 
+                                      ? (tokenMetadata.fdv / 1e6).toFixed(2) + 'M'
+                                      : tokenMetadata.fdv.toLocaleString()}
+                                </p>
+                              </div>
+                            )}
+                            {tokenMetadata.totalSupply !== null && (
+                              <div className="p-3 rounded-lg bg-white/5">
+                                <p className="text-xs text-muted-foreground mb-1">Total Supply</p>
+                                <p className="text-white font-medium">
+                                  {tokenMetadata.totalSupply >= 1e9 
+                                    ? (tokenMetadata.totalSupply / 1e9).toFixed(2) + 'B'
+                                    : tokenMetadata.totalSupply >= 1e6 
+                                      ? (tokenMetadata.totalSupply / 1e6).toFixed(2) + 'M'
+                                      : tokenMetadata.totalSupply.toLocaleString()}
+                                </p>
+                              </div>
+                            )}
+                            <div className="p-3 rounded-lg bg-white/5">
+                              <p className="text-xs text-muted-foreground mb-1">Decimals</p>
+                              <p className="text-white font-medium">{tokenDecimals}</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between p-2 rounded bg-white/5">
+                              <div className="flex items-center gap-2">
+                                <Shield className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">Mint Authority</span>
+                              </div>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${tokenMetadata.mintAuthority ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'}`}>
+                                    {tokenMetadata.mintAuthority ? 'Active' : 'Revoked'}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {tokenMetadata.mintAuthority 
+                                    ? 'Token creator can mint more tokens' 
+                                    : 'No new tokens can be created'}
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <div className="flex items-center justify-between p-2 rounded bg-white/5">
+                              <div className="flex items-center gap-2">
+                                <Lock className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm text-muted-foreground">Freeze Authority</span>
+                              </div>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${tokenMetadata.freezeAuthority ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'}`}>
+                                    {tokenMetadata.freezeAuthority ? 'Active' : 'Revoked'}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {tokenMetadata.freezeAuthority 
+                                    ? 'Token accounts can be frozen by creator' 
+                                    : 'Token accounts cannot be frozen'}
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {burnHistory.length > 0 && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="p-4 rounded-lg bg-primary/5 border border-primary/20"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Your Balance</p>
-                        <p className="text-2xl font-bold text-white">
-                          {tokenBalance.toLocaleString()} {tokenSymbol && <span className="text-primary">{tokenSymbol}</span>}
-                        </p>
-                      </div>
-                      {tokenAddress && (
-                        <a
-                          href={`https://solscan.io/token/${tokenAddress}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline flex items-center gap-1 text-sm"
-                        >
-                          View on Solscan
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
+                    <Card className="bg-black/40 border-white/10">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-white flex items-center gap-2 text-lg">
+                          <Clock className="h-4 w-4 text-primary" />
+                          Recent Burns
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {burnHistory.slice(0, 5).map((record, index) => (
+                            <div key={record.signature} className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                              <div>
+                                <p className="text-white font-medium">
+                                  {record.amount.toLocaleString()} {record.symbol || 'tokens'}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {record.timestamp.toLocaleTimeString()}
+                                </p>
+                              </div>
+                              <a
+                                href={`https://solscan.io/tx/${record.signature}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline flex items-center gap-1 text-sm"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </motion.div>
                 )}
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="burnAmount">Amount to Burn</Label>
-                    {tokenBalance !== null && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={setMaxAmount}
-                        className="text-primary hover:text-primary/80 h-auto py-0"
-                        data-testid="button-max-amount"
-                      >
-                        Max
-                      </Button>
-                    )}
-                  </div>
-                  <Input
-                    id="burnAmount"
-                    type="number"
-                    placeholder="0.00"
-                    value={burnAmount}
-                    onChange={(e) => setBurnAmount(e.target.value)}
-                    className="bg-black/40 border-white/10 text-lg"
-                    disabled={tokenBalance === null}
-                    data-testid="input-burn-amount"
-                  />
-                </div>
-
-                <Button
-                  size="lg"
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                  onClick={executeBurn}
-                  disabled={isBurning || !burnAmount || tokenBalance === null}
-                  data-testid="button-execute-burn"
-                >
-                  {isBurning ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Burning...
-                    </>
-                  ) : (
-                    <>
-                      <Flame className="mr-2 h-5 w-5" />
-                      Burn Tokens
-                    </>
-                  )}
-                </Button>
+                <Card className="bg-black/40 border-white/10">
+                  <CardContent className="pt-6">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                      <Info className="h-4 w-4 text-primary" />
+                      How Token Burning Works
+                    </h3>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary font-bold">1.</span>
+                        Enter the SPL token mint address you want to burn
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary font-bold">2.</span>
+                        Check your balance and review token details
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary font-bold">3.</span>
+                        Enter the amount and review the supply impact
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary font-bold">4.</span>
+                        Confirm the transaction in your wallet
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </motion.div>
+        </div>
 
-          <Card className="bg-black/40 border-white/10">
-            <CardContent className="pt-6">
-              <h3 className="font-semibold text-white mb-3">How Token Burning Works</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">1.</span>
-                  Enter the SPL token mint address you want to burn
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">2.</span>
-                  Check your balance to see how many tokens you hold
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">3.</span>
-                  Enter the amount you want to burn (up to your full balance)
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary">4.</span>
-                  Confirm the transaction in your wallet to execute the burn
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent className="bg-black/95 border-white/10 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-white flex items-center gap-2">
+                <Flame className="h-5 w-5 text-orange-500" />
+                Confirm Token Burn
+              </DialogTitle>
+              <DialogDescription>
+                Please review the details before confirming this irreversible action.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+                  <span className="font-semibold text-orange-500">Warning</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  This action is permanent and cannot be undone. The burned tokens will be removed from circulation forever.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                  <span className="text-muted-foreground">Token</span>
+                  <span className="text-white font-medium">
+                    {tokenMetadata.symbol || tokenAddress.slice(0, 8) + '...'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                  <span className="text-muted-foreground">Amount to Burn</span>
+                  <span className="text-white font-bold text-lg">
+                    {parseFloat(burnAmount).toLocaleString()}
+                  </span>
+                </div>
+                {burnValueUsd !== null && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                    <span className="text-muted-foreground">USD Value</span>
+                    <span className="text-white font-medium">
+                      ${burnValueUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                )}
+                {supplyPercentage !== null && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                    <span className="text-muted-foreground">% of Total Supply</span>
+                    <span className="text-white font-medium">
+                      {supplyPercentage < 0.01 ? '<0.01' : supplyPercentage.toFixed(4)}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirmDialog(false)}
+                className="flex-1"
+                data-testid="button-cancel-burn"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={executeBurn}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                data-testid="button-confirm-burn"
+              >
+                <Flame className="mr-2 h-4 w-4" />
+                Confirm Burn
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }
