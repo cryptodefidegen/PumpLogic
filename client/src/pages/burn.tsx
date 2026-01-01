@@ -433,7 +433,7 @@ export default function Burn() {
   return (
     <TooltipProvider>
       <div className="min-h-screen pt-24 pb-12">
-        <div className="container mx-auto px-4 max-w-4xl">
+        <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -454,54 +454,67 @@ export default function Burn() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="bg-black/40 border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Flame className="h-5 w-5 text-orange-500" />
-                    Token Burn
-                  </CardTitle>
-                  <CardDescription>
-                    Enter the token address and amount you want to burn
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-orange-500 font-medium">Irreversible Action</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Burned tokens are permanently destroyed and cannot be recovered.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+            <Card className="bg-black/40 border-white/10 mb-6">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Flame className="h-5 w-5 text-orange-500" />
+                  Burn Token
+                </CardTitle>
+                <CardDescription>
+                  Enter a Solana token address to burn tokens permanently
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-3">
+                  <Input
+                    id="tokenAddress"
+                    placeholder="Enter token contract address..."
+                    value={tokenAddress}
+                    onChange={(e) => setTokenAddress(e.target.value)}
+                    className="bg-black/60 border-white/10 font-mono text-base h-12 flex-1"
+                    data-testid="input-token-address"
+                  />
+                  <Button
+                    onClick={fetchTokenBalance}
+                    disabled={isLoading || !tokenAddress}
+                    className="h-12 px-6 bg-primary text-black hover:bg-primary/90"
+                    data-testid="button-fetch-balance"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Flame className="mr-2 h-5 w-5" />
+                        Analyze
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="tokenAddress">Token Mint Address</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="tokenAddress"
-                          placeholder="Enter SPL token mint address"
-                          value={tokenAddress}
-                          onChange={(e) => setTokenAddress(e.target.value)}
-                          className="bg-black/40 border-white/10 font-mono text-sm"
-                          data-testid="input-token-address"
-                        />
-                        <Button
-                          onClick={fetchTokenBalance}
-                          disabled={isLoading || !tokenAddress}
-                          className="shrink-0"
-                          data-testid="button-fetch-balance"
-                        >
-                          {isLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            "Check"
-                          )}
-                        </Button>
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="bg-black/40 border-white/10">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-white flex items-center gap-2 text-lg">
+                      <AlertTriangle className="h-5 w-5 text-orange-500" />
+                      Burn Amount
+                    </CardTitle>
+                    <CardDescription>
+                      Specify the amount of tokens you want to permanently destroy
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-orange-500 font-medium">Warning: Irreversible Action</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Burned tokens are permanently destroyed and cannot be recovered. Make sure you understand this before proceeding.
+                          </p>
+                        </div>
                       </div>
                     </div>
 
@@ -516,7 +529,7 @@ export default function Burn() {
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="text-sm text-muted-foreground">Your Balance</p>
-                              <p className="text-2xl font-bold text-white">
+                              <p className="text-3xl font-bold text-white">
                                 {tokenBalance.toLocaleString()} {tokenMetadata.symbol && <span className="text-primary">{tokenMetadata.symbol}</span>}
                               </p>
                               {tokenMetadata.price && tokenBalance > 0 && (
@@ -532,6 +545,7 @@ export default function Burn() {
                                 rel="noopener noreferrer"
                                 className="text-primary hover:underline flex items-center gap-1 text-sm"
                               >
+                                View on Solscan
                                 <ExternalLink className="h-3 w-3" />
                               </a>
                             )}
@@ -540,9 +554,9 @@ export default function Burn() {
                       )}
                     </AnimatePresence>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="burnAmount">Amount to Burn</Label>
+                        <Label htmlFor="burnAmount" className="text-base">Amount to Burn</Label>
                         {tokenBalance !== null && (
                           <Button
                             variant="ghost"
@@ -561,7 +575,7 @@ export default function Burn() {
                         placeholder="0.00"
                         value={burnAmount}
                         onChange={(e) => setBurnAmount(e.target.value)}
-                        className="bg-black/40 border-white/10 text-lg"
+                        className="bg-black/60 border-white/10 text-xl h-14"
                         disabled={tokenBalance === null}
                         data-testid="input-burn-amount"
                       />
@@ -605,7 +619,7 @@ export default function Burn() {
 
                     <Button
                       size="lg"
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white h-14 text-lg"
                       onClick={handleBurnClick}
                       disabled={isBurning || !burnAmount || tokenBalance === null || burnAmountNum <= 0}
                       data-testid="button-execute-burn"
@@ -622,9 +636,9 @@ export default function Burn() {
                         </>
                       )}
                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </div>
 
               <div className="space-y-6">
                 <AnimatePresence>
