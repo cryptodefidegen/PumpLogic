@@ -151,7 +151,7 @@ export function Navbar() {
             ) : (
               <Wallet className="mr-2 h-4 w-4" />
             )}
-            {isLoading ? "Connecting..." : isConnected ? walletAddress : "Connect Wallet"}
+            {isLoading ? "Connecting..." : isConnected && walletAddress ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : "Connect Wallet"}
           </Button>
         </div>
 
