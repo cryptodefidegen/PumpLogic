@@ -959,5 +959,101 @@ export async function registerRoutes(
     }
   });
 
+  // Token info endpoint for burn feature
+  app.get("/api/token/:mint", async (req, res) => {
+    try {
+      const { mint } = req.params;
+      const { wallet } = req.query;
+      
+      if (!mint) {
+        return res.status(400).json({ error: "Mint address is required" });
+      }
+
+      const { Connection, PublicKey } = await import("@solana/web3.js");
+      const SOLANA_RPC = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
+      const connection = new Connection(SOLANA_RPC, "confirmed");
+      
+      const mintPubkey = new PublicKey(mint);
+      
+      // Get mint info
+      const mintInfo = await connection.getParsedAccountInfo(mintPubkey);
+      
+      if (!mintInfo.value || !('parsed' in mintInfo.value.data)) {
+        return res.status(404).json({ error: "Token not found" });
+      }
+
+      const mintParsed = mintInfo.value.data.parsed;
+      const decimals = mintParsed.info.decimals;
+      const totalSupply = parseFloat(mintParsed.info.supply) / Math.pow(10, decimals);
+      const freezeAuthority = mintParsed.info.freezeAuthority || null;
+      const mintAuthority = mintParsed.info.mintAuthority || null;
+
+      let balance = 0;
+      
+      if (wallet) {
+        try {
+          const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+          const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+          const ownerPubkey = new PublicKey(wallet as string);
+          
+          const [ata] = PublicKey.findProgramAddressSync(
+            [ownerPubkey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintPubkey.toBuffer()],
+            ASSOCIATED_TOKEN_PROGRAM_ID
+          );
+          
+          const ataInfo = await connection.getParsedAccountInfo(ata);
+          if (ataInfo.value && 'parsed' in ataInfo.value.data) {
+            balance = parseFloat(ataInfo.value.data.parsed.info.tokenAmount.uiAmount || 0);
+          }
+        } catch (e) {
+          // Wallet has no balance
+          balance = 0;
+        }
+      }
+
+      // Fetch from DexScreener for price info
+      let name = null;
+      let symbol = null;
+      let image = null;
+      let price = null;
+      let fdv = null;
+      let priceChange24h = null;
+
+      try {
+        const dexResponse = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${mint}`);
+        const dexData = await dexResponse.json();
+        if (dexData.pairs && dexData.pairs.length > 0) {
+          const pair = dexData.pairs[0];
+          name = pair.baseToken?.name || null;
+          symbol = pair.baseToken?.symbol || null;
+          image = pair.info?.imageUrl || null;
+          price = parseFloat(pair.priceUsd) || null;
+          fdv = pair.fdv || null;
+          priceChange24h = pair.priceChange?.h24 || null;
+        }
+      } catch (e) {
+        // DexScreener fetch failed, continue with on-chain data
+      }
+
+      return res.json({
+        mint,
+        decimals,
+        totalSupply,
+        freezeAuthority,
+        mintAuthority,
+        balance,
+        name,
+        symbol,
+        image,
+        price,
+        fdv,
+        priceChange24h,
+      });
+    } catch (error: any) {
+      console.error("Token info error:", error);
+      return res.status(500).json({ error: error.message || "Failed to fetch token info" });
+    }
+  });
+
   return httpServer;
 }

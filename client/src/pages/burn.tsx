@@ -29,7 +29,7 @@ import {
 
 const BURN_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 
-const SOLANA_RPC = "https://rpc.ankr.com/solana";
+const SOLANA_RPC = "https://api.mainnet-beta.solana.com";
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 
 interface TokenMetadata {
@@ -197,74 +197,30 @@ export default function Burn() {
     });
 
     try {
-      const connection = new Connection(SOLANA_RPC);
-      const mintPubkey = new PublicKey(tokenAddress);
-      const ownerPubkey = new PublicKey(fullWalletAddress);
+      const response = await fetch(`/api/token/${tokenAddress}?wallet=${fullWalletAddress}`);
       
-      const ata = await getAssociatedTokenAddress(mintPubkey, ownerPubkey);
-      
-      const [accountInfoResult, mintInfoResult] = await Promise.all([
-        connection.getParsedAccountInfo(ata),
-        connection.getParsedAccountInfo(mintPubkey),
-      ]);
-
-      let decimals = 9;
-      let balance = 0;
-
-      if (accountInfoResult.value && 'parsed' in accountInfoResult.value.data) {
-        const parsed = accountInfoResult.value.data.parsed;
-        decimals = parsed.info.tokenAmount.decimals;
-        balance = parseFloat(parsed.info.tokenAmount.uiAmount);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Token not found");
       }
 
-      setTokenDecimals(decimals);
-      setTokenBalance(balance);
+      const data = await response.json();
 
-      let totalSupply: number | null = null;
-      let freezeAuthority: string | null = null;
-      let mintAuthority: string | null = null;
+      setTokenDecimals(data.decimals);
+      setTokenBalance(data.balance);
+      setTokenMetadata({
+        name: data.name,
+        symbol: data.symbol,
+        image: data.image,
+        totalSupply: data.totalSupply,
+        price: data.price,
+        fdv: data.fdv,
+        priceChange24h: data.priceChange24h,
+        freezeAuthority: data.freezeAuthority,
+        mintAuthority: data.mintAuthority,
+      });
 
-      if (mintInfoResult.value && 'parsed' in mintInfoResult.value.data) {
-        const mintParsed = mintInfoResult.value.data.parsed;
-        totalSupply = parseFloat(mintParsed.info.supply) / Math.pow(10, decimals);
-        freezeAuthority = mintParsed.info.freezeAuthority || null;
-        mintAuthority = mintParsed.info.mintAuthority || null;
-      }
-
-      try {
-        const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
-        const data = await response.json();
-        if (data.pairs && data.pairs.length > 0) {
-          const pair = data.pairs[0];
-          setTokenMetadata({
-            name: pair.baseToken.name || null,
-            symbol: pair.baseToken.symbol || null,
-            image: pair.info?.imageUrl || null,
-            totalSupply,
-            price: parseFloat(pair.priceUsd) || null,
-            fdv: pair.fdv || null,
-            priceChange24h: pair.priceChange?.h24 || null,
-            freezeAuthority,
-            mintAuthority,
-          });
-        } else {
-          setTokenMetadata(prev => ({
-            ...prev,
-            totalSupply,
-            freezeAuthority,
-            mintAuthority,
-          }));
-        }
-      } catch {
-        setTokenMetadata(prev => ({
-          ...prev,
-          totalSupply,
-          freezeAuthority,
-          mintAuthority,
-        }));
-      }
-
-      if (balance > 0) {
+      if (data.balance > 0) {
         toast({
           title: "Token Found",
           description: `Balance loaded successfully`,
@@ -282,7 +238,7 @@ export default function Burn() {
       toast({
         variant: "destructive",
         title: "Invalid Token",
-        description: "Could not find this token. Please check the address.",
+        description: error.message || "Could not find this token. Please check the address.",
       });
     } finally {
       setIsLoading(false);
