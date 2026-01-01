@@ -274,6 +274,39 @@ export default function Analytics() {
           </Card>
         </div>
 
+        {analytics?.token && (
+          <Card className="bg-black/40 border-white/10 backdrop-blur-sm mb-8">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg text-white flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    {analytics.token.symbol} Price Chart
+                  </CardTitle>
+                  <CardDescription>Live price chart powered by DexScreener</CardDescription>
+                </div>
+                <a 
+                  href={`https://dexscreener.com/solana/${analytics.token.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  Open Full Chart <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px] rounded-lg overflow-hidden border border-white/10" data-testid="chart-token-price">
+                <iframe
+                  src={`https://dexscreener.com/solana/${analytics.token.address}?embed=1&theme=dark&trades=0&info=0`}
+                  className="w-full h-full border-0"
+                  title={`${analytics.token.symbol} Price Chart`}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="bg-black/40 border-white/10 backdrop-blur-sm hover:border-primary/30 transition-colors">
             <CardContent className="p-6">
