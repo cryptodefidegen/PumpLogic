@@ -266,10 +266,10 @@ export default function Analytics() {
                 <Droplets className="h-4 w-4 text-amber-400" />
               </div>
               <div className="text-2xl font-bold text-white font-mono" data-testid="text-liquidity">
-                {isLoading ? "..." : formatNumber(analytics?.token.liquidity || 0)}
+                {isLoading ? "..." : (analytics?.token.liquidity || 0) > 0 ? formatNumber(analytics?.token.liquidity || 0) : "Bonding Curve"}
               </div>
               <div className="text-sm text-muted-foreground mt-2">
-                Pool Liquidity
+                {(analytics?.token.liquidity || 0) > 0 ? "Pool Liquidity" : "On Pump.fun"}
               </div>
             </CardContent>
           </Card>
