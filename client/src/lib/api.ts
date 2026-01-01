@@ -540,3 +540,58 @@ export async function checkTokenGate(walletAddress: string): Promise<TokenGateRe
   
   return await response.json();
 }
+
+// ===== ANALYTICS =====
+
+export interface AnalyticsData {
+  token: {
+    address: string;
+    name: string;
+    symbol: string;
+    price: number;
+    marketCap: number;
+  };
+  allocation: {
+    marketMaking: number;
+    buyback: number;
+    liquidity: number;
+    revenue: number;
+  };
+  fees: {
+    totalCollected: number;
+    totalCollectedUsd: number;
+    breakdown: {
+      marketMaking: number;
+      buyback: number;
+      liquidity: number;
+      revenue: number;
+    };
+  };
+  stats: {
+    transactionsLast30Days: number;
+    transactionsLast7Days: number;
+    totalTransactions: number;
+  };
+  dailyVolume: { date: string; volume: number }[];
+  availableTokens: {
+    id: string;
+    name: string;
+    symbol: string;
+    address: string;
+    isActive: boolean;
+  }[];
+}
+
+export async function getAnalytics(userId: string, tokenAddress?: string): Promise<AnalyticsData> {
+  const url = tokenAddress 
+    ? `/api/analytics/${userId}?tokenAddress=${encodeURIComponent(tokenAddress)}`
+    : `/api/analytics/${userId}`;
+    
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch analytics");
+  }
+  
+  return await response.json();
+}

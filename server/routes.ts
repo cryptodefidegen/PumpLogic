@@ -777,5 +777,155 @@ export async function registerRoutes(
     }
   });
 
+  // Analytics endpoint - get real data for analytics page
+  app.get("/api/analytics/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const tokenAddress = req.query.tokenAddress as string | undefined;
+
+      // Get user's allocation settings
+      const allocation = await storage.getAllocation(userId);
+      
+      // Get user's transactions to calculate real fees
+      const allTransactions = await storage.getTransactions(userId, 100);
+      
+      // Get user's active token or specified token
+      let activeToken = null;
+      if (tokenAddress) {
+        const tokens = await storage.getMultiTokenSettings(userId);
+        activeToken = tokens.find(t => t.contractAddress === tokenAddress);
+      } else {
+        activeToken = await storage.getActiveToken(userId);
+      }
+      
+      // Get all tokens for the user
+      const allTokens = await storage.getMultiTokenSettings(userId);
+
+      // Calculate total fees from distribution transactions
+      let totalFeesCollected = 0;
+      let totalMarketMaking = 0;
+      let totalBuyback = 0;
+      let totalLiquidity = 0;
+      let totalRevenue = 0;
+
+      // Sum up distribution amounts (type is uppercase "DISTRIBUTE")
+      const distributionTxs = allTransactions.filter(tx => tx.type.toUpperCase() === 'DISTRIBUTE');
+      distributionTxs.forEach(tx => {
+        const amount = parseFloat(tx.amount) || 0;
+        totalFeesCollected += amount;
+      });
+
+      // Sum up individual channel transactions for accurate breakdown
+      allTransactions.forEach(tx => {
+        const amount = parseFloat(tx.amount) || 0;
+        const txType = tx.type.toUpperCase();
+        
+        if (txType === 'MARKET_MAKING' || txType === 'MARKETMAKING') {
+          totalMarketMaking += amount;
+        } else if (txType === 'BUYBACK') {
+          totalBuyback += amount;
+        } else if (txType === 'LIQUIDITY' || txType === 'LP') {
+          totalLiquidity += amount;
+        } else if (txType === 'REVENUE' || txType === 'CREATOR') {
+          totalRevenue += amount;
+        }
+      });
+
+      // If no channel-specific transactions, estimate from distributions
+      if (totalMarketMaking === 0 && totalBuyback === 0 && totalLiquidity === 0 && totalRevenue === 0 && totalFeesCollected > 0) {
+        if (allocation) {
+          totalMarketMaking = totalFeesCollected * (allocation.marketMaking / 100);
+          totalBuyback = totalFeesCollected * (allocation.buyback / 100);
+          totalLiquidity = totalFeesCollected * (allocation.liquidity / 100);
+          totalRevenue = totalFeesCollected * (allocation.revenue / 100);
+        }
+      }
+
+      // Fetch token price from Jupiter if we have a token address
+      let tokenPrice = 0;
+      let tokenSymbol = activeToken?.tokenSymbol || "$PUMPLOGIC";
+      let tokenName = activeToken?.tokenName || "PumpLogic";
+      const tokenMint = activeToken?.contractAddress || "63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump";
+
+      try {
+        const priceResponse = await fetch(`https://api.jup.ag/price/v2?ids=${tokenMint}`);
+        if (priceResponse.ok) {
+          const priceData = await priceResponse.json();
+          const price = priceData.data?.[tokenMint]?.price;
+          tokenPrice = typeof price === "number" ? price : parseFloat(price) || 0;
+        }
+      } catch (error) {
+        console.error("Failed to fetch token price:", error);
+      }
+
+      // Calculate transaction stats
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      const last30DaysTxs = allTransactions.filter(tx => new Date(tx.createdAt) >= thirtyDaysAgo);
+      const last7DaysTxs = allTransactions.filter(tx => new Date(tx.createdAt) >= sevenDaysAgo);
+
+      // Calculate daily volume for last 7 days
+      const dailyVolume: { date: string; volume: number }[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const dayVolume = last7DaysTxs
+          .filter(tx => tx.createdAt.toISOString().split('T')[0] === dateStr)
+          .reduce((sum, tx) => sum + (parseFloat(tx.amount) || 0), 0);
+        
+        dailyVolume.push({
+          date: date.toLocaleDateString([], { weekday: 'short' }),
+          volume: dayVolume,
+        });
+      }
+
+      return res.json({
+        token: {
+          address: tokenMint,
+          name: tokenName,
+          symbol: tokenSymbol,
+          price: tokenPrice,
+          marketCap: tokenPrice * 1000000000, // Assuming 1B supply
+        },
+        allocation: allocation || {
+          marketMaking: 25,
+          buyback: 25,
+          liquidity: 25,
+          revenue: 25,
+        },
+        fees: {
+          totalCollected: totalFeesCollected,
+          totalCollectedUsd: totalFeesCollected * (tokenPrice > 0 ? 1 : 1), // If in SOL, this is already USD-ish
+          breakdown: {
+            marketMaking: totalMarketMaking,
+            buyback: totalBuyback,
+            liquidity: totalLiquidity,
+            revenue: totalRevenue,
+          },
+        },
+        stats: {
+          transactionsLast30Days: last30DaysTxs.length,
+          transactionsLast7Days: last7DaysTxs.length,
+          totalTransactions: allTransactions.length,
+        },
+        dailyVolume,
+        availableTokens: allTokens.map(t => ({
+          id: t.id,
+          name: t.tokenName,
+          symbol: t.tokenSymbol,
+          address: t.contractAddress,
+          isActive: t.isActive,
+        })),
+      });
+    } catch (error: any) {
+      console.error("Analytics error:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
   return httpServer;
 }
