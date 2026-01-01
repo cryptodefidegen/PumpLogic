@@ -35,11 +35,11 @@ export default function Home() {
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold font-display tracking-tighter leading-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">
-            Smart fee routing <br /> for token creators
+            The complete DeFi toolkit <br /> for Solana creators
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Automate your token fee distribution with intelligent allocation across trading, burns, liquidity pools, and creator rewards.
+            Manage fee routing, monitor risks, track analytics, and automate your token strategy - all in one platform.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
