@@ -77,6 +77,13 @@ export function Navbar() {
             App
           </Link>
           <Link 
+            href="/analytics" 
+            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/analytics" ? "text-primary" : "text-muted-foreground")}
+          >
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </Link>
+          <Link 
             href="/docs" 
             className={cn("text-sm font-medium transition-colors hover:text-primary", location === "/docs" ? "text-primary" : "text-muted-foreground")}
           >
@@ -87,13 +94,6 @@ export function Navbar() {
             className={cn("text-sm font-medium transition-colors hover:text-primary", location === "/roadmap" ? "text-primary" : "text-muted-foreground")}
           >
             Roadmap
-          </Link>
-          <Link 
-            href="/analytics" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/analytics" ? "text-primary" : "text-muted-foreground")}
-          >
-            <BarChart3 className="h-4 w-4" />
-            Analytics
           </Link>
           <div className="flex items-center gap-1.5 text-sm font-medium text-blue-400 cursor-default">
             <Target className="h-4 w-4" />
@@ -155,15 +155,15 @@ export function Navbar() {
             <Link href="/app" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               App
             </Link>
+            <Link href="/analytics" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </Link>
             <Link href="/docs" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               Docs
             </Link>
             <Link href="/roadmap" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               Roadmap
-            </Link>
-            <Link href="/analytics" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <BarChart3 className="h-4 w-4" />
-              Analytics
             </Link>
             <div className="flex items-center gap-2 text-sm font-medium text-blue-400">
               <Target className="h-4 w-4" />

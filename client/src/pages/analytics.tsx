@@ -120,10 +120,8 @@ export default function Analytics() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-black/95 to-black">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,255,157,0.05),transparent_50%)] pointer-events-none" />
-      
-      <div className="container mx-auto px-4 py-8 relative">
+    <div className="min-h-screen text-foreground pb-20">
+      <div className="container mx-auto px-4 pt-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
