@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   TrendingUp, 
+  TrendingDown,
   DollarSign, 
   Activity, 
   BarChart3, 
@@ -15,7 +16,11 @@ import {
   PieChart,
   Wallet,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  ArrowUpRight,
+  ArrowDownRight,
+  Droplets,
+  ShoppingCart
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -168,7 +173,7 @@ export default function Analytics() {
 
         {analytics?.token && (
           <div className="mb-6 p-4 bg-black/40 rounded-lg border border-white/10">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <Coins className="h-6 w-6 text-primary" />
                 <div>
@@ -176,14 +181,25 @@ export default function Analytics() {
                   <p className="text-sm text-muted-foreground font-mono">{analytics.token.symbol}</p>
                 </div>
               </div>
-              <a 
-                href={`https://solscan.io/token/${analytics.token.address}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-primary hover:underline flex items-center gap-1"
-              >
-                View on Solscan <ExternalLink className="h-3 w-3" />
-              </a>
+              <div className="flex items-center gap-4">
+                <a 
+                  href={`https://dexscreener.com/solana/${analytics.token.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                  data-testid="link-dexscreener"
+                >
+                  DexScreener <ExternalLink className="h-3 w-3" />
+                </a>
+                <a 
+                  href={`https://solscan.io/token/${analytics.token.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  Solscan <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
             </div>
           </div>
         )}
@@ -198,8 +214,33 @@ export default function Analytics() {
               <div className="text-2xl font-bold text-white font-mono" data-testid="text-token-price">
                 {isLoading ? "..." : formatPrice(analytics?.token.price || 0)}
               </div>
+              {analytics?.token.priceChange24h !== undefined && (
+                <div className={cn(
+                  "flex items-center gap-1 text-sm mt-2",
+                  analytics.token.priceChange24h >= 0 ? "text-green-500" : "text-red-500"
+                )}>
+                  {analytics.token.priceChange24h >= 0 ? (
+                    <ArrowUpRight className="h-4 w-4" />
+                  ) : (
+                    <ArrowDownRight className="h-4 w-4" />
+                  )}
+                  <span>{Math.abs(analytics.token.priceChange24h).toFixed(2)}% (24h)</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black/40 border-white/10 backdrop-blur-sm hover:border-primary/30 transition-colors">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-muted-foreground">Market Cap</span>
+                <Coins className="h-4 w-4 text-blue-400" />
+              </div>
+              <div className="text-2xl font-bold text-white font-mono" data-testid="text-market-cap">
+                {isLoading ? "..." : formatNumber(analytics?.token.marketCap || 0)}
+              </div>
               <div className="text-sm text-muted-foreground mt-2">
-                Live from Jupiter
+                Fully Diluted
               </div>
             </CardContent>
           </Card>
@@ -207,8 +248,64 @@ export default function Analytics() {
           <Card className="bg-black/40 border-white/10 backdrop-blur-sm hover:border-primary/30 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">Total Fees Collected</span>
-                <Coins className="h-4 w-4 text-blue-400" />
+                <span className="text-sm text-muted-foreground">24h Volume</span>
+                <Activity className="h-4 w-4 text-purple-400" />
+              </div>
+              <div className="text-2xl font-bold text-white font-mono" data-testid="text-volume-24h">
+                {isLoading ? "..." : formatNumber(analytics?.token.volume24h || 0)}
+              </div>
+              <div className="text-sm text-muted-foreground mt-2">
+                Trading Volume
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black/40 border-white/10 backdrop-blur-sm hover:border-primary/30 transition-colors">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-muted-foreground">Liquidity</span>
+                <Droplets className="h-4 w-4 text-amber-400" />
+              </div>
+              <div className="text-2xl font-bold text-white font-mono" data-testid="text-liquidity">
+                {isLoading ? "..." : formatNumber(analytics?.token.liquidity || 0)}
+              </div>
+              <div className="text-sm text-muted-foreground mt-2">
+                Pool Liquidity
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="bg-black/40 border-white/10 backdrop-blur-sm hover:border-primary/30 transition-colors">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-muted-foreground">24h Transactions</span>
+                <ShoppingCart className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex items-center gap-4">
+                <div>
+                  <div className="text-lg font-bold text-green-500 font-mono" data-testid="text-buys">
+                    {analytics?.token.txns24h?.buys || 0}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Buys</div>
+                </div>
+                <div className="h-8 w-px bg-white/10" />
+                <div>
+                  <div className="text-lg font-bold text-red-500 font-mono" data-testid="text-sells">
+                    {analytics?.token.txns24h?.sells || 0}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Sells</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black/40 border-white/10 backdrop-blur-sm hover:border-primary/30 transition-colors">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-muted-foreground">Your Fees Collected</span>
+                <Coins className="h-4 w-4 text-primary" />
               </div>
               <div className="text-2xl font-bold text-white font-mono" data-testid="text-fees-collected">
                 {isLoading ? "..." : formatSol(analytics?.fees.totalCollected || 0)}
@@ -222,29 +319,23 @@ export default function Analytics() {
           <Card className="bg-black/40 border-white/10 backdrop-blur-sm hover:border-primary/30 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">30-Day Activity</span>
+                <span className="text-sm text-muted-foreground">Your Activity</span>
                 <Activity className="h-4 w-4 text-purple-400" />
               </div>
-              <div className="text-2xl font-bold text-white font-mono" data-testid="text-30d-activity">
-                {isLoading ? "..." : analytics?.stats.transactionsLast30Days || 0}
-              </div>
-              <div className="text-sm text-muted-foreground mt-2">
-                Transactions
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-black/40 border-white/10 backdrop-blur-sm hover:border-primary/30 transition-colors">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">7-Day Activity</span>
-                <TrendingUp className="h-4 w-4 text-amber-400" />
-              </div>
-              <div className="text-2xl font-bold text-white font-mono" data-testid="text-7d-activity">
-                {isLoading ? "..." : analytics?.stats.transactionsLast7Days || 0}
-              </div>
-              <div className="text-sm text-muted-foreground mt-2">
-                Transactions
+              <div className="flex items-center gap-4">
+                <div>
+                  <div className="text-lg font-bold text-white font-mono">
+                    {analytics?.stats.transactionsLast7Days || 0}
+                  </div>
+                  <div className="text-xs text-muted-foreground">7 Days</div>
+                </div>
+                <div className="h-8 w-px bg-white/10" />
+                <div>
+                  <div className="text-lg font-bold text-white font-mono">
+                    {analytics?.stats.transactionsLast30Days || 0}
+                  </div>
+                  <div className="text-xs text-muted-foreground">30 Days</div>
+                </div>
               </div>
             </CardContent>
           </Card>

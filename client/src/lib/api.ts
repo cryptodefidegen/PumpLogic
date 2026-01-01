@@ -550,6 +550,10 @@ export interface AnalyticsData {
     symbol: string;
     price: number;
     marketCap: number;
+    volume24h: number;
+    liquidity: number;
+    priceChange24h: number;
+    txns24h: { buys: number; sells: number };
   };
   allocation: {
     marketMaking: number;

@@ -841,21 +841,65 @@ export async function registerRoutes(
         }
       }
 
-      // Fetch token price from Jupiter if we have a token address
+      // Fetch token data from DexScreener and Jupiter
       let tokenPrice = 0;
       let tokenSymbol = activeToken?.tokenSymbol || "$PUMPLOGIC";
       let tokenName = activeToken?.tokenName || "PumpLogic";
       const tokenMint = activeToken?.contractAddress || "63k7noZHAPfxnwzq4wGHJG4kksT7enoT2ua3shQ2pump";
+      
+      let volume24h = 0;
+      let liquidity = 0;
+      let priceChange24h = 0;
+      let marketCap = 0;
+      let holders = 0;
+      let txns24h = { buys: 0, sells: 0 };
 
+      // Try DexScreener first (better data for pump.fun tokens)
       try {
-        const priceResponse = await fetch(`https://api.jup.ag/price/v2?ids=${tokenMint}`);
-        if (priceResponse.ok) {
-          const priceData = await priceResponse.json();
-          const price = priceData.data?.[tokenMint]?.price;
-          tokenPrice = typeof price === "number" ? price : parseFloat(price) || 0;
+        const dexResponse = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenMint}`);
+        if (dexResponse.ok) {
+          const dexData = await dexResponse.json();
+          if (dexData.pairs && dexData.pairs.length > 0) {
+            // Get the pair with highest liquidity
+            const bestPair = dexData.pairs.reduce((best: any, pair: any) => {
+              const pairLiq = parseFloat(pair.liquidity?.usd || 0);
+              const bestLiq = parseFloat(best?.liquidity?.usd || 0);
+              return pairLiq > bestLiq ? pair : best;
+            }, dexData.pairs[0]);
+            
+            tokenPrice = parseFloat(bestPair.priceUsd) || 0;
+            volume24h = parseFloat(bestPair.volume?.h24) || 0;
+            liquidity = parseFloat(bestPair.liquidity?.usd) || 0;
+            priceChange24h = parseFloat(bestPair.priceChange?.h24) || 0;
+            marketCap = parseFloat(bestPair.marketCap) || parseFloat(bestPair.fdv) || 0;
+            txns24h = {
+              buys: bestPair.txns?.h24?.buys || 0,
+              sells: bestPair.txns?.h24?.sells || 0,
+            };
+            
+            // Update token name/symbol from DexScreener if available
+            if (bestPair.baseToken) {
+              tokenSymbol = bestPair.baseToken.symbol || tokenSymbol;
+              tokenName = bestPair.baseToken.name || tokenName;
+            }
+          }
         }
       } catch (error) {
-        console.error("Failed to fetch token price:", error);
+        console.error("DexScreener API error:", error);
+      }
+
+      // Fallback to Jupiter if DexScreener didn't return a price
+      if (tokenPrice === 0) {
+        try {
+          const priceResponse = await fetch(`https://api.jup.ag/price/v2?ids=${tokenMint}`);
+          if (priceResponse.ok) {
+            const priceData = await priceResponse.json();
+            const price = priceData.data?.[tokenMint]?.price;
+            tokenPrice = typeof price === "number" ? price : parseFloat(price) || 0;
+          }
+        } catch (error) {
+          console.error("Jupiter API error:", error);
+        }
       }
 
       // Calculate transaction stats
@@ -889,7 +933,11 @@ export async function registerRoutes(
           name: tokenName,
           symbol: tokenSymbol,
           price: tokenPrice,
-          marketCap: tokenPrice * 1000000000, // Assuming 1B supply
+          marketCap: marketCap || tokenPrice * 1000000000,
+          volume24h,
+          liquidity,
+          priceChange24h,
+          txns24h,
         },
         allocation: allocation || {
           marketMaking: 25,
