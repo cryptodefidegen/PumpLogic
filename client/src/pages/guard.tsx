@@ -96,12 +96,68 @@ function formatLargeNumber(num: number): string {
   return `$${num.toFixed(2)}`;
 }
 
+interface WatchlistToken {
+  address: string;
+  name: string;
+  symbol: string;
+  addedAt: Date;
+}
+
 export default function Guard() {
   const { isConnected, user } = useWallet();
   const [tokenAddress, setTokenAddress] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<TokenAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [watchlistInput, setWatchlistInput] = useState("");
+  const [watchlist, setWatchlist] = useState<WatchlistToken[]>([]);
+  const [isAddingToWatchlist, setIsAddingToWatchlist] = useState(false);
+
+  const addToWatchlist = async () => {
+    if (!watchlistInput.trim()) return;
+    
+    if (watchlist.some(t => t.address.toLowerCase() === watchlistInput.toLowerCase())) {
+      return;
+    }
+    
+    setIsAddingToWatchlist(true);
+    
+    try {
+      const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${watchlistInput}`);
+      const data = await response.json();
+      
+      let tokenName = "Unknown Token";
+      let tokenSymbol = "???";
+      
+      if (data.pairs && data.pairs.length > 0) {
+        const bestPair = data.pairs[0];
+        tokenName = bestPair.baseToken?.name || "Unknown Token";
+        tokenSymbol = bestPair.baseToken?.symbol || "???";
+      }
+      
+      setWatchlist(prev => [...prev, {
+        address: watchlistInput,
+        name: tokenName,
+        symbol: tokenSymbol,
+        addedAt: new Date()
+      }]);
+      setWatchlistInput("");
+    } catch (err) {
+      setWatchlist(prev => [...prev, {
+        address: watchlistInput,
+        name: "Unknown Token",
+        symbol: "???",
+        addedAt: new Date()
+      }]);
+      setWatchlistInput("");
+    } finally {
+      setIsAddingToWatchlist(false);
+    }
+  };
+
+  const removeFromWatchlist = (address: string) => {
+    setWatchlist(prev => prev.filter(t => t.address !== address));
+  };
 
   const analyzeToken = async () => {
     if (!tokenAddress) return;
@@ -579,16 +635,69 @@ export default function Guard() {
                 <div className="flex gap-3 mb-4">
                   <Input
                     placeholder="Add token to watchlist..."
+                    value={watchlistInput}
+                    onChange={(e) => setWatchlistInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addToWatchlist()}
                     className="bg-black/40 border-white/20 font-mono text-sm"
                     data-testid="input-watchlist"
                   />
-                  <Button className="bg-primary text-black hover:bg-primary/90 shrink-0" data-testid="button-add-watchlist">
-                    Add
+                  <Button 
+                    onClick={addToWatchlist}
+                    disabled={!watchlistInput.trim() || isAddingToWatchlist}
+                    className="bg-primary text-black hover:bg-primary/90 shrink-0" 
+                    data-testid="button-add-watchlist"
+                  >
+                    {isAddingToWatchlist ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Add"
+                    )}
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No tokens in watchlist. Add tokens above to monitor them.
-                </p>
+                {watchlist.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No tokens in watchlist. Add tokens above to monitor them.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {watchlist.map((token) => (
+                      <div 
+                        key={token.address}
+                        className="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-white/5"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Coins className="h-5 w-5 text-primary shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-white truncate">
+                              {token.name} <span className="text-muted-foreground">${token.symbol}</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground font-mono truncate">{token.address}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setTokenAddress(token.address);
+                            }}
+                            className="text-primary hover:text-primary/80"
+                          >
+                            <Search className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFromWatchlist(token.address)}
+                            className="text-red-500 hover:text-red-400"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
