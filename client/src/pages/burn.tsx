@@ -639,7 +639,7 @@ export default function Burn() {
                               <div className="p-3 rounded-lg bg-white/5">
                                 <p className="text-xs text-muted-foreground mb-1">Price</p>
                                 <p className="text-white font-medium">
-                                  ${tokenMetadata.price < 0.01 ? tokenMetadata.price.toExponential(2) : tokenMetadata.price.toFixed(4)}
+                                  ${tokenMetadata.price < 0.000001 ? tokenMetadata.price.toFixed(10) : tokenMetadata.price < 0.0001 ? tokenMetadata.price.toFixed(8) : tokenMetadata.price < 0.01 ? tokenMetadata.price.toFixed(6) : tokenMetadata.price.toFixed(4)}
                                 </p>
                                 {tokenMetadata.priceChange24h !== null && (
                                   <p className={`text-xs ${tokenMetadata.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
