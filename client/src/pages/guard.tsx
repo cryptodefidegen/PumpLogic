@@ -112,6 +112,139 @@ export default function Guard() {
   const [watchlistInput, setWatchlistInput] = useState("");
   const [watchlist, setWatchlist] = useState<WatchlistToken[]>([]);
   const [isAddingToWatchlist, setIsAddingToWatchlist] = useState(false);
+  const [activeTab, setActiveTab] = useState("scanner");
+
+  const scanFromWatchlist = async (address: string) => {
+    setTokenAddress(address);
+    setActiveTab("scanner");
+    setError(null);
+    setAnalysis(null);
+    setIsAnalyzing(true);
+    
+    try {
+      const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch token data");
+      }
+      
+      const data = await response.json();
+      
+      if (!data.pairs || data.pairs.length === 0) {
+        throw new Error("Token not found or no trading pairs available");
+      }
+      
+      const bestPair = data.pairs.reduce((best: any, pair: any) => {
+        const pairLiq = parseFloat(pair.liquidity?.usd || 0);
+        const bestLiq = parseFloat(best?.liquidity?.usd || 0);
+        return pairLiq > bestLiq ? pair : best;
+      }, data.pairs[0]);
+      
+      const tokenName = bestPair.baseToken?.name || "Unknown Token";
+      const tokenSymbol = bestPair.baseToken?.symbol || "???";
+      const priceUsd = parseFloat(bestPair.priceUsd) || 0;
+      const priceChange24h = parseFloat(bestPair.priceChange?.h24) || 0;
+      const volume24h = parseFloat(bestPair.volume?.h24) || 0;
+      const liquidity = parseFloat(bestPair.liquidity?.usd) || 0;
+      const marketCap = parseFloat(bestPair.marketCap) || parseFloat(bestPair.fdv) || 0;
+      const pairCreatedAt = bestPair.pairCreatedAt ? new Date(bestPair.pairCreatedAt).toISOString() : new Date().toISOString();
+      
+      const factors: RiskFactor[] = [];
+      let riskScore = 0;
+      
+      if (liquidity > 100000) {
+        factors.push({ name: "Liquidity Depth", status: "safe", description: `Strong liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
+      } else if (liquidity > 10000) {
+        factors.push({ name: "Liquidity Depth", status: "warning", description: `Moderate liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
+        riskScore += 15;
+      } else {
+        factors.push({ name: "Liquidity Depth", status: "danger", description: `Low liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
+        riskScore += 30;
+      }
+      
+      if (volume24h > 50000) {
+        factors.push({ name: "Trading Volume", status: "safe", description: `Healthy 24h volume: ${formatLargeNumber(volume24h)}`, weight: 15 });
+      } else if (volume24h > 5000) {
+        factors.push({ name: "Trading Volume", status: "warning", description: `Low 24h volume: ${formatLargeNumber(volume24h)}`, weight: 15 });
+        riskScore += 10;
+      } else {
+        factors.push({ name: "Trading Volume", status: "danger", description: `Very low 24h volume: ${formatLargeNumber(volume24h)}`, weight: 15 });
+        riskScore += 20;
+      }
+      
+      const absChange = Math.abs(priceChange24h);
+      if (absChange < 10) {
+        factors.push({ name: "Price Stability", status: "safe", description: `Stable price movement: ${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%`, weight: 15 });
+      } else if (absChange < 30) {
+        factors.push({ name: "Price Stability", status: "warning", description: `Moderate volatility: ${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%`, weight: 15 });
+        riskScore += 10;
+      } else {
+        factors.push({ name: "Price Stability", status: "danger", description: `High volatility: ${priceChange24h > 0 ? '+' : ''}${priceChange24h.toFixed(2)}%`, weight: 15 });
+        riskScore += 20;
+      }
+      
+      if (marketCap > 1000000) {
+        factors.push({ name: "Market Cap", status: "safe", description: `Strong market cap: ${formatLargeNumber(marketCap)}`, weight: 20 });
+      } else if (marketCap > 100000) {
+        factors.push({ name: "Market Cap", status: "warning", description: `Small market cap: ${formatLargeNumber(marketCap)}`, weight: 20 });
+        riskScore += 15;
+      } else {
+        factors.push({ name: "Market Cap", status: "danger", description: `Micro cap: ${formatLargeNumber(marketCap)}`, weight: 20 });
+        riskScore += 25;
+      }
+      
+      const ageInDays = (Date.now() - new Date(pairCreatedAt).getTime()) / (1000 * 60 * 60 * 24);
+      if (ageInDays > 30) {
+        factors.push({ name: "Token Age", status: "safe", description: `Established token: ${Math.floor(ageInDays)} days old`, weight: 15 });
+      } else if (ageInDays > 7) {
+        factors.push({ name: "Token Age", status: "warning", description: `Newer token: ${Math.floor(ageInDays)} days old`, weight: 15 });
+        riskScore += 10;
+      } else {
+        factors.push({ name: "Token Age", status: "danger", description: `Very new token: ${Math.floor(ageInDays)} days old`, weight: 15 });
+        riskScore += 20;
+      }
+      
+      const dexId = bestPair.dexId || "unknown";
+      if (dexId === "raydium" || dexId === "orca") {
+        factors.push({ name: "DEX Platform", status: "safe", description: `Trading on ${dexId.charAt(0).toUpperCase() + dexId.slice(1)}`, weight: 15 });
+      } else {
+        factors.push({ name: "DEX Platform", status: "warning", description: `Trading on ${dexId}`, weight: 15 });
+        riskScore += 5;
+      }
+      
+      let riskLevel: "low" | "medium" | "high" | "critical";
+      if (riskScore < 25) riskLevel = "low";
+      else if (riskScore < 50) riskLevel = "medium";
+      else if (riskScore < 75) riskLevel = "high";
+      else riskLevel = "critical";
+      
+      setAnalysis({
+        address,
+        name: tokenName,
+        symbol: tokenSymbol,
+        riskScore,
+        riskLevel,
+        factors,
+        liquidityLocked: liquidity > 50000,
+        topHoldersPercent: 45,
+        mintDisabled: true,
+        freezeDisabled: true,
+        lpBurned: false,
+        createdAt: pairCreatedAt,
+        priceUsd,
+        priceChange24h,
+        volume24h,
+        liquidity,
+        marketCap,
+        pairAddress: bestPair.pairAddress || "",
+        dexId,
+      });
+    } catch (err: any) {
+      setError(err.message || "Failed to analyze token");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const addToWatchlist = async () => {
     if (!watchlistInput.trim()) return;
@@ -337,7 +470,7 @@ export default function Guard() {
           </div>
         </div>
 
-        <Tabs defaultValue="scanner" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-black/40 border border-white/10">
             <TabsTrigger value="scanner" className="data-[state=active]:bg-primary data-[state=active]:text-black">
               <Search className="h-4 w-4 mr-2" />
@@ -678,9 +811,7 @@ export default function Guard() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              setTokenAddress(token.address);
-                            }}
+                            onClick={() => scanFromWatchlist(token.address)}
                             className="text-primary hover:text-primary/80"
                           >
                             <Search className="h-4 w-4" />
