@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { authenticateWallet, checkTokenGate, type TokenGateResult } from "@/lib/api";
+import { authenticateWallet } from "@/lib/api";
 import type { User } from "@shared/schema";
 
 declare global {
@@ -26,9 +26,6 @@ interface WalletContextType {
   walletAddress: string | null;
   fullWalletAddress: string | null;
   isPhantomInstalled: boolean;
-  tokenGate: TokenGateResult | null;
-  isTokenGateLoading: boolean;
-  refreshTokenGate: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -39,8 +36,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [fullWalletAddress, setFullWalletAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isPhantomInstalled, setIsPhantomInstalled] = useState(false);
-  const [tokenGate, setTokenGate] = useState<TokenGateResult | null>(null);
-  const [isTokenGateLoading, setIsTokenGateLoading] = useState(false);
 
   useEffect(() => {
     
@@ -62,8 +57,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           setFullWalletAddress(savedWallet);
           setUser(JSON.parse(savedUser));
           setIsConnected(true);
-          // Also check token gate for restored sessions
-          checkGateWithBlocking(savedWallet);
         }
       }
     };
@@ -82,36 +75,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const checkGateWithBlocking = async (address: string) => {
-    setIsTokenGateLoading(true);
-    try {
-      const result = await checkTokenGate(address);
-      setTokenGate(result);
-      return result;
-    } catch (error) {
-      console.error("Failed to check token gate:", error);
-      // On error, set a blocked state to prevent access
-      setTokenGate({
-        allowed: false,
-        reason: "Failed to verify token holdings. Please try again.",
-        tokenBalance: 0,
-        tokenPriceUsd: 0,
-        valueUsd: 0,
-        minRequired: 50,
-        isWhitelisted: false,
-      });
-      return null;
-    } finally {
-      setIsTokenGateLoading(false);
-    }
-  };
-
-  const refreshTokenGate = async () => {
-    if (fullWalletAddress) {
-      await checkGateWithBlocking(fullWalletAddress);
-    }
-  };
-
   const restoreConnection = async (address: string) => {
     try {
       const authenticatedUser = await authenticateWallet(address);
@@ -121,8 +84,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setIsConnected(true);
       localStorage.setItem("wallet_address", address);
       localStorage.setItem("user", JSON.stringify(authenticatedUser));
-      
-      await checkGateWithBlocking(address);
     } catch (error) {
       console.error("Failed to restore connection:", error);
     }
@@ -149,56 +110,41 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setUser(authenticatedUser);
       setIsConnected(true);
       
-      // Save to localStorage
+      // Save to localStorage for persistence
       localStorage.setItem("wallet_address", address);
       localStorage.setItem("user", JSON.stringify(authenticatedUser));
       
-      // Check token gate
-      await checkGateWithBlocking(address);
-    } catch (error: any) {
+      // Listen for disconnect events
+      window.solana.on("disconnect", () => {
+        disconnect();
+      });
+    } catch (error) {
       console.error("Failed to connect wallet:", error);
-      throw new Error(error.message || "Failed to connect to Phantom wallet");
+      throw error;
     }
   };
 
-  const disconnect = async () => {
-    try {
-      // Disconnect from Phantom if available
-      if (window.solana?.isPhantom) {
-        await window.solana.disconnect();
-      }
-    } catch (error) {
-      console.error("Error disconnecting:", error);
+  const disconnect = () => {
+    if (window.solana) {
+      window.solana.disconnect();
     }
-    
     setUser(null);
     setWalletAddress(null);
     setFullWalletAddress(null);
     setIsConnected(false);
-    setTokenGate(null);
     localStorage.removeItem("wallet_address");
     localStorage.removeItem("user");
   };
 
-  // Format wallet address for display (first 4 and last 4 characters)
-  const formatAddress = (address: string | null) => {
-    if (!address) return null;
-    if (address.length <= 10) return address;
-    return `${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
-  };
-
   return (
-    <WalletContext.Provider value={{ 
-      user, 
-      isConnected, 
-      connect, 
-      disconnect, 
-      walletAddress: formatAddress(walletAddress),
+    <WalletContext.Provider value={{
+      user,
+      isConnected,
+      connect,
+      disconnect,
+      walletAddress,
       fullWalletAddress,
       isPhantomInstalled,
-      tokenGate,
-      isTokenGateLoading,
-      refreshTokenGate,
     }}>
       {children}
     </WalletContext.Provider>
