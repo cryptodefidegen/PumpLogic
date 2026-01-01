@@ -439,16 +439,19 @@ export default function Burn() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-500 text-sm font-mono mb-4">
-                <Flame className="h-4 w-4" />
-                Token Burner
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <Flame className="h-8 w-8 text-orange-500" />
+                  <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
+                    Pump<span className="text-primary">Logic</span> Burn
+                  </h1>
+                  <span className="px-2 py-0.5 text-xs font-bold bg-primary/20 text-primary border border-primary/50 rounded-full">BETA</span>
+                </div>
+                <p className="text-muted-foreground">
+                  Permanently remove tokens from circulation by burning them
+                </p>
               </div>
-              <h1 className="text-4xl font-bold text-white mb-2">Burn Tokens</h1>
-              <p className="text-muted-foreground">
-                Permanently remove tokens from circulation by burning them
-              </p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
