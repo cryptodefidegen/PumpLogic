@@ -189,6 +189,113 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
+          <AccordionItem value="analytics" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Analytics Dashboard
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
+              <p>
+                The Analytics dashboard provides real-time insights into your token's performance and your fee distribution activity. 
+                Track key metrics, monitor market activity, and analyze your distribution history all in one place.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Token Metrics</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Coins className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Live Price & Market Cap</p>
+                      <p className="text-xs">Real-time token price with 24h change percentage and fully diluted market cap</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0">
+                      <Activity className="h-4 w-4 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">24h Volume & Transactions</p>
+                      <p className="text-xs">Trading volume and buy/sell transaction counts from the last 24 hours</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+                      <TrendingUp className="h-4 w-4 text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Liquidity Depth</p>
+                      <p className="text-xs">Pool liquidity for migrated tokens, or "Bonding Curve" status for pump.fun tokens</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Charts & Visualization</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Price Chart</p>
+                      <p className="text-xs">Live candlestick chart powered by DexScreener showing price history</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0">
+                      <BarChart3 className="h-4 w-4 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Distribution Volume</p>
+                      <p className="text-xs">7-day bar chart showing your daily fee distribution volume</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                      <Activity className="h-4 w-4 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Allocation Breakdown</p>
+                      <p className="text-xs">Pie chart visualizing your current allocation settings across all four channels</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">How to Use</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <p className="text-sm">Connect your wallet and navigate to <span className="text-primary font-semibold">Analytics</span> in the navbar</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
+                    <p className="text-sm">Select a token from the dropdown (defaults to $PLOGIC)</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
+                    <p className="text-sm">View live metrics, charts, and your fee distribution breakdown</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <p className="text-sm">Click <span className="text-primary font-semibold">Refresh</span> to update data or wait for auto-refresh (every 30 seconds)</p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Data is sourced from DexScreener API for accurate pump.fun and Raydium token metrics.
+              </p>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="telegram" className="bg-card border border-white/5 rounded-lg px-6">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
