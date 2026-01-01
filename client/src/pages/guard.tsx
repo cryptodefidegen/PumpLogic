@@ -436,24 +436,35 @@ export default function Guard() {
     }
   };
 
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen text-foreground flex items-center justify-center">
-        <Card className="bg-black/40 border-white/10 backdrop-blur-sm max-w-md">
-          <CardContent className="p-8 text-center">
-            <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">Connect Your Wallet</h2>
-            <p className="text-muted-foreground mb-4">
-              Connect your Phantom wallet to access PumpLogic Guard security features.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const isPreviewMode = !isConnected;
 
   return (
     <div className="min-h-screen text-foreground pb-20">
+      {isPreviewMode && (
+        <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-b border-primary/30">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <Wallet className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-primary/30 text-primary border-primary/50 text-xs">PREVIEW MODE</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    You're viewing Guard in preview mode. Connect your Phantom wallet to save watchlists and set alerts.
+                  </p>
+                </div>
+              </div>
+              <Button className="bg-primary text-black hover:bg-primary/90" data-testid="button-connect-preview-guard">
+                <Wallet className="mr-2 h-4 w-4" />
+                Connect Wallet
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-4 pt-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>

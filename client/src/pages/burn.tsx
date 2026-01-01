@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -114,64 +115,7 @@ export default function Burn() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [burnHistory, setBurnHistory] = useState<BurnRecord[]>([]);
 
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen bg-black text-white pt-24 pb-12">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-lg mx-auto text-center"
-          >
-            <Card className="bg-black/40 border-white/10">
-              <CardContent className="pt-8 pb-8">
-                <Lock className="h-16 w-16 text-primary mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Connect Wallet</h2>
-                <p className="text-muted-foreground mb-6">
-                  Please connect your wallet to access the Token Burn feature.
-                </p>
-                <Button 
-                  onClick={() => connect()}
-                  className="bg-primary text-black hover:bg-primary/90"
-                  data-testid="button-connect-burn"
-                >
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Connect Wallet
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isWhitelisted) {
-    return (
-      <div className="min-h-screen bg-black text-white pt-24 pb-12">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-lg mx-auto text-center"
-          >
-            <Card className="bg-black/40 border-white/10">
-              <CardContent className="pt-8 pb-8">
-                <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Access Restricted</h2>
-                <p className="text-muted-foreground mb-4">
-                  Token Burn is currently in beta and only available to whitelisted addresses.
-                </p>
-                <span className="px-3 py-1 text-sm font-bold bg-white/10 border border-white/20 rounded-full">
-                  COMING SOON
-                </span>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
+  const isPreviewMode = !isConnected || !isWhitelisted;
 
   const fetchTokenBalance = async () => {
     if (!tokenAddress || !fullWalletAddress) {
@@ -388,8 +332,41 @@ export default function Burn() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen pt-24 pb-12">
-        <div className="container mx-auto px-4">
+      <div className="min-h-screen pb-12">
+        {isPreviewMode && (
+          <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 border-b border-primary/30">
+            <div className="container mx-auto px-4 py-3">
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/20 rounded-lg">
+                    <Wallet className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-primary/30 text-primary border-primary/50 text-xs">PREVIEW MODE</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {!isConnected 
+                        ? "You're viewing Burn in preview mode. Connect your Phantom wallet to burn tokens."
+                        : "Token Burn is currently in beta. Only whitelisted addresses can execute burns."}
+                    </p>
+                  </div>
+                </div>
+                {!isConnected && (
+                  <Button 
+                    onClick={() => connect()}
+                    className="bg-primary text-black hover:bg-primary/90" 
+                    data-testid="button-connect-preview-burn"
+                  >
+                    <Wallet className="mr-2 h-4 w-4" />
+                    Connect Wallet
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="container mx-auto px-4 pt-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
