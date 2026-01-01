@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/contexts/WalletContext";
-import { Flame, Loader2, AlertTriangle, Wallet, ExternalLink } from "lucide-react";
+import { Flame, Loader2, AlertTriangle, Wallet, ExternalLink, Lock } from "lucide-react";
 import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+
+const BURN_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 
 const SOLANA_RPC = "https://api.mainnet-beta.solana.com";
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
@@ -52,6 +54,8 @@ export default function Burn() {
   const { toast } = useToast();
   const { user, isConnected, connect, fullWalletAddress, connectedWallet, availableWallets } = useWallet();
   
+  const isWhitelisted = user?.walletAddress && BURN_WHITELIST.includes(user.walletAddress);
+  
   const [tokenAddress, setTokenAddress] = useState("");
   const [burnAmount, setBurnAmount] = useState("");
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
@@ -59,6 +63,66 @@ export default function Burn() {
   const [isLoading, setIsLoading] = useState(false);
   const [isBurning, setIsBurning] = useState(false);
   const [tokenSymbol, setTokenSymbol] = useState<string | null>(null);
+
+
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-black text-white pt-24 pb-12">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-lg mx-auto text-center"
+          >
+            <Card className="bg-black/40 border-white/10">
+              <CardContent className="pt-8 pb-8">
+                <Lock className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Connect Wallet</h2>
+                <p className="text-muted-foreground mb-6">
+                  Please connect your wallet to access the Token Burn feature.
+                </p>
+                <Button 
+                  onClick={() => connect()}
+                  className="bg-primary text-black hover:bg-primary/90"
+                  data-testid="button-connect-burn"
+                >
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Connect Wallet
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isWhitelisted) {
+    return (
+      <div className="min-h-screen bg-black text-white pt-24 pb-12">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-lg mx-auto text-center"
+          >
+            <Card className="bg-black/40 border-white/10">
+              <CardContent className="pt-8 pb-8">
+                <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Access Restricted</h2>
+                <p className="text-muted-foreground mb-4">
+                  Token Burn is currently in beta and only available to whitelisted addresses.
+                </p>
+                <span className="px-3 py-1 text-sm font-bold bg-white/10 border border-white/20 rounded-full">
+                  COMING SOON
+                </span>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   const fetchTokenBalance = async () => {
     if (!tokenAddress || !fullWalletAddress) {

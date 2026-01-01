@@ -84,7 +84,8 @@ Preferred communication style: Simple, everyday language.
 - **Access Control**: Non-whitelisted users see "SOON" badge in navbar (non-clickable), whitelisted see "BETA" badge (clickable)
 
 ### Token Burn Feature
-- **Location**: `/burn` route, accessible to all connected users
+- **Location**: `/burn` route, restricted to whitelisted addresses only
+- **Whitelist**: Deployer address `9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8`
 - **Features**:
   - Manual token burning for any SPL token
   - Enter token mint address to check balance
@@ -92,4 +93,5 @@ Preferred communication style: Simple, everyday language.
   - Enter custom burn amount with max button
   - Shows warning about irreversible action
   - Links to Solscan for transaction verification
+- **Access Control**: Non-whitelisted users see "SOON" badge in navbar (non-clickable), whitelisted see "BETA" badge (clickable)
 - **Implementation**: Uses native @solana/web3.js with manual SPL Token burn instruction (avoids Buffer polyfill issues)
