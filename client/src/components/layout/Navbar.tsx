@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, MessageCircle, Target, BarChart3, Shield } from "lucide-react";
+import { Wallet, Menu, X, Loader2, MessageCircle, Target, BarChart3, Shield, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -76,9 +76,10 @@ export function Navbar() {
           </Link>
           <Link 
             href="/app" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary", location === "/app" ? "text-primary" : "text-muted-foreground")}
+            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/app" ? "text-primary" : "text-muted-foreground")}
           >
-            App
+            <Sliders className="h-4 w-4" />
+            Allocator
           </Link>
           <Link 
             href="/analytics" 
@@ -167,8 +168,9 @@ export function Navbar() {
             <Link href="/" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
               Home
             </Link>
-            <Link href="/app" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
-              App
+            <Link href="/app" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+              <Sliders className="h-4 w-4" />
+              Allocator
             </Link>
             <Link href="/analytics" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
               <BarChart3 className="h-4 w-4" />
