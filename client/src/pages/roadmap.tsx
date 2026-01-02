@@ -39,7 +39,7 @@ const phases = [
   {
     id: 3,
     title: "PumpLogic Guard",
-    status: "live",
+    status: "in_progress",
     icon: Shield,
     description: "Security toolkit for token analysis and rug-pull detection",
     features: [
