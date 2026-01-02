@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell, Volume2, Coins, Link2, Plus, Check, TrendingUp, TrendingDown, Target, Copy } from "lucide-react";
+import { Wallet, Activity, Zap, Save, RotateCw, AlertTriangle, ArrowRight, Settings, ExternalLink, Loader2, Download, BookmarkPlus, Trash2, BarChart3, Eye, Bell, Volume2, Coins, Link2, Plus, Check, TrendingUp, TrendingDown, Target, Copy, Sliders } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
@@ -815,7 +815,12 @@ export default function Dashboard() {
         {/* Top Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-display font-bold text-white">Dashboard</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <Sliders className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
+                Pump<span className="text-primary">Logic</span> Allocator
+              </h1>
+            </div>
             <p className="text-muted-foreground">Manage your programmable liquidity engine</p>
           </div>
           <div className="flex flex-wrap items-center justify-center md:justify-end gap-2">
