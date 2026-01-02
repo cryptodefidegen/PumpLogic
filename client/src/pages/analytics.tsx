@@ -29,7 +29,9 @@ import {
   ArrowDownRight,
   Droplets,
   ShoppingCart,
-  Eye
+  Eye,
+  Search,
+  X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -88,6 +90,22 @@ interface PreviewBreakdown {
   revenue: number;
 }
 
+interface ManualTokenData {
+  name: string;
+  symbol: string;
+  address: string;
+  price: number;
+  priceChange24h: number;
+  marketCap: number;
+  volume24h: number;
+  liquidity: number;
+}
+
+function isValidSolanaAddress(address: string): boolean {
+  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  return base58Regex.test(address);
+}
+
 export default function Analytics() {
   const { toast } = useToast();
   const { isConnected, user } = useWallet();
@@ -95,6 +113,87 @@ export default function Analytics() {
   const [previewAmount, setPreviewAmount] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [previewBreakdown, setPreviewBreakdown] = useState<PreviewBreakdown | null>(null);
+  const [manualAddress, setManualAddress] = useState("");
+  const [manualToken, setManualToken] = useState<ManualTokenData | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  const fetchManualToken = async () => {
+    const address = manualAddress.trim();
+    if (!address) {
+      toast({
+        variant: "destructive",
+        title: "Missing Address",
+        description: "Please enter a token contract address."
+      });
+      return;
+    }
+
+    if (!isValidSolanaAddress(address)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Address",
+        description: "Please enter a valid Solana token address."
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError(null);
+    setManualToken(null);
+
+    try {
+      const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch token data");
+      }
+      
+      const data = await response.json();
+      
+      if (!data.pairs || data.pairs.length === 0) {
+        throw new Error("Token not found or no trading pairs available. The token may not be listed on any DEX yet.");
+      }
+      
+      const bestPair = data.pairs.reduce((best: any, pair: any) => {
+        const pairLiq = parseFloat(pair.liquidity?.usd || 0);
+        const bestLiq = parseFloat(best?.liquidity?.usd || 0);
+        return pairLiq > bestLiq ? pair : best;
+      }, data.pairs[0]);
+      
+      setManualToken({
+        name: bestPair.baseToken?.name || "Unknown Token",
+        symbol: bestPair.baseToken?.symbol || "???",
+        address: address,
+        price: parseFloat(bestPair.priceUsd) || 0,
+        priceChange24h: parseFloat(bestPair.priceChange?.h24) || 0,
+        marketCap: parseFloat(bestPair.marketCap) || parseFloat(bestPair.fdv) || 0,
+        volume24h: parseFloat(bestPair.volume?.h24) || 0,
+        liquidity: parseFloat(bestPair.liquidity?.usd) || 0,
+      });
+
+      toast({
+        title: "Token Found",
+        description: `Loaded analytics for ${bestPair.baseToken?.symbol || "token"}`,
+        className: "bg-primary text-black font-bold"
+      });
+    } catch (error: any) {
+      setSearchError(error.message || "Failed to fetch token data");
+      toast({
+        variant: "destructive",
+        title: "Token Not Found",
+        description: error.message || "Could not find token data. Please check the address."
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const clearManualToken = () => {
+    setManualToken(null);
+    setManualAddress("");
+    setSearchError(null);
+  };
 
   const { data: analytics, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['analytics', user?.id, selectedToken],
@@ -212,7 +311,94 @@ export default function Analytics() {
           </div>
         </div>
 
-        {analytics?.token && (
+        <Card className="bg-black/40 border-white/10 backdrop-blur-sm mb-6">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+              <div className="flex-1">
+                <label className="text-sm text-muted-foreground mb-2 block">
+                  <Search className="h-4 w-4 inline mr-2" />
+                  Lookup Any Token (for non-creators)
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter Solana token contract address..."
+                    value={manualAddress}
+                    onChange={(e) => setManualAddress(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && fetchManualToken()}
+                    className="bg-black/60 border-white/20 font-mono text-sm flex-1"
+                    data-testid="input-manual-token-address"
+                  />
+                  <Button
+                    onClick={fetchManualToken}
+                    disabled={isSearching || !manualAddress.trim()}
+                    className="bg-primary text-black hover:bg-primary/90"
+                    data-testid="button-lookup-token"
+                  >
+                    {isSearching ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
+                    <span className="ml-2 hidden sm:inline">Lookup</span>
+                  </Button>
+                </div>
+                {searchError && (
+                  <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" /> {searchError}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {manualToken && (
+          <div className="mb-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <Coins className="h-6 w-6 text-blue-400" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-bold text-white">{manualToken.name}</h2>
+                    <Badge variant="outline" className="border-blue-500/50 text-blue-400 text-xs">
+                      Manual Lookup
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground font-mono">{manualToken.symbol}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <a 
+                  href={`https://dexscreener.com/solana/${manualToken.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  DexScreener <ExternalLink className="h-3 w-3" />
+                </a>
+                <a 
+                  href={`https://solscan.io/token/${manualToken.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                >
+                  Solscan <ExternalLink className="h-3 w-3" />
+                </a>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearManualToken}
+                  className="text-muted-foreground hover:text-white h-8 px-2"
+                  data-testid="button-clear-manual-token"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {analytics?.token && !manualToken && (
           <div className="mb-6 p-4 bg-black/40 rounded-lg border border-white/10">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
@@ -253,19 +439,19 @@ export default function Analytics() {
                 <DollarSign className="h-4 w-4 text-primary" />
               </div>
               <div className="text-2xl font-bold text-white font-mono" data-testid="text-token-price">
-                {isLoading ? "..." : formatPrice(analytics?.token.price || 0)}
+                {isLoading && !manualToken ? "..." : formatPrice(manualToken?.price ?? analytics?.token.price ?? 0)}
               </div>
-              {analytics?.token.priceChange24h !== undefined && (
+              {(manualToken?.priceChange24h !== undefined || analytics?.token.priceChange24h !== undefined) && (
                 <div className={cn(
                   "flex items-center gap-1 text-sm mt-2",
-                  analytics.token.priceChange24h >= 0 ? "text-green-500" : "text-red-500"
+                  (manualToken?.priceChange24h ?? analytics?.token.priceChange24h ?? 0) >= 0 ? "text-green-500" : "text-red-500"
                 )}>
-                  {analytics.token.priceChange24h >= 0 ? (
+                  {(manualToken?.priceChange24h ?? analytics?.token.priceChange24h ?? 0) >= 0 ? (
                     <ArrowUpRight className="h-4 w-4" />
                   ) : (
                     <ArrowDownRight className="h-4 w-4" />
                   )}
-                  <span>{Math.abs(analytics.token.priceChange24h).toFixed(2)}% (24h)</span>
+                  <span>{Math.abs(manualToken?.priceChange24h ?? analytics?.token.priceChange24h ?? 0).toFixed(2)}% (24h)</span>
                 </div>
               )}
             </CardContent>
@@ -278,7 +464,7 @@ export default function Analytics() {
                 <Coins className="h-4 w-4 text-blue-400" />
               </div>
               <div className="text-2xl font-bold text-white font-mono" data-testid="text-market-cap">
-                {isLoading ? "..." : formatNumber(analytics?.token.marketCap || 0)}
+                {isLoading && !manualToken ? "..." : formatNumber(manualToken?.marketCap ?? analytics?.token.marketCap ?? 0)}
               </div>
               <div className="text-sm text-muted-foreground mt-2">
                 Fully Diluted
@@ -293,7 +479,7 @@ export default function Analytics() {
                 <Activity className="h-4 w-4 text-purple-400" />
               </div>
               <div className="text-2xl font-bold text-white font-mono" data-testid="text-volume-24h">
-                {isLoading ? "..." : formatNumber(analytics?.token.volume24h || 0)}
+                {isLoading && !manualToken ? "..." : formatNumber(manualToken?.volume24h ?? analytics?.token.volume24h ?? 0)}
               </div>
               <div className="text-sm text-muted-foreground mt-2">
                 Trading Volume
@@ -308,28 +494,28 @@ export default function Analytics() {
                 <Droplets className="h-4 w-4 text-amber-400" />
               </div>
               <div className="text-2xl font-bold text-white font-mono" data-testid="text-liquidity">
-                {isLoading ? "..." : (analytics?.token.liquidity || 0) > 0 ? formatNumber(analytics?.token.liquidity || 0) : "Bonding Curve"}
+                {isLoading && !manualToken ? "..." : (manualToken?.liquidity ?? analytics?.token.liquidity ?? 0) > 0 ? formatNumber(manualToken?.liquidity ?? analytics?.token.liquidity ?? 0) : "Bonding Curve"}
               </div>
               <div className="text-sm text-muted-foreground mt-2">
-                {(analytics?.token.liquidity || 0) > 0 ? "Pool Liquidity" : "On Pump.fun"}
+                {(manualToken?.liquidity ?? analytics?.token.liquidity ?? 0) > 0 ? "Pool Liquidity" : "On Pump.fun"}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {analytics?.token && (
+        {(analytics?.token || manualToken) && (
           <Card className="bg-black/40 border-white/10 backdrop-blur-sm mb-8">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-lg text-white flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-primary" />
-                    {analytics.token.symbol} Price Chart
+                    {manualToken?.symbol ?? analytics?.token.symbol} Price Chart
                   </CardTitle>
                   <CardDescription>Live price chart powered by DexScreener</CardDescription>
                 </div>
                 <a 
-                  href={`https://dexscreener.com/solana/${analytics.token.address}`}
+                  href={`https://dexscreener.com/solana/${manualToken?.address ?? analytics?.token.address}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-primary hover:underline flex items-center gap-1"
@@ -341,9 +527,9 @@ export default function Analytics() {
             <CardContent>
               <div className="h-[400px] rounded-lg overflow-hidden border border-white/10" data-testid="chart-token-price">
                 <iframe
-                  src={`https://dexscreener.com/solana/${analytics.token.address}?embed=1&theme=dark&trades=0&info=0`}
+                  src={`https://dexscreener.com/solana/${manualToken?.address ?? analytics?.token.address}?embed=1&theme=dark&trades=0&info=0`}
                   className="w-full h-full border-0"
-                  title={`${analytics.token.symbol} Price Chart`}
+                  title={`${manualToken?.symbol ?? analytics?.token.symbol} Price Chart`}
                 />
               </div>
             </CardContent>
