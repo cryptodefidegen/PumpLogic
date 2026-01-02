@@ -615,7 +615,7 @@ export default function Deployer() {
           {/* Right Column - Preview & Cost */}
           <div className="space-y-6">
             {/* Token Preview Card */}
-            <Card className="bg-black/40 border-white/10 sticky top-24">
+            <Card className="bg-black/40 border-white/10">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Image className="h-5 w-5 text-primary" />
