@@ -41,7 +41,6 @@ export default function Docs() {
           </div>
         </div>
 
-        <div className="max-w-4xl">
         <Accordion type="multiple" className="space-y-4" defaultValue={["overview"]}>
           <AccordionItem value="overview" id="overview" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
@@ -63,7 +62,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="how-it-works" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
+          <AccordionItem value="how-it-works" id="how-it-works" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Settings className="h-5 w-5 text-primary" />
@@ -100,7 +99,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="categories" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
+          <AccordionItem value="categories" id="categories" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <BarChart3 className="h-5 w-5 text-primary" />
@@ -150,7 +149,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="ai-optimizer" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
+          <AccordionItem value="ai-optimizer" id="ai-optimizer" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Brain className="h-5 w-5 text-primary" />
@@ -1009,7 +1008,6 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        </div>
       </div>
     </div>
   );
