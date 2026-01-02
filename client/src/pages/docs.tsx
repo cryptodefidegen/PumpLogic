@@ -1,27 +1,49 @@
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download, Bell, Shield, ChevronRight, Link, Target, Layers, Flame, Monitor } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download, Bell, Shield, ChevronRight, Link, Target, Layers, Flame, Monitor, FileText, Rocket, HelpCircle } from "lucide-react";
+
+const quickLinks = [
+  { icon: Rocket, title: "Getting Started", value: "overview", color: "bg-primary/20 text-primary" },
+  { icon: Settings, title: "How It Works", value: "how-it-works", color: "bg-blue-500/20 text-blue-400" },
+  { icon: BarChart3, title: "Categories", value: "categories", color: "bg-purple-500/20 text-purple-400" },
+  { icon: Brain, title: "AI Optimizer", value: "ai-optimizer", color: "bg-amber-500/20 text-amber-400" },
+];
 
 export default function Docs() {
   return (
     <div className="min-h-screen text-foreground pb-20">
-      <div className="container mx-auto px-4 pt-16 max-w-4xl">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold font-display mb-4 text-white">Documentation</h1>
-          <p className="text-xl text-muted-foreground mb-6">Learn how PumpLogic automates your token fee distribution</p>
-          <a 
-            href="/PumpLogic-User-Guide.pdf" 
-            download="PumpLogic-User-Guide.pdf"
-            className="inline-flex items-center gap-2 bg-primary text-black px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-            data-testid="button-download-guide"
-          >
-            <Download className="h-5 w-5" />
-            Download User Guide (PDF)
-          </a>
+      <div className="container mx-auto px-4 pt-8">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <FileText className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
+                Pump<span className="text-primary">Logic</span> Documentation
+              </h1>
+            </div>
+            <p className="text-muted-foreground">
+              Learn how PumpLogic automates your token fee distribution
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {quickLinks.map((link) => (
+              <a
+                key={link.value}
+                href={`#${link.value}`}
+                className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-primary/30 transition-colors"
+              >
+                <link.icon className={`h-4 w-4 ${link.color.split(' ')[1]}`} />
+                <span className="text-sm text-white/80">{link.title}</span>
+              </a>
+            ))}
+          </div>
         </div>
 
+        <div className="max-w-4xl">
         <Accordion type="multiple" className="space-y-4" defaultValue={["overview"]}>
-          <AccordionItem value="overview" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="overview" id="overview" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Wallet className="h-5 w-5 text-primary" />
@@ -41,7 +63,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="how-it-works" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="how-it-works" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Settings className="h-5 w-5 text-primary" />
@@ -78,7 +100,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="categories" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="categories" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <BarChart3 className="h-5 w-5 text-primary" />
@@ -128,7 +150,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="ai-optimizer" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="ai-optimizer" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Brain className="h-5 w-5 text-primary" />
@@ -151,7 +173,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="dashboard-tools" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="dashboard-tools" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Eye className="h-5 w-5 text-primary" />
@@ -189,7 +211,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="analytics" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="analytics" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <BarChart3 className="h-5 w-5 text-primary" />
@@ -296,7 +318,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="guard" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="guard" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Shield className="h-5 w-5 text-primary" />
@@ -400,7 +422,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="burn" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="burn" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Flame className="h-5 w-5 text-orange-500" />
@@ -491,7 +513,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="preview-mode" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="preview-mode" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Monitor className="h-5 w-5 text-primary" />
@@ -571,7 +593,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="telegram" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="telegram" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Bell className="h-5 w-5 text-primary" />
@@ -659,7 +681,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="token-settings" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="token-settings" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Coins className="h-5 w-5 text-primary" />
@@ -696,7 +718,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="blockchain-monitoring" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="blockchain-monitoring" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Activity className="h-5 w-5 text-primary" />
@@ -764,7 +786,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="multi-wallet" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="multi-wallet" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Link className="h-5 w-5 text-primary" />
@@ -819,7 +841,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="price-alerts" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="price-alerts" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Target className="h-5 w-5 text-primary" />
@@ -897,7 +919,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="multi-token" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="multi-token" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Layers className="h-5 w-5 text-primary" />
@@ -960,7 +982,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="security" className="bg-card border border-white/5 rounded-lg px-6">
+          <AccordionItem value="security" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
                 <Shield className="h-5 w-5 text-primary" />
@@ -987,6 +1009,7 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        </div>
       </div>
     </div>
   );
