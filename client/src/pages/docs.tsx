@@ -424,7 +424,7 @@ export default function Docs() {
           <AccordionItem value="burn" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">
-                <Flame className="h-5 w-5 text-orange-500" />
+                <Flame className="h-5 w-5 text-primary" />
                 PumpLogic Burn
                 <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
               </span>
@@ -439,27 +439,27 @@ export default function Docs() {
                 <h4 className="text-white font-semibold mb-3">How to Burn Tokens</h4>
                 <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">1</div>
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
                     <p className="text-sm">Navigate to <span className="text-primary font-semibold">Burn</span> in the navbar</p>
                   </div>
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">2</div>
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
                     <p className="text-sm">Enter the token contract address and click <span className="text-primary font-semibold">Analyze</span></p>
                   </div>
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">3</div>
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
                     <p className="text-sm">Review token metadata: name, symbol, price, FDV, supply, and authority status</p>
                   </div>
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">4</div>
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
                     <p className="text-sm">Enter the amount to burn (or click MAX for your entire balance)</p>
                   </div>
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">5</div>
-                    <p className="text-sm">Click <span className="text-orange-500 font-semibold">Burn Tokens</span> and review the confirmation dialog</p>
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">5</div>
+                    <p className="text-sm">Click <span className="text-primary font-semibold">Burn Tokens</span> and review the confirmation dialog</p>
                   </div>
                   <div className="flex gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">6</div>
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">6</div>
                     <p className="text-sm">Approve the transaction in your wallet to complete the burn</p>
                   </div>
                 </div>
@@ -478,8 +478,8 @@ export default function Docs() {
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center shrink-0">
-                      <Flame className="h-4 w-4 text-orange-500" />
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Flame className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="text-white text-sm font-medium">Supply Information</p>
@@ -498,8 +498,8 @@ export default function Docs() {
                 </div>
               </div>
 
-              <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
-                <h4 className="text-orange-500 font-semibold mb-2">Warning: Irreversible Action</h4>
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                <h4 className="text-primary font-semibold mb-2">Warning: Irreversible Action</h4>
                 <p className="text-xs">
                   Burning tokens is permanent and cannot be undone. The tokens are sent to a burn address 
                   and removed from circulation forever. Always double-check the amount before confirming.
