@@ -1228,7 +1228,7 @@ export default function Guard() {
         <div className="flex items-center justify-center gap-2 pt-8 pb-4">
           <span className="text-xs text-muted-foreground">Powered by</span>
           <a 
-            href="https://voidscreener.com" 
+            href="https://voidscreener.fun" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
