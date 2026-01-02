@@ -110,26 +110,20 @@ function StatusBadge({ status }: { status: string }) {
 export default function Roadmap() {
   return (
     <div className="min-h-screen text-foreground">
-      <section className="relative pt-24 pb-8 container mx-auto px-4 text-center">
+      <section className="relative pt-8 pb-6 container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-mono mb-3">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
-            Building the Future
+          <div className="flex items-center gap-3 mb-2">
+            <Globe className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
+              Pump<span className="text-primary">Logic</span> Roadmap
+            </h1>
           </div>
-          
-          <h1 className="text-3xl md:text-5xl font-bold font-display tracking-tighter leading-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50 mb-2">
-            Roadmap
-          </h1>
-          
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-            Our vision for the PumpLogic ecosystem
+          <p className="text-muted-foreground">
+            Our vision for the PumpLogic ecosystem - building the future of DeFi tools
           </p>
         </motion.div>
       </section>
