@@ -1,6 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download, Bell, Shield, ChevronRight, Link, Target, Layers } from "lucide-react";
+import { TrendingUp, RefreshCw, Zap, Coins, Wallet, Settings, Activity, Brain, Eye, BookmarkPlus, BarChart3, Download, Bell, Shield, ChevronRight, Link, Target, Layers, Flame, Monitor } from "lucide-react";
 
 export default function Docs() {
   return (
@@ -397,6 +397,177 @@ export default function Docs() {
                 PumpLogic Guard is currently in beta and available to whitelisted users only. Features are read-only 
                 and do not execute any blockchain transactions.
               </p>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="burn" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Flame className="h-5 w-5 text-orange-500" />
+                PumpLogic Burn
+                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
+              <p>
+                PumpLogic Burn allows you to permanently remove SPL tokens from circulation by sending them to a burn address. 
+                This is an irreversible action that reduces the total supply of a token.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">How to Burn Tokens</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">1</div>
+                    <p className="text-sm">Navigate to <span className="text-primary font-semibold">Burn</span> in the navbar</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">2</div>
+                    <p className="text-sm">Enter the token contract address and click <span className="text-primary font-semibold">Analyze</span></p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">3</div>
+                    <p className="text-sm">Review token metadata: name, symbol, price, FDV, supply, and authority status</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">4</div>
+                    <p className="text-sm">Enter the amount to burn (or click MAX for your entire balance)</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">5</div>
+                    <p className="text-sm">Click <span className="text-orange-500 font-semibold">Burn Tokens</span> and review the confirmation dialog</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 text-xs font-bold">6</div>
+                    <p className="text-sm">Approve the transaction in your wallet to complete the burn</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Token Information Displayed</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Coins className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Token Metadata</p>
+                      <p className="text-xs">Name, symbol, image, current price, and fully diluted valuation (FDV)</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center shrink-0">
+                      <Flame className="h-4 w-4 text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Supply Information</p>
+                      <p className="text-xs">Total supply, decimals, and burn impact (% of supply being burned)</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
+                      <Shield className="h-4 w-4 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Authority Status</p>
+                      <p className="text-xs">Mint authority and freeze authority status (revoked = safer)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
+                <h4 className="text-orange-500 font-semibold mb-2">Warning: Irreversible Action</h4>
+                <p className="text-xs">
+                  Burning tokens is permanent and cannot be undone. The tokens are sent to a burn address 
+                  and removed from circulation forever. Always double-check the amount before confirming.
+                </p>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                PumpLogic Burn is currently in beta and available to whitelisted users only.
+              </p>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="preview-mode" className="bg-card border border-white/5 rounded-lg px-6">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Monitor className="h-5 w-5 text-primary" />
+                Preview Mode
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
+              <p>
+                Preview Mode allows you to explore PumpLogic's features before connecting your wallet. 
+                You can browse all pages and see how the interface works, but actions that require 
+                wallet interaction are disabled.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">What You Can Do in Preview Mode</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Eye className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Explore the Interface</p>
+                      <p className="text-xs">Browse all pages, view sample data, and understand how features work</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                      <BarChart3 className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">View Charts & Analytics</p>
+                      <p className="text-xs">See sample allocation charts, distribution breakdowns, and UI layouts</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0">
+                      <Shield className="h-4 w-4 text-purple-500" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Test Guard Scanner</p>
+                      <p className="text-xs">Analyze tokens for rug-pull risks without connecting your wallet</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Connecting to Exit Preview Mode</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <p className="text-sm">Click the <span className="text-primary font-semibold">Connect Wallet</span> button in the preview banner</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
+                    <p className="text-sm">Select your preferred wallet (Phantom, Solflare, or Backpack)</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
+                    <p className="text-sm">Approve the connection in your wallet extension</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <p className="text-sm">The preview banner disappears and all features become available</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                <h4 className="text-primary font-semibold mb-2">Tip: No Risk Exploration</h4>
+                <p className="text-xs">
+                  Preview Mode is perfect for learning the platform before committing any funds. 
+                  Take your time to understand each feature - no transactions can be made until 
+                  you connect your wallet.
+                </p>
+              </div>
             </AccordionContent>
           </AccordionItem>
 
