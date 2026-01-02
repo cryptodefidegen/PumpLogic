@@ -115,13 +115,13 @@ export function Navbar() {
               href="/burn" 
               className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/burn" ? "text-primary" : "text-muted-foreground")}
             >
-              <Flame className="h-4 w-4 text-primary" />
+              <Flame className="h-4 w-4" />
               Burn
               <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
             </Link>
           ) : (
             <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground/50 cursor-not-allowed">
-              <Flame className="h-4 w-4 text-primary" />
+              <Flame className="h-4 w-4" />
               Burn
               <span className="px-1.5 py-0.5 text-[10px] font-bold bg-white/10 border border-white/20 rounded-full">SOON</span>
             </div>
@@ -215,13 +215,13 @@ export function Navbar() {
             )}
             {isBurnWhitelisted ? (
               <Link href="/burn" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                <Flame className="h-4 w-4 text-primary" />
+                <Flame className="h-4 w-4" />
                 Burn
                 <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
               </Link>
             ) : (
               <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground/50">
-                <Flame className="h-4 w-4 text-primary" />
+                <Flame className="h-4 w-4" />
                 Burn
                 <span className="px-1.5 py-0.5 text-[10px] font-bold bg-white/10 border border-white/20 rounded-full">SOON</span>
               </div>
