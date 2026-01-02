@@ -134,40 +134,40 @@ export default function Roadmap() {
         </motion.div>
       </section>
 
-      <section className="pb-12 container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+      <section className="pb-16 container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {phases.map((phase, index) => (
             <motion.div
               key={phase.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
-              className={`bg-card border rounded-xl p-4 hover:border-primary/30 transition-colors ${
+              className={`bg-card border rounded-xl p-6 hover:border-primary/30 transition-colors ${
                 phase.status === "live" ? "border-primary/50 shadow-lg shadow-primary/10" : "border-white/10"
               }`}
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded-lg ${
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${
                     phase.status === "live" ? "bg-primary/20" : "bg-white/5"
                   }`}>
-                    <phase.icon className={`h-4 w-4 ${
+                    <phase.icon className={`h-5 w-5 ${
                       phase.status === "live" ? "text-primary" : "text-white/60"
                     }`} />
                   </div>
-                  <span className="text-xs text-white/40 font-mono">Phase {phase.id}</span>
+                  <span className="text-sm text-white/40 font-mono">Phase {phase.id}</span>
                 </div>
                 <StatusBadge status={phase.status} />
               </div>
               
-              <h3 className="text-base font-bold text-white mb-3">
+              <h3 className="text-xl font-bold text-white mb-4">
                 {phase.title}
               </h3>
               
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {phase.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-xs text-white/70">
-                    <Check className={`h-3 w-3 shrink-0 ${
+                  <li key={i} className="flex items-center gap-2 text-sm text-white/70">
+                    <Check className={`h-4 w-4 shrink-0 ${
                       phase.status === "live" ? "text-primary" : "text-white/30"
                     }`} />
                     <span>{feature}</span>
