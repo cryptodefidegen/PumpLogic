@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { useWallet } from "@/contexts/WalletContext";
 import { cn } from "@/lib/utils";
+import voidScreener from "@/lib/voidscreener";
 
 interface RiskFactor {
   name: string;
@@ -122,32 +123,20 @@ export default function Guard() {
     setIsAnalyzing(true);
     
     try {
-      const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
+      const result = await voidScreener.getTokenWithRiskFactors(address);
       
-      if (!response.ok) {
-        throw new Error("Failed to fetch token data");
-      }
-      
-      const data = await response.json();
-      
-      if (!data.pairs || data.pairs.length === 0) {
+      if (!result) {
         throw new Error("Token not found or no trading pairs available");
       }
       
-      const bestPair = data.pairs.reduce((best: any, pair: any) => {
-        const pairLiq = parseFloat(pair.liquidity?.usd || 0);
-        const bestLiq = parseFloat(best?.liquidity?.usd || 0);
-        return pairLiq > bestLiq ? pair : best;
-      }, data.pairs[0]);
-      
-      const tokenName = bestPair.baseToken?.name || "Unknown Token";
-      const tokenSymbol = bestPair.baseToken?.symbol || "???";
-      const priceUsd = parseFloat(bestPair.priceUsd) || 0;
-      const priceChange24h = parseFloat(bestPair.priceChange?.h24) || 0;
-      const volume24h = parseFloat(bestPair.volume?.h24) || 0;
-      const liquidity = parseFloat(bestPair.liquidity?.usd) || 0;
-      const marketCap = parseFloat(bestPair.marketCap) || parseFloat(bestPair.fdv) || 0;
-      const pairCreatedAt = bestPair.pairCreatedAt ? new Date(bestPair.pairCreatedAt).toISOString() : new Date().toISOString();
+      const { token, pairCreatedAt } = result;
+      const tokenName = token.name;
+      const tokenSymbol = token.symbol;
+      const priceUsd = token.price;
+      const priceChange24h = token.priceChange24h;
+      const volume24h = token.volume24h;
+      const liquidity = token.liquidity;
+      const marketCap = token.marketCap;
       
       const factors: RiskFactor[] = [];
       let riskScore = 0;
@@ -259,16 +248,14 @@ export default function Guard() {
     setIsAddingToWatchlist(true);
     
     try {
-      const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${watchlistInput}`);
-      const data = await response.json();
+      const tokenData = await voidScreener.getTokenAnalytics(watchlistInput);
       
       let tokenName = "Unknown Token";
       let tokenSymbol = "???";
       
-      if (data.pairs && data.pairs.length > 0) {
-        const bestPair = data.pairs[0];
-        tokenName = bestPair.baseToken?.name || "Unknown Token";
-        tokenSymbol = bestPair.baseToken?.symbol || "???";
+      if (tokenData) {
+        tokenName = tokenData.name;
+        tokenSymbol = tokenData.symbol;
       }
       
       setWatchlist(prev => [...prev, {
@@ -303,34 +290,20 @@ export default function Guard() {
     setAnalysis(null);
     
     try {
-      // Fetch real token data from DexScreener
-      const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
+      const result = await voidScreener.getTokenWithRiskFactors(tokenAddress);
       
-      if (!response.ok) {
-        throw new Error("Failed to fetch token data");
-      }
-      
-      const data = await response.json();
-      
-      if (!data.pairs || data.pairs.length === 0) {
+      if (!result) {
         throw new Error("Token not found or no trading pairs available");
       }
       
-      // Get the pair with highest liquidity
-      const bestPair = data.pairs.reduce((best: any, pair: any) => {
-        const pairLiq = parseFloat(pair.liquidity?.usd || 0);
-        const bestLiq = parseFloat(best?.liquidity?.usd || 0);
-        return pairLiq > bestLiq ? pair : best;
-      }, data.pairs[0]);
-      
-      const tokenName = bestPair.baseToken?.name || "Unknown Token";
-      const tokenSymbol = bestPair.baseToken?.symbol || "???";
-      const priceUsd = parseFloat(bestPair.priceUsd) || 0;
-      const priceChange24h = parseFloat(bestPair.priceChange?.h24) || 0;
-      const volume24h = parseFloat(bestPair.volume?.h24) || 0;
-      const liquidity = parseFloat(bestPair.liquidity?.usd) || 0;
-      const marketCap = parseFloat(bestPair.marketCap) || parseFloat(bestPair.fdv) || 0;
-      const pairCreatedAt = bestPair.pairCreatedAt ? new Date(bestPair.pairCreatedAt).toISOString() : new Date().toISOString();
+      const { token, pairCreatedAt } = result;
+      const tokenName = token.name;
+      const tokenSymbol = token.symbol;
+      const priceUsd = token.price;
+      const priceChange24h = token.priceChange24h;
+      const volume24h = token.volume24h;
+      const liquidity = token.liquidity;
+      const marketCap = token.marketCap;
       
       // Calculate risk factors based on real data
       const factors: RiskFactor[] = [];
