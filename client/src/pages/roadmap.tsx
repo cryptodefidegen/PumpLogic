@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Rocket, Settings, Target, Globe, Check, Clock } from "lucide-react";
+import { Rocket, Settings, Target, Globe, Check, Clock, Shield, Flame } from "lucide-react";
 
 const phases = [
   {
@@ -11,43 +11,65 @@ const phases = [
     features: [
       "4-channel fee allocation (Market Making, Buyback, Liquidity, Revenue)",
       "AI-powered optimization with RSI & volatility analysis",
-      "Phantom wallet integration",
-      "Multi-wallet & multi-token support",
+      "Multi-wallet support (Phantom, Solflare, Backpack)",
+      "Multi-token management with per-token settings",
       "Telegram notifications & price alerts",
       "Customizable sound effects",
-      "Allocation presets"
+      "Allocation presets & quick save",
+      "Distribution preview before transactions",
+      "Transaction history export (CSV)"
     ]
   },
   {
     id: 2,
-    title: "PumpLogic Enhanced",
-    status: "upcoming",
-    icon: Settings,
-    description: "Advanced automation and analytics for power users",
+    title: "PumpLogic Analytics & Guard",
+    status: "live",
+    icon: Shield,
+    description: "Real-time analytics and security tools for informed decisions",
     features: [
-      "Token-gated access ($50 minimum hold)",
-      "Scheduled auto-distributions",
-      "Analytics dashboard with performance tracking",
-      "Revenue splits for collaborators",
-      "Strategy presets marketplace"
+      "Analytics dashboard with live token metrics",
+      "Price charts powered by DexScreener",
+      "Distribution volume tracking (7-day view)",
+      "Allocation breakdown visualization",
+      "PumpLogic Guard token scanner (Beta)",
+      "Rug-pull risk detection & scoring",
+      "Tax report generation with CSV export",
+      "Preview mode for exploring without wallet"
     ]
   },
   {
     id: 3,
-    title: "PumpLogic Sniper",
+    title: "PumpLogic Burn & Tools",
     status: "in_progress",
+    icon: Flame,
+    description: "Token management and advanced DeFi utilities",
+    features: [
+      "Token burn feature (Beta - whitelisted)",
+      "Burn impact calculator with USD value",
+      "Token metadata display (supply, authorities)",
+      "Burn history tracking with Solscan links",
+      "Scheduled auto-distributions (coming soon)",
+      "Revenue splits for collaborators (coming soon)",
+      "Strategy presets marketplace (coming soon)"
+    ]
+  },
+  {
+    id: 4,
+    title: "PumpLogic Sniper",
+    status: "planned",
     icon: Target,
     description: "Lightning-fast token launch sniping tool",
     features: [
       "Sub-second launch detection",
       "Customizable sniper presets",
       "Risk controls (slippage, max buy)",
-      "PnL tracker",
-      "Team collaboration mode"
+      "PnL tracker with analytics",
+      "Team collaboration mode",
+      "Anti-rug protection integration"
     ]
   },
   {
-    id: 4,
+    id: 5,
     title: "Ecosystem Expansion",
     status: "planned",
     icon: Globe,
@@ -55,9 +77,10 @@ const phases = [
     features: [
       "Cross-app portfolio view",
       "Unified notification system",
-      "Public API & SDK",
-      "Mobile companion app",
-      "Partner integrations"
+      "Public API & SDK for developers",
+      "Mobile companion app (iOS/Android)",
+      "Partner integrations & white-label",
+      "Governance token utility"
     ]
   }
 ];
