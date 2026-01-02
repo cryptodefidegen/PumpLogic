@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, MessageCircle, Target, BarChart3, Shield, Sliders, Flame } from "lucide-react";
+import { Wallet, Menu, X, Loader2, MessageCircle, Target, BarChart3, Shield, Sliders, Flame, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -135,8 +135,9 @@ export function Navbar() {
           </Link>
           <Link 
             href="/docs" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary", location === "/docs" ? "text-primary" : "text-muted-foreground")}
+            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/docs" ? "text-primary" : "text-muted-foreground")}
           >
+            <FileText className="h-4 w-4" />
             Docs
           </Link>
           <div className="flex items-center gap-3 ml-2 border-l border-white/10 pl-4">
@@ -229,7 +230,8 @@ export function Navbar() {
               <Target className="h-4 w-4" />
               Roadmap
             </Link>
-            <Link href="/docs" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
+            <Link href="/docs" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+              <FileText className="h-4 w-4" />
               Docs
             </Link>
             <div className="flex items-center gap-4 pt-2 border-t border-white/10">
