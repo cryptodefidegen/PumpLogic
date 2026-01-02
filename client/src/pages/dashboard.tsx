@@ -1256,12 +1256,10 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground mt-1">
                 Need to burn tokens? Use{" "}
                 <a 
-                  href="https://sol-incinerator.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-secondary hover:underline"
+                  href="/burn"
+                  className="text-primary hover:underline"
                 >
-                  Sol Incinerator
+                  PumpLogic Burn
                 </a>
               </p>
             </div>

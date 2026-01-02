@@ -123,7 +123,7 @@ export default function Docs() {
                 color="bg-secondary/20"
                 summary="Tokens are repurchased from the market to support price stability."
                 concept="Buyback is a mechanism to support your token's price. The allocated funds are used to purchase your token from the open market, which creates buying pressure and reduces available supply."
-                howItWorks="PumpLogic sends funds to your Buyback wallet. You use those funds to buy your token on DEXs. If you want to burn the purchased tokens, use a third-party service like Sol Incinerator."
+                howItWorks="PumpLogic sends funds to your Buyback wallet. You use those funds to buy your token on DEXs. If you want to burn the purchased tokens, use PumpLogic Burn."
                 benefits={["Creates buying pressure on token", "Reduces available supply", "Supports token price stability", "Shows commitment to token holders"]}
               />
               <Separator className="bg-white/5" />
