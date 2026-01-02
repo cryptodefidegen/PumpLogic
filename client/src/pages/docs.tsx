@@ -322,7 +322,6 @@ export default function Docs() {
               <span className="flex items-center gap-3">
                 <Shield className="h-5 w-5 text-primary" />
                 PumpLogic Guard
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
               </span>
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground space-y-6 pb-6">
@@ -415,8 +414,7 @@ export default function Docs() {
               </div>
 
               <p className="text-xs text-muted-foreground">
-                PumpLogic Guard is currently in beta and available to whitelisted users only. Features are read-only 
-                and do not execute any blockchain transactions.
+                PumpLogic Guard features are read-only and do not execute any blockchain transactions.
               </p>
             </AccordionContent>
           </AccordionItem>
@@ -426,7 +424,6 @@ export default function Docs() {
               <span className="flex items-center gap-3">
                 <Flame className="h-5 w-5 text-primary" />
                 PumpLogic Burn
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
               </span>
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground space-y-6 pb-6">
@@ -507,7 +504,7 @@ export default function Docs() {
               </div>
 
               <p className="text-xs text-muted-foreground">
-                PumpLogic Burn is currently in beta and available to whitelisted users only.
+                PumpLogic Burn is available to all users with a connected wallet.
               </p>
             </AccordionContent>
           </AccordionItem>
