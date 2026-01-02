@@ -31,7 +31,8 @@ import {
 } from "lucide-react";
 import { useWallet } from "@/contexts/WalletContext";
 import { cn } from "@/lib/utils";
-import voidScreener from "@/lib/voidscreener";
+import tokenApi from "@/lib/tokenApi";
+import { useApiProvider } from "@/contexts/ApiProviderContext";
 
 interface RiskFactor {
   name: string;
@@ -118,6 +119,7 @@ interface WhaleAlert {
 
 export default function Guard() {
   const { isConnected, user } = useWallet();
+  const { provider } = useApiProvider();
   const [tokenAddress, setTokenAddress] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<TokenAnalysis | null>(null);
@@ -132,9 +134,9 @@ export default function Guard() {
   const fetchWhaleAlerts = async () => {
     setIsLoadingAlerts(true);
     try {
-      const data = await voidScreener.getWhaleAlerts({ chain: 'solana', minAmount: 10000 });
-      if (data && data.alerts && Array.isArray(data.alerts)) {
-        setWhaleAlerts(data.alerts.slice(0, 10));
+      const alerts = await tokenApi.getWhaleAlerts({ chain: 'solana', minAmount: 10000 });
+      if (alerts && Array.isArray(alerts)) {
+        setWhaleAlerts(alerts.slice(0, 10));
       }
     } catch (err) {
       console.error('Failed to fetch whale alerts:', err);
@@ -157,7 +159,7 @@ export default function Guard() {
     setIsAnalyzing(true);
     
     try {
-      const result = await voidScreener.getTokenWithRiskFactors(address);
+      const result = await tokenApi.getTokenWithRiskFactors(address, provider);
       
       if (!result) {
         throw new Error("Token not found or no trading pairs available");
@@ -281,7 +283,7 @@ export default function Guard() {
     setIsAddingToWatchlist(true);
     
     try {
-      const tokenData = await voidScreener.getTokenAnalytics(watchlistInput);
+      const tokenData = await tokenApi.getTokenAnalytics(watchlistInput, provider);
       
       let tokenName = "Unknown Token";
       let tokenSymbol = "???";
@@ -323,7 +325,7 @@ export default function Guard() {
     setAnalysis(null);
     
     try {
-      const result = await voidScreener.getTokenWithRiskFactors(tokenAddress);
+      const result = await tokenApi.getTokenWithRiskFactors(tokenAddress, provider);
       
       if (!result) {
         throw new Error("Token not found or no trading pairs available");

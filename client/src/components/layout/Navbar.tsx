@@ -1,14 +1,16 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText } from "lucide-react";
+import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText, ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
 import { useToast } from "@/hooks/use-toast";
+import { useApiProvider } from "@/contexts/ApiProviderContext";
 import logoImage from "@assets/generated_images/pump_logic_logo.png";
 
 const GUARD_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 const BURN_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
+const API_TOGGLE_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,9 +18,11 @@ export function Navbar() {
   const [location] = useLocation();
   const { isConnected, walletAddress, user, connect, disconnect, availableWallets, connectedWallet, setShowWalletModal } = useWallet();
   const { toast } = useToast();
+  const { provider, toggleProvider } = useApiProvider();
   
   const isGuardWhitelisted = user?.walletAddress && GUARD_WHITELIST.includes(user.walletAddress);
   const isBurnWhitelisted = user?.walletAddress && BURN_WHITELIST.includes(user.walletAddress);
+  const canToggleApi = user?.walletAddress && API_TOGGLE_WHITELIST.includes(user.walletAddress);
 
   const toggleMenu = () => setIsOpen(!isOpen);
   
@@ -163,6 +167,30 @@ export function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-4">
+          {canToggleApi && (
+            <button
+              onClick={() => {
+                toggleProvider();
+                toast({
+                  title: "API Provider Changed",
+                  description: `Switched to ${provider === 'voidscreener' ? 'DexScreener' : 'VoidScreener'}`,
+                  className: "bg-primary text-black font-bold"
+                });
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/20 bg-black/40 hover:bg-white/10 transition-colors text-xs font-medium"
+              title={`Current: ${provider === 'voidscreener' ? 'VoidScreener' : 'DexScreener'} - Click to switch`}
+              data-testid="button-api-toggle"
+            >
+              {provider === 'voidscreener' ? (
+                <ToggleRight className="h-4 w-4 text-primary" />
+              ) : (
+                <ToggleLeft className="h-4 w-4 text-blue-400" />
+              )}
+              <span className={provider === 'voidscreener' ? 'text-primary' : 'text-blue-400'}>
+                {provider === 'voidscreener' ? 'Void' : 'Dex'}
+              </span>
+            </button>
+          )}
           <Button 
             variant={isConnected ? "outline" : "default"} 
             className={cn("font-mono text-xs", isConnected ? "border-primary text-primary hover:bg-primary/10" : "bg-primary text-black hover:bg-primary/90")}

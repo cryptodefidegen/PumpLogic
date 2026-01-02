@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WalletProvider } from "@/contexts/WalletContext";
+import { ApiProviderProvider } from "@/contexts/ApiProviderContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
@@ -44,16 +45,18 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <WalletProvider>
-        <TooltipProvider>
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1">
-              <Router />
-            </main>
-            <Toaster />
-            <WalletModal />
-          </div>
-        </TooltipProvider>
+        <ApiProviderProvider>
+          <TooltipProvider>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-1">
+                <Router />
+              </main>
+              <Toaster />
+              <WalletModal />
+            </div>
+          </TooltipProvider>
+        </ApiProviderProvider>
       </WalletProvider>
     </QueryClientProvider>
   );

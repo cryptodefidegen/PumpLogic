@@ -39,7 +39,8 @@ import { useWallet } from "@/contexts/WalletContext";
 import { useQuery } from "@tanstack/react-query";
 import { getAnalytics, type AnalyticsData } from "@/lib/api";
 import { Link } from "wouter";
-import voidScreener from "@/lib/voidscreener";
+import tokenApi from "@/lib/tokenApi";
+import { useApiProvider } from "@/contexts/ApiProviderContext";
 import { 
   AreaChart,
   Area,
@@ -110,6 +111,7 @@ function isValidSolanaAddress(address: string): boolean {
 export default function Analytics() {
   const { toast } = useToast();
   const { isConnected, user } = useWallet();
+  const { provider } = useApiProvider();
   const [selectedToken, setSelectedToken] = useState<string | undefined>(undefined);
   const [previewAmount, setPreviewAmount] = useState("");
   const [showPreview, setShowPreview] = useState(false);
@@ -144,7 +146,7 @@ export default function Analytics() {
     setManualToken(null);
 
     try {
-      const tokenData = await voidScreener.getTokenAnalytics(address);
+      const tokenData = await tokenApi.getTokenAnalytics(address, provider);
       
       if (!tokenData) {
         throw new Error("Token not found or no trading pairs available. The token may not be listed on any DEX yet.");
