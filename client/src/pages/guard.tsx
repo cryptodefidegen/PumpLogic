@@ -133,15 +133,14 @@ type AlertFilterType = 'all' | 'buy' | 'sell' | 'transfer';
 type AlertSortType = 'time' | 'amount' | 'impact';
 type AlertTimeframe = 'all' | '15m' | '1h' | '24h';
 
-function getSeverityBadge(amountUsd: number, liquidity?: number) {
-  const impact = liquidity && liquidity > 0 ? (amountUsd / liquidity) * 100 : 0;
-  if (amountUsd >= 100000 || impact >= 10) {
+function getSeverityBadge(amount: number) {
+  if (amount >= 1000000) {
     return { label: 'MEGA WHALE', color: 'bg-purple-500/20 text-purple-400 border-purple-500/50' };
   }
-  if (amountUsd >= 50000 || impact >= 5) {
+  if (amount >= 500000) {
     return { label: 'LARGE WHALE', color: 'bg-blue-500/20 text-blue-400 border-blue-500/50' };
   }
-  if (amountUsd >= 25000 || impact >= 2) {
+  if (amount >= 250000) {
     return { label: 'WHALE', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' };
   }
   return { label: 'DOLPHIN', color: 'bg-gray-500/20 text-gray-400 border-gray-500/50' };
@@ -196,16 +195,15 @@ export default function Guard() {
       return true;
     })
     .sort((a, b) => {
-      if (alertSort === 'amount') return (b.amountUsd || 0) - (a.amountUsd || 0);
-      if (alertSort === 'impact') return (b.liquidityImpact || 0) - (a.liquidityImpact || 0);
+      if (alertSort === 'amount') return (b.amount || 0) - (a.amount || 0);
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
 
   const alertStats = {
-    totalVolume: whaleAlerts.reduce((sum, a) => sum + (a.amountUsd || 0), 0),
-    largestTrade: Math.max(...whaleAlerts.map(a => a.amountUsd || 0), 0),
-    buyVolume: whaleAlerts.filter(a => a.type === 'buy').reduce((sum, a) => sum + (a.amountUsd || 0), 0),
-    sellVolume: whaleAlerts.filter(a => a.type === 'sell').reduce((sum, a) => sum + (a.amountUsd || 0), 0),
+    totalAlerts: whaleAlerts.length,
+    buyCount: whaleAlerts.filter(a => a.type === 'buy').length,
+    sellCount: whaleAlerts.filter(a => a.type === 'sell').length,
+    transferCount: whaleAlerts.filter(a => a.type === 'transfer').length,
     uniqueWhales: new Set(whaleAlerts.map(a => a.walletAddress)).size,
   };
 
@@ -822,20 +820,20 @@ export default function Guard() {
             {!whaleAlertsUnavailable && whaleAlerts.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <Card className="bg-black/40 border-white/10 p-4">
-                  <p className="text-xs text-muted-foreground">Total Volume</p>
-                  <p className="text-lg font-bold text-white">{formatLargeNumber(alertStats.totalVolume)}</p>
+                  <p className="text-xs text-muted-foreground">Total Alerts</p>
+                  <p className="text-lg font-bold text-white">{alertStats.totalAlerts}</p>
                 </Card>
                 <Card className="bg-black/40 border-white/10 p-4">
-                  <p className="text-xs text-muted-foreground">Largest Trade</p>
-                  <p className="text-lg font-bold text-primary">{formatLargeNumber(alertStats.largestTrade)}</p>
+                  <p className="text-xs text-muted-foreground">Buy Alerts</p>
+                  <p className="text-lg font-bold text-green-500">{alertStats.buyCount}</p>
                 </Card>
                 <Card className="bg-black/40 border-white/10 p-4">
-                  <p className="text-xs text-muted-foreground">Buy Volume</p>
-                  <p className="text-lg font-bold text-green-500">{formatLargeNumber(alertStats.buyVolume)}</p>
+                  <p className="text-xs text-muted-foreground">Sell Alerts</p>
+                  <p className="text-lg font-bold text-red-500">{alertStats.sellCount}</p>
                 </Card>
                 <Card className="bg-black/40 border-white/10 p-4">
-                  <p className="text-xs text-muted-foreground">Sell Volume</p>
-                  <p className="text-lg font-bold text-red-500">{formatLargeNumber(alertStats.sellVolume)}</p>
+                  <p className="text-xs text-muted-foreground">Transfers</p>
+                  <p className="text-lg font-bold text-yellow-500">{alertStats.transferCount}</p>
                 </Card>
                 <Card className="bg-black/40 border-white/10 p-4">
                   <p className="text-xs text-muted-foreground">Unique Whales</p>
@@ -890,7 +888,6 @@ export default function Guard() {
                       <SelectContent>
                         <SelectItem value="time">Latest</SelectItem>
                         <SelectItem value="amount">Largest</SelectItem>
-                        <SelectItem value="impact">Impact</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button 
@@ -925,7 +922,7 @@ export default function Guard() {
                 ) : filteredAlerts.length > 0 ? (
                   <div className="space-y-3">
                     {filteredAlerts.map((alert, index) => {
-                      const severity = getSeverityBadge(alert.amountUsd, alert.liquidity);
+                      const severity = getSeverityBadge(alert.amount);
                       return (
                         <div 
                           key={alert.id || index}
@@ -976,34 +973,11 @@ export default function Guard() {
                                 )}
                               </div>
 
-                              {/* Amount & Price */}
-                              <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Amount</p>
-                                  <p className="text-sm font-medium text-white">{formatLargeNumber(alert.amountUsd || 0)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Tokens</p>
-                                  <p className="text-sm font-medium text-white">{(alert.amount || 0).toLocaleString()}</p>
-                                </div>
-                                {alert.priceUsd && (
-                                  <div>
-                                    <p className="text-xs text-muted-foreground">Price</p>
-                                    <p className="text-sm font-medium text-white">${alert.priceUsd.toFixed(8)}</p>
-                                  </div>
-                                )}
-                                {alert.liquidityImpact && (
-                                  <div>
-                                    <p className="text-xs text-muted-foreground">Pool Impact</p>
-                                    <p className={cn(
-                                      "text-sm font-medium",
-                                      alert.liquidityImpact > 5 ? "text-red-400" : 
-                                      alert.liquidityImpact > 2 ? "text-yellow-400" : "text-green-400"
-                                    )}>
-                                      {alert.liquidityImpact.toFixed(2)}%
-                                    </p>
-                                  </div>
-                                )}
+                              {/* Amount */}
+                              <div className="mt-2">
+                                <p className="text-lg font-bold text-white">
+                                  {(alert.amount || 0).toLocaleString()} <span className="text-sm font-normal text-muted-foreground">{alert.tokenSymbol}</span>
+                                </p>
                               </div>
 
                               {/* Wallet & Time */}
