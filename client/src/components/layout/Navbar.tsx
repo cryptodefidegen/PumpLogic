@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText, ToggleLeft, ToggleRight } from "lucide-react";
+import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText, ToggleLeft, ToggleRight, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -109,6 +109,14 @@ export function Navbar() {
             Burn
           </Link>
           <Link 
+            href="/deployer" 
+            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/deployer" ? "text-primary" : "text-muted-foreground")}
+          >
+            <Rocket className="h-4 w-4" />
+            Deployer
+            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500">IN DEV</span>
+          </Link>
+          <Link 
             href="/roadmap" 
             className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/roadmap" ? "text-primary" : "text-muted-foreground")}
           >
@@ -213,6 +221,11 @@ export function Navbar() {
             <Link href="/burn" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
               <Flame className="h-4 w-4" />
               Burn
+            </Link>
+            <Link href="/deployer" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+              <Rocket className="h-4 w-4" />
+              Deployer
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500">IN DEV</span>
             </Link>
             <Link href="/roadmap" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
               <Target className="h-4 w-4" />

@@ -108,3 +108,18 @@ Preferred communication style: Simple, everyday language.
   - In-session burn history tracking with Solscan transaction links
   - Enhanced UI with tooltips, animated transitions, two-column layout
 - **Implementation**: Uses native @solana/web3.js with manual SPL Token burn instruction (avoids Buffer polyfill issues)
+
+### PumpLogic Deployer (In Development)
+- **Location**: `/deployer` route, available to all users
+- **Status**: In Development
+- **Features**:
+  - One-click Pump.fun token deployment
+  - Token metadata form: name, symbol, description, image upload
+  - Optional social links: Twitter, Telegram, Website
+  - Launch templates: Fair Launch (0 SOL), Standard (0.5 SOL), Meme Token (1 SOL)
+  - Custom initial buy configuration
+  - Live token preview card
+  - Cost breakdown calculator
+  - Post-deploy success flow with links to Pump.fun, Solscan, Guard, Burn, Allocator
+- **API Integration**: Uses Pump.fun API for IPFS metadata upload and PumpPortal for transaction creation
+- **Implementation**: Client-side deployment with wallet transaction signing

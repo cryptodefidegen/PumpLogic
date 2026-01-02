@@ -509,6 +509,110 @@ export default function Docs() {
             </AccordionContent>
           </AccordionItem>
 
+          <AccordionItem value="deployer" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
+            <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
+              <span className="flex items-center gap-3">
+                <Rocket className="h-5 w-5 text-primary" />
+                PumpLogic Deployer
+                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500">IN DEV</span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="text-muted-foreground space-y-6 pb-6">
+              <p>
+                PumpLogic Deployer allows you to launch Pump.fun tokens directly from the platform. 
+                Fill in your token details, choose a launch template, and deploy with a single transaction.
+              </p>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">How to Deploy a Token</h4>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">1</div>
+                    <p className="text-sm">Navigate to <span className="text-primary font-semibold">Deployer</span> in the navbar and connect your wallet</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">2</div>
+                    <p className="text-sm">Enter token name, symbol, description, and upload an image</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">3</div>
+                    <p className="text-sm">Add optional social links (Twitter, Telegram, Website)</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">4</div>
+                    <p className="text-sm">Choose a launch template or set a custom initial buy amount</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">5</div>
+                    <p className="text-sm">Review the cost breakdown and click <span className="text-primary font-semibold">Deploy Token</span></p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">6</div>
+                    <p className="text-sm">Confirm the transaction in your wallet to deploy</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">Launch Templates</h4>
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Coins className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Fair Launch</p>
+                      <p className="text-xs">No developer allocation - community-first approach with 0 SOL initial buy</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Zap className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Standard (Recommended)</p>
+                      <p className="text-xs">Small 0.5 SOL initial buy for liquidity seeding and development</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                      <Activity className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">Meme Token</p>
+                      <p className="text-xs">Larger 1 SOL initial buy for marketing and community burns</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-white font-semibold mb-3">After Deployment</h4>
+                <p className="text-sm mb-3">
+                  Once your token is deployed, you'll receive links to:
+                </p>
+                <div className="bg-black/20 rounded-lg p-4 border border-white/10 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-xs">Your token's Pump.fun page for trading</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-xs">Solscan transaction for verification</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <ChevronRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-xs">Quick links to Guard, Burn, and Allocator for your new token</p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                PumpLogic Deployer is currently in development. Token deployment requires SOL for network fees and optional initial buy.
+              </p>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="preview-mode" className="bg-black/40 border border-white/10 backdrop-blur-sm rounded-lg px-6 hover:border-primary/30 transition-colors">
             <AccordionTrigger className="text-white text-xl font-display hover:no-underline py-6">
               <span className="flex items-center gap-3">

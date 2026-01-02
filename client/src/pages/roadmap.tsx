@@ -70,6 +70,22 @@ const phases = [
   },
   {
     id: 5,
+    title: "PumpLogic Deployer",
+    status: "in_progress",
+    icon: Rocket,
+    eta: "Q1 2025",
+    progress: 75,
+    description: "Launch Pump.fun tokens directly from PumpLogic",
+    features: [
+      "One-click token deployment",
+      "IPFS metadata upload",
+      "Launch templates",
+      "Initial buy config",
+      "Post-deploy toolkit links"
+    ]
+  },
+  {
+    id: 6,
     title: "Staking & Rewards",
     status: "planned",
     icon: Settings,
@@ -85,7 +101,7 @@ const phases = [
     ]
   },
   {
-    id: 6,
+    id: 7,
     title: "Ecosystem",
     status: "planned",
     icon: Globe,

@@ -17,6 +17,7 @@ import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 
 const Burn = lazy(() => import("@/pages/burn"));
+const Deployer = lazy(() => import("@/pages/deployer"));
 import { WalletModal } from "@/components/WalletModal";
 
 function Router() {
@@ -33,6 +34,13 @@ function Router() {
         {() => (
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
             <Burn />
+          </Suspense>
+        )}
+      </Route>
+      <Route path="/deployer">
+        {() => (
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
+            <Deployer />
           </Suspense>
         )}
       </Route>
