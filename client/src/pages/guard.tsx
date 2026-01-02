@@ -1223,6 +1223,21 @@ export default function Guard() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Powered by VoidScreener */}
+        <div className="flex items-center justify-center gap-2 pt-8 pb-4">
+          <span className="text-xs text-muted-foreground">Powered by</span>
+          <a 
+            href="https://voidscreener.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+          >
+            <Shield className="h-3.5 w-3.5" />
+            VoidScreener
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
       </div>
     </div>
   );
