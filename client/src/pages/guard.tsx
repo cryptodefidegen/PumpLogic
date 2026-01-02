@@ -157,8 +157,11 @@ export default function Guard() {
       } else if (liquidity > 10000) {
         factors.push({ name: "Liquidity Depth", status: "warning", description: `Moderate liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
         riskScore += 15;
-      } else {
+      } else if (liquidity > 0) {
         factors.push({ name: "Liquidity Depth", status: "danger", description: `Low liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
+        riskScore += 30;
+      } else {
+        factors.push({ name: "Liquidity Depth", status: "danger", description: "No DEX liquidity (may be on bonding curve)", weight: 20 });
         riskScore += 30;
       }
       
@@ -339,8 +342,11 @@ export default function Guard() {
       } else if (liquidity > 10000) {
         factors.push({ name: "Liquidity Depth", status: "warning", description: `Moderate liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
         riskScore += 15;
-      } else {
+      } else if (liquidity > 0) {
         factors.push({ name: "Liquidity Depth", status: "danger", description: `Low liquidity: ${formatLargeNumber(liquidity)}`, weight: 20 });
+        riskScore += 30;
+      } else {
+        factors.push({ name: "Liquidity Depth", status: "danger", description: "No DEX liquidity (may be on bonding curve)", weight: 20 });
         riskScore += 30;
       }
       
