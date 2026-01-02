@@ -70,17 +70,17 @@ const phases = [
   },
   {
     id: 5,
-    title: "PumpLogic Sniper",
+    title: "PumpLogic Staking & Rewards",
     status: "planned",
-    icon: Target,
-    description: "Lightning-fast token launch sniping tool",
+    icon: Settings,
+    description: "Stake $PLOGIC tokens to unlock premium features and earn rewards",
     features: [
-      "Sub-second launch detection",
-      "Customizable sniper presets",
-      "Risk controls (slippage, max buy)",
-      "PnL tracker with analytics",
-      "Team collaboration mode",
-      "Anti-rug protection integration"
+      "Stake $PLOGIC for platform benefits",
+      "Tiered access based on stake amount",
+      "Fee discounts for stakers",
+      "Revenue sharing from platform fees",
+      "Governance voting rights",
+      "Early access to new features"
     ]
   },
   {
