@@ -39,10 +39,10 @@ const phases = [
   {
     id: 3,
     title: "PumpLogic Guard",
-    status: "in_progress",
+    status: "live",
     icon: Shield,
-    eta: "Q1 2025",
-    progress: 65,
+    eta: "Q4 2024",
+    progress: 100,
     description: "Security toolkit for rug-pull detection",
     features: [
       "Token risk scanner",
@@ -55,10 +55,10 @@ const phases = [
   {
     id: 4,
     title: "Burn & Tools",
-    status: "in_progress",
+    status: "live",
     icon: Flame,
-    eta: "Q1 2025",
-    progress: 45,
+    eta: "Q4 2024",
+    progress: 100,
     description: "Token management and DeFi utilities",
     features: [
       "Token burning",
