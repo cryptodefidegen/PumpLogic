@@ -8,8 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useApiProvider } from "@/contexts/ApiProviderContext";
 import logoImage from "@assets/generated_images/pump_logic_logo.png";
 
-const GUARD_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
-const BURN_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 const API_TOGGLE_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 
 export function Navbar() {
@@ -20,8 +18,6 @@ export function Navbar() {
   const { toast } = useToast();
   const { provider, toggleProvider } = useApiProvider();
   
-  const isGuardWhitelisted = user?.walletAddress && GUARD_WHITELIST.includes(user.walletAddress);
-  const isBurnWhitelisted = user?.walletAddress && BURN_WHITELIST.includes(user.walletAddress);
   const canToggleApi = user?.walletAddress && API_TOGGLE_WHITELIST.includes(user.walletAddress);
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -98,38 +94,20 @@ export function Navbar() {
             <BarChart3 className="h-4 w-4" />
             Analytics
           </Link>
-          {isGuardWhitelisted ? (
-            <Link 
-              href="/guard" 
-              className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/guard" ? "text-primary" : "text-muted-foreground")}
-            >
-              <Shield className="h-4 w-4" />
-              Guard
-              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
-            </Link>
-          ) : (
-            <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground/50 cursor-not-allowed">
-              <Shield className="h-4 w-4" />
-              Guard
-              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-white/10 border border-white/20 rounded-full">SOON</span>
-            </div>
-          )}
-          {isBurnWhitelisted ? (
-            <Link 
-              href="/burn" 
-              className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/burn" ? "text-primary" : "text-muted-foreground")}
-            >
-              <Flame className="h-4 w-4" />
-              Burn
-              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
-            </Link>
-          ) : (
-            <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground/50 cursor-not-allowed">
-              <Flame className="h-4 w-4" />
-              Burn
-              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-white/10 border border-white/20 rounded-full">SOON</span>
-            </div>
-          )}
+          <Link 
+            href="/guard" 
+            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/guard" ? "text-primary" : "text-muted-foreground")}
+          >
+            <Shield className="h-4 w-4" />
+            Guard
+          </Link>
+          <Link 
+            href="/burn" 
+            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/burn" ? "text-primary" : "text-muted-foreground")}
+          >
+            <Flame className="h-4 w-4" />
+            Burn
+          </Link>
           <Link 
             href="/roadmap" 
             className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/roadmap" ? "text-primary" : "text-muted-foreground")}
@@ -228,32 +206,14 @@ export function Navbar() {
               <BarChart3 className="h-4 w-4" />
               Analytics
             </Link>
-            {isGuardWhitelisted ? (
-              <Link href="/guard" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                <Shield className="h-4 w-4" />
-                Guard
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
-              </Link>
-            ) : (
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground/50">
-                <Shield className="h-4 w-4" />
-                Guard
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-white/10 border border-white/20 rounded-full">SOON</span>
-              </div>
-            )}
-            {isBurnWhitelisted ? (
-              <Link href="/burn" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                <Flame className="h-4 w-4" />
-                Burn
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary/20 border border-primary/50 rounded-full text-primary">BETA</span>
-              </Link>
-            ) : (
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground/50">
-                <Flame className="h-4 w-4" />
-                Burn
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-white/10 border border-white/20 rounded-full">SOON</span>
-              </div>
-            )}
+            <Link href="/guard" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+              <Shield className="h-4 w-4" />
+              Guard
+            </Link>
+            <Link href="/burn" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+              <Flame className="h-4 w-4" />
+              Burn
+            </Link>
             <Link href="/roadmap" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
               <Target className="h-4 w-4" />
               Roadmap

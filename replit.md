@@ -89,20 +89,16 @@ Preferred communication style: Simple, everyday language.
 - **Rate Limits**: VoidScreener 60 req/min, DexScreener standard limits
 - **Note**: Whale alerts unavailable when using DexScreener (shows notice in Guard)
 
-### PumpLogic Guard (Beta)
-- **Location**: `/guard` route, restricted to whitelisted addresses only
-- **Whitelist**: Deployer address `9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8`
+### PumpLogic Guard
+- **Location**: `/guard` route, available to all users
 - **Features**:
   - Token Scanner: Analyze any Solana token for rug-pull risks using VoidScreener API
   - Whale Alerts: Real-time large transaction monitoring from VoidScreener (buy/sell/transfer with tx links)
   - Risk Alerts: Watchlist monitoring for tracked tokens
   - Tax Reports: Date range selection and CSV export for transaction history
 - **API Integration**: Uses VoidScreener API for token data and whale alerts
-- **Access Control**: Non-whitelisted users see "SOON" badge in navbar (non-clickable), whitelisted see "BETA" badge (clickable)
-
 ### Token Burn Feature
-- **Location**: `/burn` route, restricted to whitelisted addresses only
-- **Whitelist**: Deployer address `9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8`
+- **Location**: `/burn` route, available to all users
 - **Features**:
   - Manual token burning for any SPL token
   - Token metadata display: name, image, symbol, price, FDV, 24h price change
@@ -111,5 +107,4 @@ Preferred communication style: Simple, everyday language.
   - Two-step confirmation modal with burn summary before executing
   - In-session burn history tracking with Solscan transaction links
   - Enhanced UI with tooltips, animated transitions, two-column layout
-- **Access Control**: Non-whitelisted users see "SOON" badge in navbar (non-clickable), whitelisted see "BETA" badge (clickable)
 - **Implementation**: Uses native @solana/web3.js with manual SPL Token burn instruction (avoids Buffer polyfill issues)

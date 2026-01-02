@@ -28,7 +28,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const BURN_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 
 const SOLANA_RPC = "https://api.mainnet-beta.solana.com";
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
@@ -93,7 +92,6 @@ export default function Burn() {
   const { toast } = useToast();
   const { user, isConnected, connect, fullWalletAddress, connectedWallet, availableWallets } = useWallet();
   
-  const isWhitelisted = user?.walletAddress && BURN_WHITELIST.includes(user.walletAddress);
   
   const [tokenAddress, setTokenAddress] = useState("");
   const [burnAmount, setBurnAmount] = useState("");
@@ -115,7 +113,7 @@ export default function Burn() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [burnHistory, setBurnHistory] = useState<BurnRecord[]>([]);
 
-  const isPreviewMode = !isConnected || !isWhitelisted;
+  const isPreviewMode = !isConnected;
 
   const fetchTokenBalance = async () => {
     if (!tokenAddress || !fullWalletAddress) {
