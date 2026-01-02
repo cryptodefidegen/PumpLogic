@@ -27,11 +27,17 @@ export interface WhaleAlert {
   type: 'buy' | 'sell' | 'transfer';
   tokenSymbol: string;
   tokenName: string;
+  tokenAddress: string;
+  tokenImage?: string;
   amount: number;
   amountUsd: number;
   walletAddress: string;
   timestamp: string;
   txHash: string;
+  priceUsd?: number;
+  liquidity?: number;
+  liquidityImpact?: number;
+  dexId?: string;
 }
 
 class TokenAPI {

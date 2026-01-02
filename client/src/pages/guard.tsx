@@ -27,8 +27,14 @@ import {
   DollarSign,
   BarChart3,
   Droplets,
-  Zap
+  Zap,
+  Copy,
+  Filter,
+  ArrowUpDown,
+  Plus
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/contexts/WalletContext";
 import { cn } from "@/lib/utils";
 import tokenApi from "@/lib/tokenApi";
@@ -110,16 +116,55 @@ interface WhaleAlert {
   type: 'buy' | 'sell' | 'transfer';
   tokenSymbol: string;
   tokenName: string;
+  tokenAddress: string;
+  tokenImage?: string;
   amount: number;
   amountUsd: number;
   walletAddress: string;
   timestamp: string;
   txHash: string;
+  priceUsd?: number;
+  liquidity?: number;
+  liquidityImpact?: number;
+  dexId?: string;
+}
+
+type AlertFilterType = 'all' | 'buy' | 'sell' | 'transfer';
+type AlertSortType = 'time' | 'amount' | 'impact';
+type AlertTimeframe = 'all' | '15m' | '1h' | '24h';
+
+function getSeverityBadge(amountUsd: number, liquidity?: number) {
+  const impact = liquidity && liquidity > 0 ? (amountUsd / liquidity) * 100 : 0;
+  if (amountUsd >= 100000 || impact >= 10) {
+    return { label: 'MEGA WHALE', color: 'bg-purple-500/20 text-purple-400 border-purple-500/50' };
+  }
+  if (amountUsd >= 50000 || impact >= 5) {
+    return { label: 'LARGE WHALE', color: 'bg-blue-500/20 text-blue-400 border-blue-500/50' };
+  }
+  if (amountUsd >= 25000 || impact >= 2) {
+    return { label: 'WHALE', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' };
+  }
+  return { label: 'DOLPHIN', color: 'bg-gray-500/20 text-gray-400 border-gray-500/50' };
+}
+
+function getTimeAgo(timestamp: string): string {
+  const now = new Date();
+  const time = new Date(timestamp);
+  const diffMs = now.getTime() - time.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${diffDays}d ago`;
 }
 
 export default function Guard() {
   const { isConnected, user } = useWallet();
   const { provider } = useApiProvider();
+  const { toast } = useToast();
   const [tokenAddress, setTokenAddress] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<TokenAnalysis | null>(null);
@@ -131,6 +176,54 @@ export default function Guard() {
   const [whaleAlerts, setWhaleAlerts] = useState<WhaleAlert[]>([]);
   const [isLoadingAlerts, setIsLoadingAlerts] = useState(false);
   const [whaleAlertsUnavailable, setWhaleAlertsUnavailable] = useState(false);
+  
+  const [alertFilter, setAlertFilter] = useState<AlertFilterType>('all');
+  const [alertSort, setAlertSort] = useState<AlertSortType>('time');
+  const [alertTimeframe, setAlertTimeframe] = useState<AlertTimeframe>('all');
+
+  const filteredAlerts = whaleAlerts
+    .filter(alert => {
+      if (alertFilter !== 'all' && alert.type !== alertFilter) return false;
+      if (alertTimeframe !== 'all') {
+        const now = new Date();
+        const alertTime = new Date(alert.timestamp);
+        const diffMs = now.getTime() - alertTime.getTime();
+        const diffMins = diffMs / 60000;
+        if (alertTimeframe === '15m' && diffMins > 15) return false;
+        if (alertTimeframe === '1h' && diffMins > 60) return false;
+        if (alertTimeframe === '24h' && diffMins > 1440) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (alertSort === 'amount') return (b.amountUsd || 0) - (a.amountUsd || 0);
+      if (alertSort === 'impact') return (b.liquidityImpact || 0) - (a.liquidityImpact || 0);
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
+
+  const alertStats = {
+    totalVolume: whaleAlerts.reduce((sum, a) => sum + (a.amountUsd || 0), 0),
+    largestTrade: Math.max(...whaleAlerts.map(a => a.amountUsd || 0), 0),
+    buyVolume: whaleAlerts.filter(a => a.type === 'buy').reduce((sum, a) => sum + (a.amountUsd || 0), 0),
+    sellVolume: whaleAlerts.filter(a => a.type === 'sell').reduce((sum, a) => sum + (a.amountUsd || 0), 0),
+    uniqueWhales: new Set(whaleAlerts.map(a => a.walletAddress)).size,
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: `${label} copied to clipboard`,
+      className: "bg-primary text-black font-bold"
+    });
+  };
+
+  const scanTokenFromAlert = (address: string) => {
+    setTokenAddress(address);
+    setActiveTab("scanner");
+    setAnalysis(null);
+    setError(null);
+  };
 
   const fetchWhaleAlerts = async () => {
     setIsLoadingAlerts(true);
@@ -725,9 +818,35 @@ export default function Guard() {
           </TabsContent>
 
           <TabsContent value="alerts" className="space-y-6">
+            {/* Summary Statistics */}
+            {!whaleAlertsUnavailable && whaleAlerts.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <Card className="bg-black/40 border-white/10 p-4">
+                  <p className="text-xs text-muted-foreground">Total Volume</p>
+                  <p className="text-lg font-bold text-white">{formatLargeNumber(alertStats.totalVolume)}</p>
+                </Card>
+                <Card className="bg-black/40 border-white/10 p-4">
+                  <p className="text-xs text-muted-foreground">Largest Trade</p>
+                  <p className="text-lg font-bold text-primary">{formatLargeNumber(alertStats.largestTrade)}</p>
+                </Card>
+                <Card className="bg-black/40 border-white/10 p-4">
+                  <p className="text-xs text-muted-foreground">Buy Volume</p>
+                  <p className="text-lg font-bold text-green-500">{formatLargeNumber(alertStats.buyVolume)}</p>
+                </Card>
+                <Card className="bg-black/40 border-white/10 p-4">
+                  <p className="text-xs text-muted-foreground">Sell Volume</p>
+                  <p className="text-lg font-bold text-red-500">{formatLargeNumber(alertStats.sellVolume)}</p>
+                </Card>
+                <Card className="bg-black/40 border-white/10 p-4">
+                  <p className="text-xs text-muted-foreground">Unique Whales</p>
+                  <p className="text-lg font-bold text-blue-400">{alertStats.uniqueWhales}</p>
+                </Card>
+              </div>
+            )}
+
             <Card className="bg-black/40 border-white/10">
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <CardTitle className="text-white flex items-center gap-2">
                       <AlertTriangle className="h-5 w-5 text-yellow-500" />
@@ -738,17 +857,54 @@ export default function Guard() {
                       Real-time large transaction alerts on Solana
                     </CardDescription>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={fetchWhaleAlerts}
-                    disabled={isLoadingAlerts}
-                    className="border-white/20"
-                    data-testid="button-refresh-alerts"
-                  >
-                    <RefreshCw className={cn("h-4 w-4 mr-2", isLoadingAlerts && "animate-spin")} />
-                    Refresh
-                  </Button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select value={alertFilter} onValueChange={(v) => setAlertFilter(v as AlertFilterType)}>
+                      <SelectTrigger className="w-[100px] h-8 text-xs bg-black/40 border-white/20">
+                        <Filter className="h-3 w-3 mr-1" />
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="buy">Buys</SelectItem>
+                        <SelectItem value="sell">Sells</SelectItem>
+                        <SelectItem value="transfer">Transfers</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={alertTimeframe} onValueChange={(v) => setAlertTimeframe(v as AlertTimeframe)}>
+                      <SelectTrigger className="w-[90px] h-8 text-xs bg-black/40 border-white/20">
+                        <Clock className="h-3 w-3 mr-1" />
+                        <SelectValue placeholder="Time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Time</SelectItem>
+                        <SelectItem value="15m">15 min</SelectItem>
+                        <SelectItem value="1h">1 hour</SelectItem>
+                        <SelectItem value="24h">24 hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={alertSort} onValueChange={(v) => setAlertSort(v as AlertSortType)}>
+                      <SelectTrigger className="w-[100px] h-8 text-xs bg-black/40 border-white/20">
+                        <ArrowUpDown className="h-3 w-3 mr-1" />
+                        <SelectValue placeholder="Sort" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="time">Latest</SelectItem>
+                        <SelectItem value="amount">Largest</SelectItem>
+                        <SelectItem value="impact">Impact</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={fetchWhaleAlerts}
+                      disabled={isLoadingAlerts}
+                      className="border-white/20 h-8"
+                      data-testid="button-refresh-alerts"
+                    >
+                      <RefreshCw className={cn("h-3 w-3 mr-1", isLoadingAlerts && "animate-spin")} />
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -766,62 +922,171 @@ export default function Guard() {
                       <p className="text-xs mt-1 text-muted-foreground">Switch to VoidScreener using the toggle in the navbar.</p>
                     </div>
                   </div>
-                ) : whaleAlerts.length > 0 ? (
-                  <div className="space-y-4">
-                    {whaleAlerts.map((alert, index) => (
-                      <div 
-                        key={alert.id || index}
-                        className={cn(
-                          "p-4 rounded-lg flex items-start gap-3",
-                          alert.type === 'sell' 
-                            ? "bg-red-500/10 border border-red-500/30" 
-                            : alert.type === 'buy'
-                            ? "bg-green-500/10 border border-green-500/30"
-                            : "bg-yellow-500/10 border border-yellow-500/30"
-                        )}
-                      >
-                        {alert.type === 'sell' ? (
-                          <TrendingDown className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                        ) : alert.type === 'buy' ? (
-                          <TrendingUp className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                        ) : (
-                          <Activity className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-white">
-                              {alert.type === 'sell' ? 'Large Sell' : alert.type === 'buy' ? 'Large Buy' : 'Transfer'}: {alert.tokenSymbol || 'Unknown'}
-                            </p>
-                            <Badge variant="outline" className={cn(
-                              "text-xs",
-                              alert.type === 'sell' ? "border-red-500/50 text-red-400" : 
-                              alert.type === 'buy' ? "border-green-500/50 text-green-400" :
-                              "border-yellow-500/50 text-yellow-400"
+                ) : filteredAlerts.length > 0 ? (
+                  <div className="space-y-3">
+                    {filteredAlerts.map((alert, index) => {
+                      const severity = getSeverityBadge(alert.amountUsd, alert.liquidity);
+                      return (
+                        <div 
+                          key={alert.id || index}
+                          className={cn(
+                            "p-4 rounded-lg border transition-all hover:bg-white/5",
+                            alert.type === 'sell' 
+                              ? "bg-red-500/5 border-red-500/20" 
+                              : alert.type === 'buy'
+                              ? "bg-green-500/5 border-green-500/20"
+                              : "bg-yellow-500/5 border-yellow-500/20"
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* Icon */}
+                            <div className={cn(
+                              "p-2 rounded-lg shrink-0",
+                              alert.type === 'sell' ? "bg-red-500/20" : 
+                              alert.type === 'buy' ? "bg-green-500/20" : "bg-yellow-500/20"
                             )}>
-                              {alert.type.toUpperCase()}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {formatLargeNumber(alert.amountUsd || 0)} ({(alert.amount || 0).toLocaleString()} tokens)
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <p className="text-xs text-muted-foreground">
-                              {alert.timestamp ? new Date(alert.timestamp).toLocaleString() : 'Unknown time'}
-                            </p>
-                            {alert.txHash && (
-                              <a 
-                                href={`https://solscan.io/tx/${alert.txHash}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-primary hover:underline flex items-center gap-1"
+                              {alert.type === 'sell' ? (
+                                <TrendingDown className="h-5 w-5 text-red-500" />
+                              ) : alert.type === 'buy' ? (
+                                <TrendingUp className="h-5 w-5 text-green-500" />
+                              ) : (
+                                <Activity className="h-5 w-5 text-yellow-500" />
+                              )}
+                            </div>
+
+                            {/* Main Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm font-semibold text-white">
+                                  {alert.tokenSymbol || 'Unknown'}
+                                </p>
+                                <Badge variant="outline" className={cn("text-xs", severity.color)}>
+                                  {severity.label}
+                                </Badge>
+                                <Badge variant="outline" className={cn(
+                                  "text-xs",
+                                  alert.type === 'sell' ? "border-red-500/50 text-red-400" : 
+                                  alert.type === 'buy' ? "border-green-500/50 text-green-400" :
+                                  "border-yellow-500/50 text-yellow-400"
+                                )}>
+                                  {alert.type.toUpperCase()}
+                                </Badge>
+                                {alert.dexId && (
+                                  <span className="text-xs text-muted-foreground">{alert.dexId}</span>
+                                )}
+                              </div>
+
+                              {/* Amount & Price */}
+                              <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Amount</p>
+                                  <p className="text-sm font-medium text-white">{formatLargeNumber(alert.amountUsd || 0)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Tokens</p>
+                                  <p className="text-sm font-medium text-white">{(alert.amount || 0).toLocaleString()}</p>
+                                </div>
+                                {alert.priceUsd && (
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">Price</p>
+                                    <p className="text-sm font-medium text-white">${alert.priceUsd.toFixed(8)}</p>
+                                  </div>
+                                )}
+                                {alert.liquidityImpact && (
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">Pool Impact</p>
+                                    <p className={cn(
+                                      "text-sm font-medium",
+                                      alert.liquidityImpact > 5 ? "text-red-400" : 
+                                      alert.liquidityImpact > 2 ? "text-yellow-400" : "text-green-400"
+                                    )}>
+                                      {alert.liquidityImpact.toFixed(2)}%
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Wallet & Time */}
+                              <div className="mt-3 flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {getTimeAgo(alert.timestamp)}
+                                </span>
+                                <span className="font-mono">
+                                  {alert.walletAddress?.slice(0, 6)}...{alert.walletAddress?.slice(-4)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Quick Actions */}
+                            <div className="flex flex-col gap-1 shrink-0">
+                              {alert.tokenAddress && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => scanTokenFromAlert(alert.tokenAddress)}
+                                  className="h-7 px-2 text-primary hover:text-primary/80"
+                                  title="Scan Token"
+                                >
+                                  <Search className="h-3 w-3" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(alert.walletAddress, 'Wallet')}
+                                className="h-7 px-2 text-muted-foreground hover:text-white"
+                                title="Copy Wallet"
                               >
-                                View TX <ExternalLink className="h-3 w-3" />
-                              </a>
-                            )}
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                              {alert.txHash && (
+                                <a 
+                                  href={`https://solscan.io/tx/${alert.txHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="h-7 px-2 flex items-center justify-center text-muted-foreground hover:text-white"
+                                  title="View on Solscan"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              )}
+                              {alert.tokenAddress && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    if (!watchlist.some(t => t.address === alert.tokenAddress)) {
+                                      setWatchlist(prev => [...prev, {
+                                        address: alert.tokenAddress,
+                                        name: alert.tokenName || 'Unknown',
+                                        symbol: alert.tokenSymbol || '???',
+                                        addedAt: new Date()
+                                      }]);
+                                      toast({
+                                        title: "Added to Watchlist",
+                                        description: `${alert.tokenSymbol} added to your watchlist`,
+                                        className: "bg-primary text-black font-bold"
+                                      });
+                                    }
+                                  }}
+                                  className="h-7 px-2 text-muted-foreground hover:text-white"
+                                  title="Add to Watchlist"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
+                  </div>
+                ) : whaleAlerts.length > 0 ? (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Filter className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No alerts match your filters</p>
+                    <p className="text-xs mt-1">Try adjusting your filter settings</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
