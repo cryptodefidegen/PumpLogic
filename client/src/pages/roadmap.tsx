@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Rocket, Settings, Target, Globe, Check, Clock, Shield, Flame } from "lucide-react";
+import { Rocket, Settings, Target, Globe, Check, Clock, Shield, Flame, BarChart3 } from "lucide-react";
 
 const phases = [
   {
@@ -22,23 +22,38 @@ const phases = [
   },
   {
     id: 2,
-    title: "PumpLogic Analytics & Guard",
+    title: "PumpLogic Analytics",
     status: "live",
-    icon: Shield,
-    description: "Real-time analytics and security tools for informed decisions",
+    icon: BarChart3,
+    description: "Real-time analytics and performance tracking for your tokens",
     features: [
       "Analytics dashboard with live token metrics",
       "Price charts powered by DexScreener",
       "Distribution volume tracking (7-day view)",
       "Allocation breakdown visualization",
-      "PumpLogic Guard token scanner (Beta)",
-      "Rug-pull risk detection & scoring",
-      "Tax report generation with CSV export",
+      "Fee collection summary & breakdown",
+      "24h transaction monitoring (buys/sells)",
       "Preview mode for exploring without wallet"
     ]
   },
   {
     id: 3,
+    title: "PumpLogic Guard",
+    status: "live",
+    icon: Shield,
+    description: "Security toolkit for token analysis and rug-pull detection",
+    features: [
+      "Token scanner with risk scoring (0-100)",
+      "Rug-pull pattern detection",
+      "Liquidity lock status verification",
+      "Holder concentration analysis",
+      "Mint & freeze authority checks",
+      "Watchlist with real-time alerts",
+      "Tax report generation with CSV export"
+    ]
+  },
+  {
+    id: 4,
     title: "PumpLogic Burn & Tools",
     status: "in_progress",
     icon: Flame,
@@ -54,7 +69,7 @@ const phases = [
     ]
   },
   {
-    id: 4,
+    id: 5,
     title: "PumpLogic Sniper",
     status: "planned",
     icon: Target,
@@ -69,7 +84,7 @@ const phases = [
     ]
   },
   {
-    id: 5,
+    id: 6,
     title: "Ecosystem Expansion",
     status: "planned",
     icon: Globe,
