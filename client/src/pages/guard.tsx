@@ -130,13 +130,18 @@ export default function Guard() {
   const [activeTab, setActiveTab] = useState("scanner");
   const [whaleAlerts, setWhaleAlerts] = useState<WhaleAlert[]>([]);
   const [isLoadingAlerts, setIsLoadingAlerts] = useState(false);
+  const [whaleAlertsUnavailable, setWhaleAlertsUnavailable] = useState(false);
 
   const fetchWhaleAlerts = async () => {
     setIsLoadingAlerts(true);
+    setWhaleAlertsUnavailable(false);
     try {
-      const alerts = await tokenApi.getWhaleAlerts({ chain: 'solana', minAmount: 10000 });
-      if (alerts && Array.isArray(alerts)) {
-        setWhaleAlerts(alerts.slice(0, 10));
+      const result = await tokenApi.getWhaleAlerts({ chain: 'solana', minAmount: 10000 }, provider);
+      if (result.unavailable) {
+        setWhaleAlertsUnavailable(true);
+        setWhaleAlerts([]);
+      } else if (result.alerts && Array.isArray(result.alerts)) {
+        setWhaleAlerts(result.alerts.slice(0, 10));
       }
     } catch (err) {
       console.error('Failed to fetch whale alerts:', err);
@@ -149,7 +154,7 @@ export default function Guard() {
     if (activeTab === 'alerts') {
       fetchWhaleAlerts();
     }
-  }, [activeTab]);
+  }, [activeTab, provider]);
 
   const scanFromWatchlist = async (address: string) => {
     setTokenAddress(address);
@@ -751,6 +756,15 @@ export default function Guard() {
                   <div className="flex items-center justify-center py-8">
                     <RefreshCw className="h-6 w-6 animate-spin text-primary" />
                     <span className="ml-2 text-muted-foreground">Loading whale alerts...</span>
+                  </div>
+                ) : whaleAlertsUnavailable ? (
+                  <div className="space-y-4">
+                    <div className="text-center py-6 text-muted-foreground">
+                      <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-yellow-500/50" />
+                      <p className="text-sm text-yellow-400">Whale Alerts Unavailable</p>
+                      <p className="text-xs mt-1">Whale alerts are only available when using VoidScreener API.</p>
+                      <p className="text-xs mt-1 text-muted-foreground">Switch to VoidScreener using the toggle in the navbar.</p>
+                    </div>
                   </div>
                 ) : whaleAlerts.length > 0 ? (
                   <div className="space-y-4">

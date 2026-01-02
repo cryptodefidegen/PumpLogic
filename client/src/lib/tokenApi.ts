@@ -49,7 +49,11 @@ class TokenAPI {
     return this.getVoidScreenerTokenWithRisk(address);
   }
 
-  async getWhaleAlerts(options: { chain?: string; minAmount?: number } = {}): Promise<WhaleAlert[]> {
+  async getWhaleAlerts(options: { chain?: string; minAmount?: number } = {}, provider: ApiProvider = 'voidscreener'): Promise<{ alerts: WhaleAlert[]; unavailable?: boolean }> {
+    if (provider === 'dexscreener') {
+      return { alerts: [], unavailable: true };
+    }
+    
     try {
       const params = new URLSearchParams();
       if (options.chain) params.set('chain', options.chain);
@@ -57,10 +61,10 @@ class TokenAPI {
 
       const res = await fetch(`${VOIDSCREENER_API}/api-whale-alerts?${params}`);
       const data = await res.json();
-      return data?.alerts || [];
+      return { alerts: data?.alerts || [] };
     } catch (error) {
       console.error('Whale alerts API error:', error);
-      return [];
+      return { alerts: [] };
     }
   }
 

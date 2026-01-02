@@ -74,16 +74,20 @@ Preferred communication style: Simple, everyday language.
 
 ## Feature Notes
 
-### VoidScreener API Integration
-- **Location**: `client/src/lib/voidscreener.ts`
-- **Base URL**: `https://rehreqnnkhczmpaytulk.supabase.co/functions/v1`
+### API Provider System
+- **Location**: `client/src/lib/tokenApi.ts` (unified API client)
+- **Context**: `client/src/contexts/ApiProviderContext.tsx` (provider state management)
+- **Supported Providers**:
+  - **VoidScreener**: `https://rehreqnnkhczmpaytulk.supabase.co/functions/v1` (default)
+  - **DexScreener**: `https://api.dexscreener.com/latest/dex` (fallback)
 - **Features**:
-  - Token data lookup by address (getPairs, getToken)
-  - Whale alerts for large transactions (getWhaleAlerts)
-  - Token search functionality
-  - Token analytics aggregation (getTokenAnalytics)
-- **Rate Limit**: 60 requests/minute, no API key required
-- **Usage**: Replaces DexScreener API for Guard token scanner and Analytics token lookup
+  - Token analytics lookup (getTokenAnalytics)
+  - Token with risk factors (getTokenWithRiskFactors)
+  - Whale alerts (getWhaleAlerts) - VoidScreener only
+- **Toggle**: Navbar button visible only to whitelisted address `9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8`
+- **Persistence**: Provider selection saved to localStorage (`pumplogic_api_provider`)
+- **Rate Limits**: VoidScreener 60 req/min, DexScreener standard limits
+- **Note**: Whale alerts unavailable when using DexScreener (shows notice in Guard)
 
 ### PumpLogic Guard (Beta)
 - **Location**: `/guard` route, restricted to whitelisted addresses only
