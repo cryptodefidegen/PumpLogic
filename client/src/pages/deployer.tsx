@@ -352,26 +352,27 @@ export default function Deployer() {
   const totalCost = DEPLOYMENT_COST_SOL + (parseFloat(initialBuy) || 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-black to-primary/5">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen text-foreground pb-20">
+      <div className="container mx-auto px-4 pt-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-4">
-            <Rocket className="h-4 w-4 text-primary" />
-            <span className="text-sm text-primary font-medium">Token Deployer</span>
-            <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 text-[10px]">
-              IN DEV
-            </Badge>
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Rocket className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
+                Pump<span className="text-primary">Logic</span> Deployer
+              </h1>
+              <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 text-xs">
+                IN DEV
+              </Badge>
+            </div>
+            <p className="text-muted-foreground">
+              Launch your Pump.fun token in seconds. Fill in the details, choose a template, and deploy directly to Solana.
+            </p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            PumpLogic <span className="text-primary">Deployer</span>
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Launch your Pump.fun token in seconds. Fill in the details, choose a template, and deploy directly to Solana.
-          </p>
         </motion.div>
 
         {isPreviewMode && (
