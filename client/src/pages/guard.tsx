@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +104,18 @@ interface WatchlistToken {
   addedAt: Date;
 }
 
+interface WhaleAlert {
+  id: string;
+  type: 'buy' | 'sell' | 'transfer';
+  tokenSymbol: string;
+  tokenName: string;
+  amount: number;
+  amountUsd: number;
+  walletAddress: string;
+  timestamp: string;
+  txHash: string;
+}
+
 export default function Guard() {
   const { isConnected, user } = useWallet();
   const [tokenAddress, setTokenAddress] = useState("");
@@ -114,6 +126,28 @@ export default function Guard() {
   const [watchlist, setWatchlist] = useState<WatchlistToken[]>([]);
   const [isAddingToWatchlist, setIsAddingToWatchlist] = useState(false);
   const [activeTab, setActiveTab] = useState("scanner");
+  const [whaleAlerts, setWhaleAlerts] = useState<WhaleAlert[]>([]);
+  const [isLoadingAlerts, setIsLoadingAlerts] = useState(false);
+
+  const fetchWhaleAlerts = async () => {
+    setIsLoadingAlerts(true);
+    try {
+      const data = await voidScreener.getWhaleAlerts({ chain: 'solana', minAmount: 10000 });
+      if (data && data.alerts && Array.isArray(data.alerts)) {
+        setWhaleAlerts(data.alerts.slice(0, 10));
+      }
+    } catch (err) {
+      console.error('Failed to fetch whale alerts:', err);
+    } finally {
+      setIsLoadingAlerts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'alerts') {
+      fetchWhaleAlerts();
+    }
+  }, [activeTab]);
 
   const scanFromWatchlist = async (address: string) => {
     setTokenAddress(address);
@@ -129,7 +163,7 @@ export default function Guard() {
         throw new Error("Token not found or no trading pairs available");
       }
       
-      const { token, pairCreatedAt } = result;
+      const { token, pairCreatedAt, pairAddress, dexId } = result;
       const tokenName = token.name;
       const tokenSymbol = token.symbol;
       const priceUsd = token.price;
@@ -196,7 +230,6 @@ export default function Guard() {
         riskScore += 20;
       }
       
-      const dexId = bestPair.dexId || "unknown";
       if (dexId === "raydium" || dexId === "orca") {
         factors.push({ name: "DEX Platform", status: "safe", description: `Trading on ${dexId.charAt(0).toUpperCase() + dexId.slice(1)}`, weight: 15 });
       } else {
@@ -228,7 +261,7 @@ export default function Guard() {
         volume24h,
         liquidity,
         marketCap,
-        pairAddress: bestPair.pairAddress || "",
+        pairAddress,
         dexId,
       });
     } catch (err: any) {
@@ -296,7 +329,7 @@ export default function Guard() {
         throw new Error("Token not found or no trading pairs available");
       }
       
-      const { token, pairCreatedAt } = result;
+      const { token, pairCreatedAt, pairAddress, dexId } = result;
       const tokenName = token.name;
       const tokenSymbol = token.symbol;
       const priceUsd = token.price;
@@ -370,7 +403,6 @@ export default function Guard() {
       }
       
       // DEX check
-      const dexId = bestPair.dexId || "unknown";
       if (dexId === "raydium" || dexId === "orca") {
         factors.push({ name: "DEX Platform", status: "safe", description: `Trading on ${dexId.charAt(0).toUpperCase() + dexId.slice(1)}`, weight: 15 });
       } else {
@@ -403,7 +435,7 @@ export default function Guard() {
         volume24h,
         liquidity,
         marketCap,
-        pairAddress: bestPair.pairAddress || "",
+        pairAddress,
         dexId,
       };
       
@@ -688,49 +720,102 @@ export default function Guard() {
           <TabsContent value="alerts" className="space-y-6">
             <Card className="bg-black/40 border-white/10">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                  Risk Monitoring
-                </CardTitle>
-                <CardDescription>
-                  Real-time alerts for tokens in your watchlist
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                      Whale Alerts
+                      <Badge className="bg-primary/20 text-primary border-primary/50 text-xs">VoidScreener</Badge>
+                    </CardTitle>
+                    <CardDescription>
+                      Real-time large transaction alerts on Solana
+                    </CardDescription>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={fetchWhaleAlerts}
+                    disabled={isLoadingAlerts}
+                    className="border-white/20"
+                    data-testid="button-refresh-alerts"
+                  >
+                    <RefreshCw className={cn("h-4 w-4 mr-2", isLoadingAlerts && "animate-spin")} />
+                    Refresh
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-white">Large Holder Activity Detected</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Top holder of SAMPLE moved 15% of supply to exchange wallet
-                      </p>
-                      <p className="text-xs text-yellow-500 mt-2">2 minutes ago</p>
+                {isLoadingAlerts ? (
+                  <div className="flex items-center justify-center py-8">
+                    <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+                    <span className="ml-2 text-muted-foreground">Loading whale alerts...</span>
+                  </div>
+                ) : whaleAlerts.length > 0 ? (
+                  <div className="space-y-4">
+                    {whaleAlerts.map((alert, index) => (
+                      <div 
+                        key={alert.id || index}
+                        className={cn(
+                          "p-4 rounded-lg flex items-start gap-3",
+                          alert.type === 'sell' 
+                            ? "bg-red-500/10 border border-red-500/30" 
+                            : alert.type === 'buy'
+                            ? "bg-green-500/10 border border-green-500/30"
+                            : "bg-yellow-500/10 border border-yellow-500/30"
+                        )}
+                      >
+                        {alert.type === 'sell' ? (
+                          <TrendingDown className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                        ) : alert.type === 'buy' ? (
+                          <TrendingUp className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                        ) : (
+                          <Activity className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-white">
+                              {alert.type === 'sell' ? 'Large Sell' : alert.type === 'buy' ? 'Large Buy' : 'Transfer'}: {alert.tokenSymbol || 'Unknown'}
+                            </p>
+                            <Badge variant="outline" className={cn(
+                              "text-xs",
+                              alert.type === 'sell' ? "border-red-500/50 text-red-400" : 
+                              alert.type === 'buy' ? "border-green-500/50 text-green-400" :
+                              "border-yellow-500/50 text-yellow-400"
+                            )}>
+                              {alert.type.toUpperCase()}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatLargeNumber(alert.amountUsd || 0)} ({(alert.amount || 0).toLocaleString()} tokens)
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <p className="text-xs text-muted-foreground">
+                              {alert.timestamp ? new Date(alert.timestamp).toLocaleString() : 'Unknown time'}
+                            </p>
+                            {alert.txHash && (
+                              <a 
+                                href={`https://solscan.io/tx/${alert.txHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline flex items-center gap-1"
+                              >
+                                View TX <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No whale alerts available right now</p>
+                      <p className="text-xs mt-1">Check back later for large transaction alerts</p>
                     </div>
                   </div>
-
-                  <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-start gap-3">
-                    <TrendingDown className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-white">Liquidity Removal Warning</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        30% of liquidity removed from TOKEN/SOL pool
-                      </p>
-                      <p className="text-xs text-red-500 mt-2">15 minutes ago</p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30 flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-white">Liquidity Lock Renewed</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        PLOGIC liquidity lock extended for another 6 months
-                      </p>
-                      <p className="text-xs text-green-500 mt-2">1 hour ago</p>
-                    </div>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 

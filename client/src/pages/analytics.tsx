@@ -39,6 +39,7 @@ import { useWallet } from "@/contexts/WalletContext";
 import { useQuery } from "@tanstack/react-query";
 import { getAnalytics, type AnalyticsData } from "@/lib/api";
 import { Link } from "wouter";
+import voidScreener from "@/lib/voidscreener";
 import { 
   AreaChart,
   Area,
@@ -143,38 +144,26 @@ export default function Analytics() {
     setManualToken(null);
 
     try {
-      const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
+      const tokenData = await voidScreener.getTokenAnalytics(address);
       
-      if (!response.ok) {
-        throw new Error("Failed to fetch token data");
-      }
-      
-      const data = await response.json();
-      
-      if (!data.pairs || data.pairs.length === 0) {
+      if (!tokenData) {
         throw new Error("Token not found or no trading pairs available. The token may not be listed on any DEX yet.");
       }
       
-      const bestPair = data.pairs.reduce((best: any, pair: any) => {
-        const pairLiq = parseFloat(pair.liquidity?.usd || 0);
-        const bestLiq = parseFloat(best?.liquidity?.usd || 0);
-        return pairLiq > bestLiq ? pair : best;
-      }, data.pairs[0]);
-      
       setManualToken({
-        name: bestPair.baseToken?.name || "Unknown Token",
-        symbol: bestPair.baseToken?.symbol || "???",
+        name: tokenData.name,
+        symbol: tokenData.symbol,
         address: address,
-        price: parseFloat(bestPair.priceUsd) || 0,
-        priceChange24h: parseFloat(bestPair.priceChange?.h24) || 0,
-        marketCap: parseFloat(bestPair.marketCap) || parseFloat(bestPair.fdv) || 0,
-        volume24h: parseFloat(bestPair.volume?.h24) || 0,
-        liquidity: parseFloat(bestPair.liquidity?.usd) || 0,
+        price: tokenData.price,
+        priceChange24h: tokenData.priceChange24h,
+        marketCap: tokenData.marketCap,
+        volume24h: tokenData.volume24h,
+        liquidity: tokenData.liquidity,
       });
 
       toast({
         title: "Token Found",
-        description: `Loaded analytics for ${bestPair.baseToken?.symbol || "token"}`,
+        description: `Loaded analytics for ${tokenData.symbol}`,
         className: "bg-primary text-black font-bold"
       });
     } catch (error: any) {

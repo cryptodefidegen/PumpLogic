@@ -74,13 +74,26 @@ Preferred communication style: Simple, everyday language.
 
 ## Feature Notes
 
+### VoidScreener API Integration
+- **Location**: `client/src/lib/voidscreener.ts`
+- **Base URL**: `https://rehreqnnkhczmpaytulk.supabase.co/functions/v1`
+- **Features**:
+  - Token data lookup by address (getPairs, getToken)
+  - Whale alerts for large transactions (getWhaleAlerts)
+  - Token search functionality
+  - Token analytics aggregation (getTokenAnalytics)
+- **Rate Limit**: 60 requests/minute, no API key required
+- **Usage**: Replaces DexScreener API for Guard token scanner and Analytics token lookup
+
 ### PumpLogic Guard (Beta)
 - **Location**: `/guard` route, restricted to whitelisted addresses only
 - **Whitelist**: Deployer address `9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8`
 - **Features**:
-  - Token Scanner: Analyze any Solana token for rug-pull risks (liquidity lock, holder concentration, authority status)
-  - Risk Alerts: Real-time monitoring with sample alerts for large holder movements, liquidity changes
+  - Token Scanner: Analyze any Solana token for rug-pull risks using VoidScreener API
+  - Whale Alerts: Real-time large transaction monitoring from VoidScreener (buy/sell/transfer with tx links)
+  - Risk Alerts: Watchlist monitoring for tracked tokens
   - Tax Reports: Date range selection and CSV export for transaction history
+- **API Integration**: Uses VoidScreener API for token data and whale alerts
 - **Access Control**: Non-whitelisted users see "SOON" badge in navbar (non-clickable), whitelisted see "BETA" badge (clickable)
 
 ### Token Burn Feature

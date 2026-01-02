@@ -178,6 +178,8 @@ class VoidScreenerAPI {
   async getTokenWithRiskFactors(address: string): Promise<{
     token: VoidTokenData;
     pairCreatedAt: string;
+    pairAddress: string;
+    dexId: string;
   } | null> {
     try {
       const pairsData = await this.getPairs(address, { chain: 'solana' });
@@ -209,6 +211,8 @@ class VoidScreenerAPI {
           chain: 'solana',
         },
         pairCreatedAt,
+        pairAddress: bestPair.pairAddress || '',
+        dexId: bestPair.dexId || 'unknown',
       };
     } catch (error) {
       console.error('VoidScreener API error:', error);
