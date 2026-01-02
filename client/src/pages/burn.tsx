@@ -367,7 +367,7 @@ export default function Burn() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <Flame className="h-8 w-8 text-orange-500" />
+                  <Flame className="h-8 w-8 text-primary" />
                   <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
                     Pump<span className="text-primary">Logic</span> Burn
                   </h1>
@@ -382,7 +382,7 @@ export default function Burn() {
             <Card className="bg-black/40 border-white/10 mb-6">
               <CardHeader className="pb-4">
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Flame className="h-5 w-5 text-orange-500" />
+                  <Flame className="h-5 w-5 text-primary" />
                   Burn Token
                 </CardTitle>
                 <CardDescription>
@@ -423,7 +423,7 @@ export default function Burn() {
                 <Card className="bg-black/40 border-white/10">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-white flex items-center gap-2 text-lg">
-                      <AlertTriangle className="h-5 w-5 text-orange-500" />
+                      <AlertTriangle className="h-5 w-5 text-primary" />
                       Burn Amount
                     </CardTitle>
                     <CardDescription>
@@ -433,9 +433,9 @@ export default function Burn() {
                   <CardContent className="space-y-6">
                     <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
                       <div className="flex items-start gap-3">
-                        <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5 shrink-0" />
+                        <AlertTriangle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                         <div>
-                          <p className="text-orange-500 font-medium">Warning: Irreversible Action</p>
+                          <p className="text-primary font-medium">Warning: Irreversible Action</p>
                           <p className="text-sm text-muted-foreground mt-1">
                             Burned tokens are permanently destroyed and cannot be recovered. Make sure you understand this before proceeding.
                           </p>
@@ -590,7 +590,7 @@ export default function Burn() {
                               />
                             ) : (
                               <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
-                                <Flame className="h-6 w-6 text-orange-500" />
+                                <Flame className="h-6 w-6 text-primary" />
                               </div>
                             )}
                             <div>
@@ -766,7 +766,7 @@ export default function Burn() {
           <DialogContent className="bg-black/95 border-white/10 max-w-md">
             <DialogHeader>
               <DialogTitle className="text-white flex items-center gap-2">
-                <Flame className="h-5 w-5 text-orange-500" />
+                <Flame className="h-5 w-5 text-primary" />
                 Confirm Token Burn
               </DialogTitle>
               <DialogDescription>
@@ -777,8 +777,8 @@ export default function Burn() {
             <div className="space-y-4 py-4">
               <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="h-5 w-5 text-orange-500" />
-                  <span className="font-semibold text-orange-500">Warning</span>
+                  <AlertTriangle className="h-5 w-5 text-primary" />
+                  <span className="font-semibold text-primary">Warning</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   This action is permanent and cannot be undone. The burned tokens will be removed from circulation forever.
