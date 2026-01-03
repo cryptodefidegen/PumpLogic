@@ -510,6 +510,20 @@ export default function Deployer() {
   return (
     <div className="min-h-screen text-foreground pb-20">
       <div className="container mx-auto px-4 pt-8">
+        {isPreviewMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/30 flex items-start gap-3"
+          >
+            <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <strong className="text-primary block mb-1">PREVIEW MODE</strong>
+              <span className="text-white/80">Connect your wallet to deploy tokens. You can explore the interface and preview your token.</span>
+            </div>
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -530,20 +544,6 @@ export default function Deployer() {
             </p>
           </div>
         </motion.div>
-
-        {isPreviewMode && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/30 flex items-start gap-3"
-          >
-            <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <strong className="text-primary block mb-1">PREVIEW MODE</strong>
-              <span className="text-white/80">Connect your wallet to deploy tokens. You can explore the interface and preview your token.</span>
-            </div>
-          </motion.div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Form */}
