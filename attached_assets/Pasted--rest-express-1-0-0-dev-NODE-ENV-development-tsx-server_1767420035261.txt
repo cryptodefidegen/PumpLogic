@@ -1,0 +1,14 @@
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+Telegram bot initialized
+Token monitor service started
+Starting price alert monitor...
+Loaded 0 tokens for monitoring
+5:58:50 AM [express] serving on port 5000
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Telegram bot: Another instance is running. Notifications will still work for sending messages.
+5:59:11 AM [express] GET /api/deployments/9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8 304 in 15ms :: [{"id":"baa6f35e-752e-4eda-aa83-cb0f5809eece","walletAddress":"9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8","mintAddress":"J5pH7UEwpDcv6yaNReL5v62DXMaQe9iraKY3YseociLq","signature":"67ozLCjb24bAzP9gSnN69unSgkyMg6h1YgJcuU5Vjw7Mw6Xhq1s2vmwwLiWGEiouFZg7spGcJDw3aGwAEeDAV6vY","tokenName":"PumpLogic Deployer","tokenSymbol":"DEPLOYER","tokenDescription":"PumpLogic Deployer Test Deployment","imageUri":null,"initialBuy":"0.05","createdAt":"2026-01-03T04:25:12.736Z"},{"id":"b6b1f73c-83f3-48a5-9b7d-9b755e2aac38","walletAddress":"9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8","mintAddress":"8sAaranqXMi9pWEuFT297tn2JCpXUgnpB2XY6CCDL2z7","signature":"2dXBWncMYJpGb6zV9TaLwJUsgxzyRtzKMzNrjJmL436vjY3coGeefVZJTMfC1g9u7a4ZuEYpF57RyUEWCikRiX6e","tokenName":"Test Token Deployer","tokenSymbol":"DEPLOYER","tokenDescription":"test deployment only","imageUri":null,"initialBuy":"0.05","createdAt":"2026-01-03T03:49:52.813Z"},{"id":"7da92c82-9317-4264-9ec0-faef56e9b0b5","walletAddress":"9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8","mintAddress":"31Am1fdngBGJjBvD2DqyQB3A1ovUb28PmSzoH1JLMrwS","signature":"39QXFYL6Yg8nrpyTN86CzQ3Y57sq7FQ1LWyUAkEgheZt9k7DU7osWuV3qRCq9HUFcn2d5wTevPKigovRg7VdRKcE","tokenName":"Test Token Deployer","tokenSymbol":"DEPLOYER","tokenDescription":"test deployment only","imageUri":null,"initialBuy":"0.05","createdAt":"2026-01-03T03:48:29.083Z"}]
+5:59:46 AM [express] POST /api/deployer/ipfs 200 in 3164ms :: {"metadata":{"name":"PumpLogic Deployer TEST","symbol":"TESTLIVE","description":"PumpLogic Live Test Token. DO NOT BUY!\r\n\r\n\r\n | Deployed using PumpLogic Deployer. https://pumplogic.live/deployer","image":"https://ipfs.io/ipfs/QmVNMKygvLbXV6QfirMkFS83yyqKvc9wm2GUJGR3Y3afvJ","showName":true,"createdOn":"https://pump.fun"},"metadataUri":"https://ipfs.io/ipfs/QmaoVnJXAj7WC2f4nUKJURWrutMqLrAzdT3RBBocHavef3"}
+5:59:46 AM [express] POST /api/deployer/trade 200 in 92ms
+^C
