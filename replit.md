@@ -160,3 +160,15 @@ Preferred communication style: Simple, everyday language.
   - `GET /api/featured-tokens`: Featured tokens list for all users
   - `GET /api/wallet/status/:walletAddress`: Check wallet ban/badge status
 - **API Endpoints**: All admin endpoints under `/api/admin/*` require admin wallet verification
+
+### Feature Whitelist System
+- **Purpose**: Allows admin to grant specific wallets access to features during maintenance mode
+- **Database Table**: `feature_whitelist` (wallet_address, feature_key, added_by, created_at)
+- **Admin Endpoints**:
+  - `GET /api/admin/feature-whitelist`: Get all whitelisted entries
+  - `POST /api/admin/feature-whitelist`: Add wallet to whitelist (body: walletAddress, featureKey)
+  - `DELETE /api/admin/feature-whitelist/:walletAddress/:featureKey`: Remove from whitelist
+- **Public Endpoint**: `GET /api/feature-whitelist/check/:walletAddress/:featureKey`: Check if wallet is whitelisted
+- **Component**: `MaintenanceGuard` component accepts `featureKey` prop to check whitelist
+- **Security**: Guard fails closed - on API errors, access is denied by default
+- **Feature Keys**: dashboard, analytics, guard, burn, deployer

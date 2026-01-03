@@ -23,8 +23,9 @@ export function MaintenanceGuard({ children, featureKey }: MaintenanceGuardProps
 
   useEffect(() => {
     async function checkWhitelist() {
+      setIsWhitelisted(false);
+      
       if (!walletAddress || !featureKey || isAdmin) {
-        setIsWhitelisted(false);
         return;
       }
 
@@ -33,10 +34,13 @@ export function MaintenanceGuard({ children, featureKey }: MaintenanceGuardProps
         const response = await fetch(`/api/feature-whitelist/check/${walletAddress}/${featureKey}`);
         if (response.ok) {
           const data = await response.json();
-          setIsWhitelisted(data.isWhitelisted);
+          setIsWhitelisted(data.isWhitelisted === true);
+        } else {
+          setIsWhitelisted(false);
         }
       } catch (error) {
         console.error("Error checking whitelist:", error);
+        setIsWhitelisted(false);
       } finally {
         setWhitelistLoading(false);
       }
