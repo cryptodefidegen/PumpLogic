@@ -834,6 +834,10 @@ export default function Admin() {
               <Gauge className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
               Limits
             </TabsTrigger>
+            <TabsTrigger value="whitelist" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
+              <UserCheck className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+              Whitelist
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -1946,6 +1950,128 @@ export default function Admin() {
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-8">No custom rate limits configured</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="whitelist" className="space-y-6">
+            <Card className="bg-black/60 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <UserCheck className="h-5 w-5 text-primary" />
+                  Add Wallet to Feature Whitelist
+                </CardTitle>
+                <CardDescription>
+                  Grant specific wallets access to features during maintenance or private beta
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="whitelist-wallet">Wallet Address</Label>
+                    <Input
+                      id="whitelist-wallet"
+                      placeholder="Enter wallet address"
+                      value={whitelistForm.walletAddress}
+                      onChange={(e) => setWhitelistForm({ ...whitelistForm, walletAddress: e.target.value })}
+                      className="bg-black/40 border-white/20"
+                      data-testid="input-whitelist-wallet"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="whitelist-feature">Feature</Label>
+                    <Select
+                      value={whitelistForm.featureKey}
+                      onValueChange={(value) => setWhitelistForm({ ...whitelistForm, featureKey: value })}
+                    >
+                      <SelectTrigger className="bg-black/40 border-white/20" data-testid="select-whitelist-feature">
+                        <SelectValue placeholder="Select feature" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="deployer">Deployer</SelectItem>
+                        <SelectItem value="dashboard">Dashboard</SelectItem>
+                        <SelectItem value="analytics">Analytics</SelectItem>
+                        <SelectItem value="guard">Guard</SelectItem>
+                        <SelectItem value="burn">Burn</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={addToWhitelist} className="w-full" data-testid="button-add-whitelist">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add to Whitelist
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-black/60 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <UserCheck className="h-5 w-5 text-primary" />
+                  Whitelisted Wallets ({featureWhitelist.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {featureWhitelist.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Wallet</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Feature</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Added By</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Date</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {featureWhitelist.map((entry) => (
+                          <tr key={entry.id} className="border-b border-white/5 hover:bg-white/5" data-testid={`row-whitelist-${entry.id}`}>
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-sm text-white">{truncateAddress(entry.walletAddress)}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(entry.walletAddress)}
+                                  className="h-6 w-6 p-0 hover:bg-white/10"
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <Badge className="bg-primary/20 text-primary">{entry.featureKey}</Badge>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="font-mono text-sm text-muted-foreground">{truncateAddress(entry.addedBy)}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-sm text-muted-foreground">
+                                {format(new Date(entry.createdAt), "MMM d, yyyy")}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFromWhitelist(entry.walletAddress, entry.featureKey)}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                data-testid={`button-remove-whitelist-${entry.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">No wallets whitelisted yet</p>
                 )}
               </CardContent>
             </Card>
