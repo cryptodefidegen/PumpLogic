@@ -862,10 +862,13 @@ export async function registerRoutes(
   });
 
   // Solana RPC endpoints for reliable access
-  const SOLANA_RPC_URLS = [
-    "https://mainnet.helius-rpc.com/?api-key=6c0f868c-8eb0-45d9-abb2-36e6b96a18f4",
-    "https://api.mainnet-beta.solana.com",
-  ];
+  const HELIUS_KEY = process.env.HELIUS_API_KEY;
+  const SOLANA_RPC_URLS = HELIUS_KEY 
+    ? [
+        `https://mainnet.helius-rpc.com/?api-key=${HELIUS_KEY}`,
+        "https://api.mainnet-beta.solana.com",
+      ]
+    : ["https://api.mainnet-beta.solana.com"];
 
   // Helper to make RPC call with fallback
   async function solanaRpcCall(method: string, params: any[] = []) {
