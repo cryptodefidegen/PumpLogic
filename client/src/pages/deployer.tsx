@@ -94,6 +94,7 @@ export default function Deployer() {
   const { toast } = useToast();
   const { isConnected, fullWalletAddress, connectedWallet, availableWallets } = useWallet();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<TokenFormData>({
     name: "",
@@ -106,6 +107,8 @@ export default function Deployer() {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>("standard");
   const [initialBuy, setInitialBuy] = useState<string>("0.5");
   const [isDeploying, setIsDeploying] = useState(false);
@@ -130,6 +133,26 @@ export default function Deployer() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [toast]);
+
+  const handleBannerUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "File too large",
+          description: "Please upload a banner smaller than 5MB",
+        });
+        return;
+      }
+      setBannerFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -218,6 +241,7 @@ export default function Deployer() {
       formDataToSend.append("symbol", formData.symbol.toUpperCase());
       formDataToSend.append("description", formData.description);
       formDataToSend.append("showName", formData.showName ? "true" : "false");
+      if (bannerFile) formDataToSend.append("banner", bannerFile);
       if (formData.twitter) formDataToSend.append("twitter", formData.twitter);
       if (formData.telegram) formDataToSend.append("telegram", formData.telegram);
       if (formData.website) formDataToSend.append("website", formData.website);
@@ -343,6 +367,8 @@ export default function Deployer() {
     });
     setImageFile(null);
     setImagePreview(null);
+    setBannerFile(null);
+    setBannerPreview(null);
     setSelectedTemplate("standard");
     setInitialBuy("0.5");
     setDeploymentResult(null);
@@ -479,6 +505,46 @@ export default function Deployer() {
                     onChange={handleImageUpload}
                     className="hidden"
                     data-testid="input-token-image"
+                  />
+                </div>
+
+                {/* Banner Upload */}
+                <div className="space-y-2">
+                  <Label className="text-white flex items-center gap-2">
+                    Banner Image
+                    <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+                  </Label>
+                  <div
+                    onClick={() => bannerInputRef.current?.click()}
+                    className={cn(
+                      "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
+                      bannerPreview ? "border-primary/50 bg-primary/5" : "border-white/20 hover:border-primary/50"
+                    )}
+                  >
+                    {bannerPreview ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <img
+                          src={bannerPreview}
+                          alt="Banner preview"
+                          className="w-full h-24 rounded-lg object-cover border border-primary/50"
+                        />
+                        <p className="text-sm text-primary">Click to change banner</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <Image className="h-6 w-6 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Click to upload banner (1500x500 recommended)</p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    ref={bannerInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/gif"
+                    onChange={handleBannerUpload}
+                    className="hidden"
+                    data-testid="input-token-banner"
                   />
                 </div>
               </CardContent>
