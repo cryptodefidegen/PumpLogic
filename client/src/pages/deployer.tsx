@@ -34,9 +34,9 @@ import { cn } from "@/lib/utils";
 import bs58 from "bs58";
 
 const SOLANA_RPC_ENDPOINTS = [
+  "https://mainnet.helius-rpc.com/?api-key=1d8740dc-e5f4-421c-b823-e1bad1889eff",
+  "https://solana-mainnet.rpc.extrnode.com",
   "https://api.mainnet-beta.solana.com",
-  "https://solana-mainnet.g.alchemy.com/v2/demo",
-  "https://rpc.ankr.com/solana",
 ];
 const SOLANA_RPC = SOLANA_RPC_ENDPOINTS[0];
 
