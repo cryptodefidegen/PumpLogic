@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   Rocket, Loader2, AlertTriangle, Wallet, ExternalLink, 
   Info, Upload, Image, Twitter, MessageCircle, Globe,
   Sparkles, Zap, Users, Shield, CheckCircle2, Copy,
-  ArrowRight, RefreshCw, Flame, BarChart3, X
+  ArrowRight, RefreshCw, Flame, BarChart3, X, History, Clock
 } from "lucide-react";
 import { Connection, PublicKey, VersionedTransaction, Keypair } from "@solana/web3.js";
 import {
@@ -59,6 +59,19 @@ interface DeploymentResult {
   mintAddress?: string;
   signature?: string;
   error?: string;
+}
+
+interface DeploymentRecord {
+  id: string;
+  walletAddress: string;
+  mintAddress: string;
+  signature: string;
+  tokenName: string;
+  tokenSymbol: string;
+  tokenDescription?: string;
+  imageUri?: string;
+  initialBuy?: string;
+  createdAt: string;
 }
 
 const templates: DeploymentTemplate[] = [
@@ -115,8 +128,35 @@ export default function Deployer() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [deploymentResult, setDeploymentResult] = useState<DeploymentResult | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [deploymentHistory, setDeploymentHistory] = useState<DeploymentRecord[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const isPreviewMode = !isConnected;
+
+  // Fetch deployment history when wallet connects
+  useEffect(() => {
+    const fetchDeploymentHistory = async () => {
+      if (!fullWalletAddress) {
+        setDeploymentHistory([]);
+        return;
+      }
+      
+      setIsLoadingHistory(true);
+      try {
+        const response = await fetch(`/api/deployments/${fullWalletAddress}`);
+        if (response.ok) {
+          const data = await response.json();
+          setDeploymentHistory(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch deployment history:", error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    fetchDeploymentHistory();
+  }, [fullWalletAddress]);
 
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -321,12 +361,39 @@ export default function Deployer() {
         throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
       }
 
+      const mintAddress = mintKeypair.publicKey.toBase58();
+      
       setDeploymentResult({
         success: true,
-        mintAddress: mintKeypair.publicKey.toBase58(),
+        mintAddress,
         signature,
       });
       setShowSuccessDialog(true);
+
+      // Save deployment record to database
+      try {
+        const response = await fetch("/api/deployments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            walletAddress: fullWalletAddress,
+            mintAddress,
+            signature,
+            tokenName: formData.name,
+            tokenSymbol: formData.symbol,
+            tokenDescription: formData.description || null,
+            imageUri: null,
+            initialBuy: initialBuy || "0",
+          }),
+        });
+        
+        if (response.ok) {
+          const newRecord = await response.json();
+          setDeploymentHistory(prev => [newRecord, ...prev]);
+        }
+      } catch (error) {
+        console.error("Failed to save deployment record:", error);
+      }
 
       toast({
         title: "Token Deployed!",
@@ -797,6 +864,102 @@ export default function Deployer() {
             <ExternalLink className="h-3 w-3" />
           </a>
         </div>
+
+        {/* Deployment History */}
+        {isConnected && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8"
+          >
+            <Card className="bg-black/40 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary" />
+                  Your Deployment History
+                </CardTitle>
+                <CardDescription>
+                  Tokens you've deployed with PumpLogic
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingHistory ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : deploymentHistory.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Rocket className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-muted-foreground">No tokens deployed yet</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your deployed tokens will appear here
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {deploymentHistory.map((deployment) => (
+                      <div
+                        key={deployment.id}
+                        className="flex items-center justify-between p-4 rounded-lg bg-black/40 border border-white/10 hover:border-primary/30 transition-colors"
+                        data-testid={`deployment-record-${deployment.id}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <Rocket className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">{deployment.tokenName}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span className="text-primary font-mono">${deployment.tokenSymbol}</span>
+                              <span>•</span>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {new Date(deployment.createdAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                  onClick={() => copyToClipboard(deployment.mintAddress, "Contract address")}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Copy contract address</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <a
+                            href={`https://pump.fun/${deployment.mintAddress}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-primary hover:bg-white/5 transition-colors"
+                          >
+                            <Rocket className="h-4 w-4" />
+                          </a>
+                          <a
+                            href={`https://solscan.io/tx/${deployment.signature}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-primary hover:bg-white/5 transition-colors"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
 
       {/* Confirmation Dialog */}
