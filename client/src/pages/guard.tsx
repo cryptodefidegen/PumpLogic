@@ -929,61 +929,60 @@ export default function Guard() {
                               Holder Distribution
                             </p>
                             <div className="h-[150px]">
-                              <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                  <Pie
-                                    data={(() => {
-                                      const top10Total = holdersData.holders.slice(0, 10).reduce((sum, h) => sum + h.percentage, 0);
-                                      const othersTotal = 100 - top10Total;
-                                      const chartData = holdersData.holders.slice(0, 5).map((h, i) => ({
-                                        name: `#${i + 1}`,
-                                        value: h.percentage,
-                                        address: h.address
-                                      }));
-                                      const top5Total = chartData.reduce((sum, d) => sum + d.value, 0);
-                                      if (holdersData.holders.length > 5) {
-                                        chartData.push({
-                                          name: '#6-10',
-                                          value: top10Total - top5Total,
-                                          address: ''
-                                        });
-                                      }
-                                      if (othersTotal > 0) {
-                                        chartData.push({
-                                          name: 'Others',
-                                          value: othersTotal,
-                                          address: ''
-                                        });
-                                      }
-                                      return chartData;
-                                    })()}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={35}
-                                    outerRadius={55}
-                                    paddingAngle={2}
-                                    dataKey="value"
-                                  >
-                                    {holdersData.holders.slice(0, 7).map((_, index) => (
-                                      <Cell 
-                                        key={`cell-${index}`} 
-                                        fill={[
-                                          '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#64748b'
-                                        ][index]}
+                              {(() => {
+                                const top10Total = holdersData.holders.slice(0, 10).reduce((sum, h) => sum + h.percentage, 0);
+                                const othersTotal = Math.max(0, 100 - top10Total);
+                                const chartData: { name: string; value: number }[] = holdersData.holders.slice(0, 5).map((h, i) => ({
+                                  name: `#${i + 1}`,
+                                  value: h.percentage
+                                }));
+                                const top5Total = chartData.reduce((sum, d) => sum + d.value, 0);
+                                if (holdersData.holders.length > 5) {
+                                  chartData.push({
+                                    name: '#6-10',
+                                    value: Math.max(0, top10Total - top5Total)
+                                  });
+                                }
+                                if (othersTotal > 0) {
+                                  chartData.push({
+                                    name: 'Others',
+                                    value: othersTotal
+                                  });
+                                }
+                                const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#64748b'];
+                                
+                                return (
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                      <Pie
+                                        data={chartData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={35}
+                                        outerRadius={55}
+                                        paddingAngle={2}
+                                        dataKey="value"
+                                      >
+                                        {chartData.map((_, index) => (
+                                          <Cell 
+                                            key={`cell-${index}`} 
+                                            fill={COLORS[index % COLORS.length]}
+                                          />
+                                        ))}
+                                      </Pie>
+                                      <Tooltip 
+                                        contentStyle={{ 
+                                          backgroundColor: 'rgba(0,0,0,0.9)', 
+                                          border: '1px solid rgba(255,255,255,0.1)',
+                                          borderRadius: '8px',
+                                          fontSize: '12px'
+                                        }}
+                                        formatter={(value: number) => [`${value.toFixed(2)}%`, 'Holding']}
                                       />
-                                    ))}
-                                  </Pie>
-                                  <Tooltip 
-                                    contentStyle={{ 
-                                      backgroundColor: 'rgba(0,0,0,0.9)', 
-                                      border: '1px solid rgba(255,255,255,0.1)',
-                                      borderRadius: '8px',
-                                      fontSize: '12px'
-                                    }}
-                                    formatter={(value: number) => [`${value.toFixed(2)}%`, 'Holding']}
-                                  />
-                                </PieChart>
-                              </ResponsiveContainer>
+                                    </PieChart>
+                                  </ResponsiveContainer>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
