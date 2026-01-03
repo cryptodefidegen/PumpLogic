@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useMaintenanceMode } from "@/hooks/useFeatureFlag";
 import { useWallet } from "@/contexts/WalletContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,15 +10,42 @@ const ADMIN_WALLET = "9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8";
 
 interface MaintenanceGuardProps {
   children: ReactNode;
+  featureKey?: string;
 }
 
-export function MaintenanceGuard({ children }: MaintenanceGuardProps) {
+export function MaintenanceGuard({ children, featureKey }: MaintenanceGuardProps) {
   const { isMaintenanceMode, isLoading } = useMaintenanceMode();
   const { walletAddress } = useWallet();
+  const [isWhitelisted, setIsWhitelisted] = useState(false);
+  const [whitelistLoading, setWhitelistLoading] = useState(false);
   
   const isAdmin = walletAddress === ADMIN_WALLET;
 
-  if (isLoading) {
+  useEffect(() => {
+    async function checkWhitelist() {
+      if (!walletAddress || !featureKey || isAdmin) {
+        setIsWhitelisted(false);
+        return;
+      }
+
+      setWhitelistLoading(true);
+      try {
+        const response = await fetch(`/api/feature-whitelist/check/${walletAddress}/${featureKey}`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsWhitelisted(data.isWhitelisted);
+        }
+      } catch (error) {
+        console.error("Error checking whitelist:", error);
+      } finally {
+        setWhitelistLoading(false);
+      }
+    }
+
+    checkWhitelist();
+  }, [walletAddress, featureKey, isAdmin]);
+
+  if (isLoading || whitelistLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -26,7 +53,7 @@ export function MaintenanceGuard({ children }: MaintenanceGuardProps) {
     );
   }
 
-  if (isMaintenanceMode && !isAdmin) {
+  if (isMaintenanceMode && !isAdmin && !isWhitelisted) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <motion.div

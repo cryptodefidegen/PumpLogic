@@ -28,7 +28,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/app">
         {() => (
-          <MaintenanceGuard>
+          <MaintenanceGuard featureKey="dashboard">
             <Dashboard />
           </MaintenanceGuard>
         )}
@@ -38,21 +38,21 @@ function Router() {
       <Route path="/roadmap" component={Roadmap} />
       <Route path="/analytics">
         {() => (
-          <MaintenanceGuard>
+          <MaintenanceGuard featureKey="analytics">
             <Analytics />
           </MaintenanceGuard>
         )}
       </Route>
       <Route path="/guard">
         {() => (
-          <MaintenanceGuard>
+          <MaintenanceGuard featureKey="guard">
             <Guard />
           </MaintenanceGuard>
         )}
       </Route>
       <Route path="/burn">
         {() => (
-          <MaintenanceGuard>
+          <MaintenanceGuard featureKey="burn">
             <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
               <Burn />
             </Suspense>
@@ -61,7 +61,7 @@ function Router() {
       </Route>
       <Route path="/deployer">
         {() => (
-          <MaintenanceGuard>
+          <MaintenanceGuard featureKey="deployer">
             <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
               <Deployer />
             </Suspense>
