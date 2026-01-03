@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Users, Rocket, ArrowRightLeft, PieChart, ToggleLeft, ScrollText, Shield, RefreshCcw, ExternalLink, Copy, Ban, Award, Megaphone, Star, Gauge, Trash2, Plus } from "lucide-react";
+import { Loader2, Users, Rocket, ArrowRightLeft, PieChart, ToggleLeft, ScrollText, Shield, RefreshCcw, ExternalLink, Copy, Ban, Award, Megaphone, Star, Gauge, Trash2, Plus, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -136,6 +136,14 @@ interface RateLimit {
   updatedAt: string;
 }
 
+interface FeatureWhitelistEntry {
+  id: string;
+  walletAddress: string;
+  featureKey: string;
+  addedBy: string;
+  createdAt: string;
+}
+
 export default function Admin() {
   const { walletAddress } = useWallet();
   const { toast } = useToast();
@@ -159,6 +167,8 @@ export default function Admin() {
   const [announcementForm, setAnnouncementForm] = useState({ title: "", message: "", type: "info" as "info" | "warning" | "success" | "error", isPinned: false, expiresAt: "" });
   const [tokenForm, setTokenForm] = useState({ mintAddress: "", tokenName: "", tokenSymbol: "", imageUri: "", isVerified: false, displayOrder: 0 });
   const [rateLimitForm, setRateLimitForm] = useState({ walletAddress: "", maxRequestsPerMinute: 60, maxDeploysPerDay: 10, maxBurnsPerDay: 10 });
+  const [featureWhitelist, setFeatureWhitelist] = useState<FeatureWhitelistEntry[]>([]);
+  const [whitelistForm, setWhitelistForm] = useState({ walletAddress: "", featureKey: "deployer" });
 
   const isAdmin = walletAddress === ADMIN_WALLET;
 
@@ -614,6 +624,59 @@ export default function Admin() {
     }
   };
 
+  const fetchWhitelist = async () => {
+    try {
+      const res = await fetch("/api/admin/feature-whitelist", { headers: apiHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        setFeatureWhitelist(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch whitelist:", error);
+    }
+  };
+
+  const addToWhitelist = async () => {
+    if (!whitelistForm.walletAddress || !whitelistForm.featureKey) {
+      toast({ variant: "destructive", title: "Error", description: "Wallet address and feature are required" });
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/feature-whitelist", {
+        method: "POST",
+        headers: apiHeaders,
+        body: JSON.stringify(whitelistForm),
+      });
+      if (res.ok) {
+        toast({ title: "Success", description: "Wallet whitelisted successfully" });
+        setWhitelistForm({ walletAddress: "", featureKey: "deployer" });
+        fetchWhitelist();
+        fetchLogs();
+      } else {
+        const error = await res.json();
+        toast({ variant: "destructive", title: "Error", description: error.error || "Failed to whitelist wallet" });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to whitelist wallet" });
+    }
+  };
+
+  const removeFromWhitelist = async (walletAddr: string, featureKey: string) => {
+    try {
+      const res = await fetch(`/api/admin/feature-whitelist/${walletAddr}/${featureKey}`, {
+        method: "DELETE",
+        headers: apiHeaders,
+      });
+      if (res.ok) {
+        toast({ title: "Success", description: "Wallet removed from whitelist" });
+        fetchWhitelist();
+        fetchLogs();
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to remove from whitelist" });
+    }
+  };
+
   const loadAllData = async () => {
     setLoading(true);
     await Promise.all([
@@ -629,6 +692,7 @@ export default function Admin() {
       fetchAnnouncements(),
       fetchFeaturedTokens(),
       fetchRateLimits(),
+      fetchWhitelist(),
     ]);
     setLoading(false);
   };
