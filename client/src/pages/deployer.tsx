@@ -307,14 +307,15 @@ export default function Deployer() {
 
       toast({ title: "Uploading metadata...", description: "Uploading token data to IPFS" });
 
-      const ipfsResponse = await fetch("https://pump.fun/api/ipfs", {
+      // Use our backend proxy to avoid CORS issues
+      const ipfsResponse = await fetch("/api/deployer/ipfs", {
         method: "POST",
         body: formDataToSend,
       });
 
       if (!ipfsResponse.ok) {
-        const errorText = await ipfsResponse.text();
-        throw new Error(`Failed to upload metadata to IPFS: ${errorText}`);
+        const errorData = await ipfsResponse.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(`Failed to upload metadata to IPFS: ${errorData.error || ipfsResponse.statusText}`);
       }
 
       const ipfsData = await ipfsResponse.json();
@@ -338,15 +339,16 @@ export default function Deployer() {
         pool: "pump",
       };
 
-      const txResponse = await fetch("https://pumpportal.fun/api/trade-local", {
+      // Use our backend proxy to avoid CORS issues
+      const txResponse = await fetch("/api/deployer/trade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(createPayload),
       });
 
       if (!txResponse.ok) {
-        const errorText = await txResponse.text();
-        throw new Error(`Failed to create transaction: ${errorText}`);
+        const errorData = await txResponse.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(`Failed to create transaction: ${errorData.error || txResponse.statusText}`);
       }
 
       const txData = await txResponse.arrayBuffer();

@@ -2,12 +2,15 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
 import path from "path";
+import multer from "multer";
 import { storage } from "./storage";
 import { insertAllocationSchema, insertTransactionSchema, insertAutomationConfigSchema, insertDestinationWalletsSchema, insertTelegramSettingsSchema, insertTokenSettingsSchema, insertLinkedWalletSchema, insertPriceAlertSchema, insertMultiTokenSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 import { solanaService } from "./services/solana";
 import { getBot } from "./services/telegram";
 import { tokenMonitor } from "./services/tokenMonitor";
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(
   httpServer: Server,
@@ -776,6 +779,85 @@ export async function registerRoutes(
       return res.json(deployments);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== DEPLOYER PROXY ENDPOINTS (to avoid CORS issues) =====
+
+  // Proxy for Pump.fun IPFS upload
+  app.post("/api/deployer/ipfs", upload.fields([
+    { name: 'file', maxCount: 1 },
+    { name: 'banner', maxCount: 1 }
+  ]), async (req, res) => {
+    try {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      
+      if (!files?.file?.[0]) {
+        return res.status(400).json({ error: "Token image file is required" });
+      }
+
+      // Build FormData to send to pump.fun
+      const formData = new FormData();
+      
+      // Add the main image file
+      const imageFile = files.file[0];
+      formData.append('file', new Blob([imageFile.buffer], { type: imageFile.mimetype }), imageFile.originalname);
+      
+      // Add banner if provided
+      if (files.banner?.[0]) {
+        const bannerFile = files.banner[0];
+        formData.append('banner', new Blob([bannerFile.buffer], { type: bannerFile.mimetype }), bannerFile.originalname);
+      }
+      
+      // Add text fields from request body
+      if (req.body.name) formData.append('name', req.body.name);
+      if (req.body.symbol) formData.append('symbol', req.body.symbol);
+      if (req.body.description) formData.append('description', req.body.description);
+      if (req.body.showName) formData.append('showName', req.body.showName);
+      if (req.body.twitter) formData.append('twitter', req.body.twitter);
+      if (req.body.telegram) formData.append('telegram', req.body.telegram);
+      if (req.body.website) formData.append('website', req.body.website);
+
+      const response = await fetch("https://pump.fun/api/ipfs", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Pump.fun IPFS error:", errorText);
+        return res.status(response.status).json({ error: errorText });
+      }
+
+      const data = await response.json();
+      return res.json(data);
+    } catch (error: any) {
+      console.error("IPFS proxy error:", error);
+      return res.status(500).json({ error: error.message || "Failed to upload to IPFS" });
+    }
+  });
+
+  // Proxy for PumpPortal trade API
+  app.post("/api/deployer/trade", async (req, res) => {
+    try {
+      const response = await fetch("https://pumpportal.fun/api/trade-local", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req.body),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return res.status(response.status).json({ error: errorText });
+      }
+
+      // Return as array buffer for transaction data
+      const data = await response.arrayBuffer();
+      res.setHeader('Content-Type', 'application/octet-stream');
+      return res.send(Buffer.from(data));
+    } catch (error: any) {
+      console.error("Trade proxy error:", error);
+      return res.status(500).json({ error: error.message || "Failed to create transaction" });
     }
   });
 
