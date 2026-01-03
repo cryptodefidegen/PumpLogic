@@ -129,8 +129,8 @@ const templates: DeploymentTemplate[] = [
 
 const DEPLOYMENT_COST_SOL = 0.02;
 
-// Whitelisted addresses that can access the deployer
-const DEPLOYER_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
+// Admin wallet always has access
+const ADMIN_WALLET = "9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8";
 
 export default function Deployer() {
   const { toast } = useToast();
@@ -163,10 +163,47 @@ export default function Deployer() {
     DeploymentRecord[]
   >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isWhitelisted, setIsWhitelisted] = useState(false);
+  const [isCheckingWhitelist, setIsCheckingWhitelist] = useState(true);
 
   const isPreviewMode = !isConnected;
-  const isWhitelisted =
-    fullWalletAddress && DEPLOYER_WHITELIST.includes(fullWalletAddress);
+  const isAdmin = fullWalletAddress === ADMIN_WALLET;
+
+  // Check if wallet is whitelisted for deployer
+  useEffect(() => {
+    async function checkWhitelist() {
+      if (!fullWalletAddress) {
+        setIsWhitelisted(false);
+        setIsCheckingWhitelist(false);
+        return;
+      }
+
+      // Admin always has access
+      if (fullWalletAddress === ADMIN_WALLET) {
+        setIsWhitelisted(true);
+        setIsCheckingWhitelist(false);
+        return;
+      }
+
+      setIsCheckingWhitelist(true);
+      try {
+        const response = await fetch(`/api/feature-whitelist/check/${fullWalletAddress}/deployer`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsWhitelisted(data.isWhitelisted === true);
+        } else {
+          setIsWhitelisted(false);
+        }
+      } catch (error) {
+        console.error("Error checking whitelist:", error);
+        setIsWhitelisted(false);
+      } finally {
+        setIsCheckingWhitelist(false);
+      }
+    }
+
+    checkWhitelist();
+  }, [fullWalletAddress]);
 
   // Fetch deployment history when wallet connects
   useEffect(() => {
@@ -563,7 +600,16 @@ export default function Deployer() {
 
   const totalCost = DEPLOYMENT_COST_SOL + (parseFloat(initialBuy) || 0);
 
-  // Show restricted access for preview mode and non-whitelisted users
+  // Show loading state while checking whitelist
+  if (isCheckingWhitelist) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-primary animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show restricted access for non-whitelisted users
   if (!isWhitelisted) {
     return (
       <div className="min-h-screen text-foreground pb-20">
