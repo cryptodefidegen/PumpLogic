@@ -1,6 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -8,11 +14,31 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/contexts/WalletContext";
-import { 
-  Rocket, Loader2, ExternalLink, AlertTriangle,
-  Info, Upload, Image, Twitter, MessageCircle, Globe,
-  Sparkles, Zap, Users, Shield, CheckCircle2, Copy,
-  ArrowRight, RefreshCw, Flame, BarChart3, X, History, Clock, Wallet
+import {
+  Rocket,
+  Loader2,
+  ExternalLink,
+  AlertTriangle,
+  Info,
+  Upload,
+  Image,
+  Twitter,
+  MessageCircle,
+  Globe,
+  Sparkles,
+  Zap,
+  Users,
+  Shield,
+  CheckCircle2,
+  Copy,
+  ArrowRight,
+  RefreshCw,
+  Flame,
+  BarChart3,
+  X,
+  History,
+  Clock,
+  Wallet,
 } from "lucide-react";
 import { VersionedTransaction, Keypair } from "@solana/web3.js";
 import {
@@ -108,10 +134,11 @@ const DEPLOYER_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 
 export default function Deployer() {
   const { toast } = useToast();
-  const { isConnected, fullWalletAddress, connectedWallet, availableWallets } = useWallet();
+  const { isConnected, fullWalletAddress, connectedWallet, availableWallets } =
+    useWallet();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [formData, setFormData] = useState<TokenFormData>({
     name: "",
     symbol: "",
@@ -129,13 +156,17 @@ export default function Deployer() {
   const [initialBuy, setInitialBuy] = useState<string>("0.5");
   const [isDeploying, setIsDeploying] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [deploymentResult, setDeploymentResult] = useState<DeploymentResult | null>(null);
+  const [deploymentResult, setDeploymentResult] =
+    useState<DeploymentResult | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [deploymentHistory, setDeploymentHistory] = useState<DeploymentRecord[]>([]);
+  const [deploymentHistory, setDeploymentHistory] = useState<
+    DeploymentRecord[]
+  >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const isPreviewMode = !isConnected;
-  const isWhitelisted = fullWalletAddress && DEPLOYER_WHITELIST.includes(fullWalletAddress);
+  const isWhitelisted =
+    fullWalletAddress && DEPLOYER_WHITELIST.includes(fullWalletAddress);
 
   // Fetch deployment history when wallet connects
   useEffect(() => {
@@ -144,7 +175,7 @@ export default function Deployer() {
         setDeploymentHistory([]);
         return;
       }
-      
+
       setIsLoadingHistory(true);
       try {
         const response = await fetch(`/api/deployments/${fullWalletAddress}`);
@@ -162,49 +193,55 @@ export default function Deployer() {
     fetchDeploymentHistory();
   }, [fullWalletAddress]);
 
-  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          variant: "destructive",
-          title: "File too large",
-          description: "Please upload an image smaller than 5MB",
-        });
-        return;
+  const handleImageUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            variant: "destructive",
+            title: "File too large",
+            description: "Please upload an image smaller than 5MB",
+          });
+          return;
+        }
+        setImageFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
       }
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  }, [toast]);
+    },
+    [toast],
+  );
 
-  const handleBannerUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          variant: "destructive",
-          title: "File too large",
-          description: "Please upload a banner smaller than 5MB",
-        });
-        return;
+  const handleBannerUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            variant: "destructive",
+            title: "File too large",
+            description: "Please upload a banner smaller than 5MB",
+          });
+          return;
+        }
+        setBannerFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setBannerPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
       }
-      setBannerFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBannerPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  }, [toast]);
+    },
+    [toast],
+  );
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
-    const template = templates.find(t => t.id === templateId);
+    const template = templates.find((t) => t.id === templateId);
     if (template) {
       setInitialBuy(template.initialBuy.toString());
     }
@@ -212,23 +249,43 @@ export default function Deployer() {
 
   const validateForm = (): boolean => {
     if (!formData.name.trim()) {
-      toast({ variant: "destructive", title: "Missing name", description: "Please enter a token name" });
+      toast({
+        variant: "destructive",
+        title: "Missing name",
+        description: "Please enter a token name",
+      });
       return false;
     }
     if (!formData.symbol.trim()) {
-      toast({ variant: "destructive", title: "Missing symbol", description: "Please enter a token symbol" });
+      toast({
+        variant: "destructive",
+        title: "Missing symbol",
+        description: "Please enter a token symbol",
+      });
       return false;
     }
     if (formData.symbol.length > 10) {
-      toast({ variant: "destructive", title: "Symbol too long", description: "Symbol must be 10 characters or less" });
+      toast({
+        variant: "destructive",
+        title: "Symbol too long",
+        description: "Symbol must be 10 characters or less",
+      });
       return false;
     }
     if (!formData.description.trim()) {
-      toast({ variant: "destructive", title: "Missing description", description: "Please enter a token description" });
+      toast({
+        variant: "destructive",
+        title: "Missing description",
+        description: "Please enter a token description",
+      });
       return false;
     }
     if (!imageFile) {
-      toast({ variant: "destructive", title: "Missing image", description: "Please upload a token image" });
+      toast({
+        variant: "destructive",
+        title: "Missing image",
+        description: "Please upload a token image",
+      });
       return false;
     }
     return true;
@@ -247,23 +304,31 @@ export default function Deployer() {
 
   const deployToken = async () => {
     if (!fullWalletAddress || !connectedWallet || !imageFile) {
-      toast({ variant: "destructive", title: "Error", description: "Wallet not connected or missing image" });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Wallet not connected or missing image",
+      });
       return;
     }
 
-    const wallet = availableWallets.find(w => w.name === connectedWallet);
+    const wallet = availableWallets.find((w) => w.name === connectedWallet);
     if (!wallet?.provider) {
-      toast({ variant: "destructive", title: "Wallet Error", description: "Wallet not connected. Please reconnect your wallet." });
+      toast({
+        variant: "destructive",
+        title: "Wallet Error",
+        description: "Wallet not connected. Please reconnect your wallet.",
+      });
       return;
     }
 
     const solBalance = await checkSolBalance();
     const requiredBalance = totalCost + 0.01;
     if (solBalance < requiredBalance) {
-      toast({ 
-        variant: "destructive", 
-        title: "Insufficient Balance", 
-        description: `You need at least ${requiredBalance.toFixed(3)} SOL. Current balance: ${solBalance.toFixed(3)} SOL` 
+      toast({
+        variant: "destructive",
+        title: "Insufficient Balance",
+        description: `You need at least ${requiredBalance.toFixed(3)} SOL. Current balance: ${solBalance.toFixed(3)} SOL`,
       });
       return;
     }
@@ -280,15 +345,19 @@ export default function Deployer() {
       formDataToSend.append("symbol", formData.symbol.toUpperCase());
       const brandedDescription = `${formData.description}
 
-Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
+ | Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
       formDataToSend.append("description", brandedDescription);
       formDataToSend.append("showName", formData.showName ? "true" : "false");
       if (bannerFile) formDataToSend.append("banner", bannerFile);
       if (formData.twitter) formDataToSend.append("twitter", formData.twitter);
-      if (formData.telegram) formDataToSend.append("telegram", formData.telegram);
+      if (formData.telegram)
+        formDataToSend.append("telegram", formData.telegram);
       if (formData.website) formDataToSend.append("website", formData.website);
 
-      toast({ title: "Uploading metadata...", description: "Uploading token data to IPFS" });
+      toast({
+        title: "Uploading metadata...",
+        description: "Uploading token data to IPFS",
+      });
 
       // Use our backend proxy to avoid CORS issues
       const ipfsResponse = await fetch("/api/deployer/ipfs", {
@@ -297,13 +366,20 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
       });
 
       if (!ipfsResponse.ok) {
-        const errorData = await ipfsResponse.json().catch(() => ({ error: "Unknown error" }));
-        throw new Error(`Failed to upload metadata to IPFS: ${errorData.error || ipfsResponse.statusText}`);
+        const errorData = await ipfsResponse
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(
+          `Failed to upload metadata to IPFS: ${errorData.error || ipfsResponse.statusText}`,
+        );
       }
 
       const ipfsData = await ipfsResponse.json();
 
-      toast({ title: "Creating transaction...", description: "Building deployment transaction" });
+      toast({
+        title: "Creating transaction...",
+        description: "Building deployment transaction",
+      });
 
       const initialBuyAmount = parseFloat(initialBuy) || 0;
       const createPayload = {
@@ -330,8 +406,12 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
       });
 
       if (!txResponse.ok) {
-        const errorData = await txResponse.json().catch(() => ({ error: "Unknown error" }));
-        throw new Error(`Failed to create transaction: ${errorData.error || txResponse.statusText}`);
+        const errorData = await txResponse
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(
+          `Failed to create transaction: ${errorData.error || txResponse.statusText}`,
+        );
       }
 
       const txData = await txResponse.arrayBuffer();
@@ -339,15 +419,21 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
 
       tx.sign([mintKeypair]);
 
-      toast({ title: "Awaiting signature...", description: "Please approve the transaction in your wallet" });
+      toast({
+        title: "Awaiting signature...",
+        description: "Please approve the transaction in your wallet",
+      });
 
       const signedTx = await wallet.provider.signTransaction(tx);
 
-      toast({ title: "Sending transaction...", description: "Broadcasting to Solana network" });
+      toast({
+        title: "Sending transaction...",
+        description: "Broadcasting to Solana network",
+      });
 
       // Use backend proxy for reliable transaction broadcast
       const serializedTx = Buffer.from(signedTx.serialize()).toString("base64");
-      
+
       const sendResponse = await fetch("/api/deployer/send-tx", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -355,17 +441,24 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
       });
 
       if (!sendResponse.ok) {
-        const errorData = await sendResponse.json().catch(() => ({ error: "Unknown error" }));
-        throw new Error(`Failed to send transaction: ${errorData.error || sendResponse.statusText}`);
+        const errorData = await sendResponse
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(
+          `Failed to send transaction: ${errorData.error || sendResponse.statusText}`,
+        );
       }
 
       const { signature } = await sendResponse.json();
-      
+
       if (!signature) {
         throw new Error("No transaction signature returned");
       }
 
-      toast({ title: "Confirming...", description: "Waiting for transaction confirmation" });
+      toast({
+        title: "Confirming...",
+        description: "Waiting for transaction confirmation",
+      });
 
       const confirmResponse = await fetch("/api/deployer/confirm-tx", {
         method: "POST",
@@ -374,13 +467,13 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
       });
 
       const confirmData = await confirmResponse.json();
-      
+
       if (!confirmData.confirmed) {
         throw new Error(confirmData.error || "Transaction confirmation failed");
       }
 
       const mintAddress = mintKeypair.publicKey.toBase58();
-      
+
       setDeploymentResult({
         success: true,
         mintAddress,
@@ -404,10 +497,10 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
             initialBuy: initialBuy || "0",
           }),
         });
-        
+
         if (response.ok) {
           const newRecord = await response.json();
-          setDeploymentHistory(prev => [newRecord, ...prev]);
+          setDeploymentHistory((prev) => [newRecord, ...prev]);
         }
       } catch (error) {
         console.error("Failed to save deployment record:", error);
@@ -418,7 +511,6 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
         description: `${formData.symbol.toUpperCase()} has been successfully deployed`,
         className: "bg-primary text-black font-bold",
       });
-
     } catch (error: any) {
       console.error("Deployment failed:", error);
       setDeploymentResult({
@@ -428,7 +520,8 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
       toast({
         variant: "destructive",
         title: "Deployment Failed",
-        description: error.message || "Failed to deploy token. Please try again.",
+        description:
+          error.message || "Failed to deploy token. Please try again.",
       });
     } finally {
       setIsDeploying(false);
@@ -470,8 +563,13 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
           <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex items-start gap-3">
             <Shield className="h-6 w-6 text-primary shrink-0 mt-0.5" />
             <div className="text-sm">
-              <strong className="text-primary block mb-1">ACCESS RESTRICTED</strong>
-              <span className="text-white/80">The PumpLogic Deployer is currently in private beta. Only whitelisted wallets can access this feature.</span>
+              <strong className="text-primary block mb-1">
+                ACCESS RESTRICTED
+              </strong>
+              <span className="text-white/80">
+                The PumpLogic Deployer is currently in private beta. Only
+                whitelisted wallets can access this feature.
+              </span>
             </div>
           </div>
 
@@ -486,12 +584,16 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                 <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
                   Pump<span className="text-primary">Logic</span> Deployer
                 </h1>
-                <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 text-xs">
+                <Badge
+                  variant="outline"
+                  className="border-yellow-500/50 text-yellow-500 text-xs"
+                >
                   IN DEV
                 </Badge>
               </div>
               <p className="text-muted-foreground">
-                Launch your Pump.fun token in seconds. Fill in the details, choose a template, and deploy directly to Solana.
+                Launch your Pump.fun token in seconds. Fill in the details,
+                choose a template, and deploy directly to Solana.
               </p>
             </div>
           </motion.div>
@@ -514,12 +616,16 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
               <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
                 Pump<span className="text-primary">Logic</span> Deployer
               </h1>
-              <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 text-xs">
+              <Badge
+                variant="outline"
+                className="border-yellow-500/50 text-yellow-500 text-xs"
+              >
                 IN DEV
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              Launch your Pump.fun token in seconds. Fill in the details, choose a template, and deploy directly to Solana.
+              Launch your Pump.fun token in seconds. Fill in the details, choose
+              a template, and deploy directly to Solana.
             </p>
           </div>
         </motion.div>
@@ -534,45 +640,60 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                   <Sparkles className="h-5 w-5 text-primary" />
                   Token Details
                 </CardTitle>
-                <CardDescription>
-                  Enter your token information
-                </CardDescription>
+                <CardDescription>Enter your token information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-white">Token Name *</Label>
+                    <Label htmlFor="name" className="text-white">
+                      Token Name *
+                    </Label>
                     <Input
                       id="name"
                       placeholder="e.g. PumpLogic"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       className="bg-black/40 border-white/20"
                       data-testid="input-token-name"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="symbol" className="text-white">Symbol *</Label>
+                    <Label htmlFor="symbol" className="text-white">
+                      Symbol *
+                    </Label>
                     <Input
                       id="symbol"
                       placeholder="e.g. PLOGIC"
                       value={formData.symbol}
-                      onChange={(e) => setFormData({ ...formData, symbol: e.target.value.toUpperCase() })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          symbol: e.target.value.toUpperCase(),
+                        })
+                      }
                       maxLength={10}
                       className="bg-black/40 border-white/20 uppercase"
                       data-testid="input-token-symbol"
                     />
-                    <p className="text-xs text-muted-foreground">{formData.symbol.length}/10 characters</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formData.symbol.length}/10 characters
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="text-white">Description *</Label>
+                  <Label htmlFor="description" className="text-white">
+                    Description *
+                  </Label>
                   <Textarea
                     id="description"
                     placeholder="Describe your token and its purpose..."
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                     className="bg-black/40 border-white/20 min-h-[100px]"
                     data-testid="input-token-description"
                   />
@@ -585,7 +706,9 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                     onClick={() => fileInputRef.current?.click()}
                     className={cn(
                       "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-                      imagePreview ? "border-primary/50 bg-primary/5" : "border-white/20 hover:border-primary/50"
+                      imagePreview
+                        ? "border-primary/50 bg-primary/5"
+                        : "border-white/20 hover:border-primary/50",
                     )}
                   >
                     {imagePreview ? (
@@ -595,13 +718,19 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                           alt="Token preview"
                           className="w-24 h-24 rounded-full object-cover border-2 border-primary"
                         />
-                        <p className="text-sm text-primary">Click to change image</p>
+                        <p className="text-sm text-primary">
+                          Click to change image
+                        </p>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2">
                         <Upload className="h-8 w-8 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Click to upload image</p>
-                        <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                        <p className="text-sm text-muted-foreground">
+                          Click to upload image
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          PNG, JPG up to 5MB
+                        </p>
                       </div>
                     )}
                   </div>
@@ -619,13 +748,17 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                 <div className="space-y-2">
                   <Label className="text-white flex items-center gap-2">
                     Banner Image
-                    <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+                    <span className="text-xs text-muted-foreground font-normal">
+                      (Optional)
+                    </span>
                   </Label>
                   <div
                     onClick={() => bannerInputRef.current?.click()}
                     className={cn(
                       "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
-                      bannerPreview ? "border-primary/50 bg-primary/5" : "border-white/20 hover:border-primary/50"
+                      bannerPreview
+                        ? "border-primary/50 bg-primary/5"
+                        : "border-white/20 hover:border-primary/50",
                     )}
                   >
                     {bannerPreview ? (
@@ -635,13 +768,19 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                           alt="Banner preview"
                           className="w-full h-24 rounded-lg object-cover border border-primary/50"
                         />
-                        <p className="text-sm text-primary">Click to change banner</p>
+                        <p className="text-sm text-primary">
+                          Click to change banner
+                        </p>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2">
                         <Image className="h-6 w-6 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">Click to upload banner (1500x500 recommended)</p>
-                        <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                        <p className="text-sm text-muted-foreground">
+                          Click to upload banner (1500x500 recommended)
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          PNG, JPG up to 5MB
+                        </p>
                       </div>
                     )}
                   </div>
@@ -663,7 +802,9 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                 <CardTitle className="text-white flex items-center gap-2">
                   <Globe className="h-5 w-5 text-primary" />
                   Social Links
-                  <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+                  <span className="text-xs text-muted-foreground font-normal">
+                    (Optional)
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -675,7 +816,9 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                     <Input
                       placeholder="https://x.com/..."
                       value={formData.twitter}
-                      onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, twitter: e.target.value })
+                      }
                       className="bg-black/40 border-white/20"
                       data-testid="input-twitter"
                     />
@@ -687,7 +830,9 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                     <Input
                       placeholder="https://t.me/..."
                       value={formData.telegram}
-                      onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, telegram: e.target.value })
+                      }
                       className="bg-black/40 border-white/20"
                       data-testid="input-telegram"
                     />
@@ -699,7 +844,9 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                     <Input
                       placeholder="https://..."
                       value={formData.website}
-                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, website: e.target.value })
+                      }
                       className="bg-black/40 border-white/20"
                       data-testid="input-website"
                     />
@@ -715,9 +862,7 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                   <Zap className="h-5 w-5 text-primary" />
                   Launch Template
                 </CardTitle>
-                <CardDescription>
-                  Choose a deployment strategy
-                </CardDescription>
+                <CardDescription>Choose a deployment strategy</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -729,7 +874,7 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                         "relative p-4 rounded-lg border-2 cursor-pointer transition-all",
                         selectedTemplate === template.id
                           ? "border-primary bg-primary/10"
-                          : "border-white/10 bg-black/20 hover:border-white/30"
+                          : "border-white/10 bg-black/20 hover:border-white/30",
                       )}
                       data-testid={`template-${template.id}`}
                     >
@@ -738,16 +883,26 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                           Recommended
                         </Badge>
                       )}
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
-                        selectedTemplate === template.id ? "bg-primary/20 text-primary" : "bg-white/10 text-muted-foreground"
-                      )}>
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center mb-3",
+                          selectedTemplate === template.id
+                            ? "bg-primary/20 text-primary"
+                            : "bg-white/10 text-muted-foreground",
+                        )}
+                      >
                         {template.icon}
                       </div>
-                      <h4 className="text-white font-medium mb-1">{template.name}</h4>
-                      <p className="text-xs text-muted-foreground mb-2">{template.description}</p>
+                      <h4 className="text-white font-medium mb-1">
+                        {template.name}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {template.description}
+                      </p>
                       <p className="text-sm text-primary font-mono">
-                        {template.initialBuy === 0 ? "No dev buy" : `${template.initialBuy} SOL initial`}
+                        {template.initialBuy === 0
+                          ? "No dev buy"
+                          : `${template.initialBuy} SOL initial`}
                       </p>
                     </div>
                   ))}
@@ -768,14 +923,19 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" className="border-white/20">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-white/20"
+                          >
                             <Info className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p className="max-w-xs text-xs">
-                            This is the amount of SOL you'll spend to buy your own token immediately after creation.
-                            Set to 0 for a fair launch with no dev allocation.
+                            This is the amount of SOL you'll spend to buy your
+                            own token immediately after creation. Set to 0 for a
+                            fair launch with no dev allocation.
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -820,13 +980,22 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-3">
-                    {formData.description || "Your token description will appear here..."}
+                    {formData.description ||
+                      "Your token description will appear here..."}
                   </p>
-                  {(formData.twitter || formData.telegram || formData.website) && (
+                  {(formData.twitter ||
+                    formData.telegram ||
+                    formData.website) && (
                     <div className="flex gap-3 mt-4 pt-4 border-t border-white/10">
-                      {formData.twitter && <Twitter className="h-4 w-4 text-muted-foreground" />}
-                      {formData.telegram && <MessageCircle className="h-4 w-4 text-muted-foreground" />}
-                      {formData.website && <Globe className="h-4 w-4 text-muted-foreground" />}
+                      {formData.twitter && (
+                        <Twitter className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      {formData.telegram && (
+                        <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      {formData.website && (
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                      )}
                     </div>
                   )}
                 </div>
@@ -844,16 +1013,22 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Network Fee</span>
-                  <span className="text-white font-mono">~{DEPLOYMENT_COST_SOL} SOL</span>
+                  <span className="text-white font-mono">
+                    ~{DEPLOYMENT_COST_SOL} SOL
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Initial Buy</span>
-                  <span className="text-white font-mono">{parseFloat(initialBuy) || 0} SOL</span>
+                  <span className="text-white font-mono">
+                    {parseFloat(initialBuy) || 0} SOL
+                  </span>
                 </div>
                 <div className="border-t border-white/10 pt-3">
                   <div className="flex justify-between">
                     <span className="text-white font-medium">Total</span>
-                    <span className="text-primary font-bold font-mono">~{totalCost.toFixed(3)} SOL</span>
+                    <span className="text-primary font-bold font-mono">
+                      ~{totalCost.toFixed(3)} SOL
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -893,9 +1068,9 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
         {/* Powered by */}
         <div className="flex items-center justify-center gap-2 pt-12 pb-4">
           <span className="text-xs text-muted-foreground">Powered by</span>
-          <a 
-            href="https://pump.fun" 
-            target="_blank" 
+          <a
+            href="https://pump.fun"
+            target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
           >
@@ -930,7 +1105,9 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                 ) : deploymentHistory.length === 0 ? (
                   <div className="text-center py-8">
                     <Rocket className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground">No tokens deployed yet</p>
+                    <p className="text-muted-foreground">
+                      No tokens deployed yet
+                    </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Your deployed tokens will appear here
                     </p>
@@ -948,13 +1125,19 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                             <Rocket className="h-5 w-5 text-primary" />
                           </div>
                           <div>
-                            <p className="text-white font-medium">{deployment.tokenName}</p>
+                            <p className="text-white font-medium">
+                              {deployment.tokenName}
+                            </p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <span className="text-primary font-mono">${deployment.tokenSymbol}</span>
+                              <span className="text-primary font-mono">
+                                ${deployment.tokenSymbol}
+                              </span>
                               <span>•</span>
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {new Date(deployment.createdAt).toLocaleDateString()}
+                                {new Date(
+                                  deployment.createdAt,
+                                ).toLocaleDateString()}
                               </div>
                             </div>
                           </div>
@@ -967,12 +1150,19 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                                   size="icon"
                                   variant="ghost"
                                   className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                  onClick={() => copyToClipboard(deployment.mintAddress, "Contract address")}
+                                  onClick={() =>
+                                    copyToClipboard(
+                                      deployment.mintAddress,
+                                      "Contract address",
+                                    )
+                                  }
                                 >
                                   <Copy className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Copy contract address</TooltipContent>
+                              <TooltipContent>
+                                Copy contract address
+                              </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                           <a
@@ -1018,7 +1208,11 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
           <div className="space-y-4 py-4">
             <div className="flex items-center gap-4 p-4 rounded-lg bg-primary/10 border border-primary/20">
               {imagePreview && (
-                <img src={imagePreview} alt="Token" className="w-12 h-12 rounded-full object-cover" />
+                <img
+                  src={imagePreview}
+                  alt="Token"
+                  className="w-12 h-12 rounded-full object-cover"
+                />
               )}
               <div>
                 <p className="text-white font-bold">{formData.name}</p>
@@ -1029,11 +1223,15 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Initial Buy</span>
-                <span className="text-white font-mono">{parseFloat(initialBuy) || 0} SOL</span>
+                <span className="text-white font-mono">
+                  {parseFloat(initialBuy) || 0} SOL
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Cost</span>
-                <span className="text-primary font-mono font-bold">~{totalCost.toFixed(3)} SOL</span>
+                <span className="text-primary font-mono font-bold">
+                  ~{totalCost.toFixed(3)} SOL
+                </span>
               </div>
             </div>
 
@@ -1041,17 +1239,25 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
               <div className="flex gap-2">
                 <AlertTriangle className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
                 <p className="text-xs text-yellow-500">
-                  This action is irreversible. Make sure all details are correct before proceeding.
+                  This action is irreversible. Make sure all details are correct
+                  before proceeding.
                 </p>
               </div>
             </div>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="border-white/20">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmDialog(false)}
+              className="border-white/20"
+            >
               Cancel
             </Button>
-            <Button onClick={deployToken} className="bg-primary text-black hover:bg-primary/90">
+            <Button
+              onClick={deployToken}
+              className="bg-primary text-black hover:bg-primary/90"
+            >
               <Rocket className="mr-2 h-4 w-4" />
               Deploy Now
             </Button>
@@ -1072,7 +1278,11 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
           <div className="space-y-4 py-4">
             <div className="flex items-center gap-4 p-4 rounded-lg bg-green-500/10 border border-green-500/20">
               {imagePreview && (
-                <img src={imagePreview} alt="Token" className="w-12 h-12 rounded-full object-cover" />
+                <img
+                  src={imagePreview}
+                  alt="Token"
+                  className="w-12 h-12 rounded-full object-cover"
+                />
               )}
               <div>
                 <p className="text-white font-bold">{formData.name}</p>
@@ -1082,7 +1292,9 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
 
             {deploymentResult?.mintAddress && (
               <div className="space-y-2">
-                <Label className="text-muted-foreground text-xs">Contract Address</Label>
+                <Label className="text-muted-foreground text-xs">
+                  Contract Address
+                </Label>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 p-2 rounded bg-black/40 border border-white/10 text-xs text-primary font-mono truncate">
                     {deploymentResult.mintAddress}
@@ -1091,7 +1303,12 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
                     size="icon"
                     variant="outline"
                     className="border-white/20 shrink-0"
-                    onClick={() => copyToClipboard(deploymentResult.mintAddress!, "Contract address")}
+                    onClick={() =>
+                      copyToClipboard(
+                        deploymentResult.mintAddress!,
+                        "Contract address",
+                      )
+                    }
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -1121,7 +1338,9 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
             </div>
 
             <div className="pt-4 border-t border-white/10">
-              <p className="text-xs text-muted-foreground mb-3">Continue with PumpLogic tools:</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Continue with PumpLogic tools:
+              </p>
               <div className="grid grid-cols-3 gap-2">
                 <a
                   href={`/guard?token=${deploymentResult?.mintAddress}`}
@@ -1149,7 +1368,11 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
           </div>
 
           <DialogFooter>
-            <Button onClick={resetForm} variant="outline" className="border-white/20">
+            <Button
+              onClick={resetForm}
+              variant="outline"
+              className="border-white/20"
+            >
               <RefreshCw className="mr-2 h-4 w-4" />
               Deploy Another
             </Button>
