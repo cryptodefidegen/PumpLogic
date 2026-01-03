@@ -33,7 +33,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import bs58 from "bs58";
 
-const SOLANA_RPC = "https://api.mainnet-beta.solana.com";
+const SOLANA_RPC_ENDPOINTS = [
+  "https://api.mainnet-beta.solana.com",
+  "https://solana-mainnet.g.alchemy.com/v2/demo",
+  "https://rpc.ankr.com/solana",
+];
+const SOLANA_RPC = SOLANA_RPC_ENDPOINTS[0];
 
 interface TokenFormData {
   name: string;
@@ -237,13 +242,26 @@ export default function Deployer() {
 
   const checkSolBalance = async (): Promise<number> => {
     if (!fullWalletAddress) return 0;
-    try {
-      const connection = new Connection(SOLANA_RPC, "confirmed");
-      const balance = await connection.getBalance(new PublicKey(fullWalletAddress));
-      return balance / 1e9;
-    } catch {
-      return 0;
+    
+    // Try multiple RPC endpoints
+    for (const rpc of SOLANA_RPC_ENDPOINTS) {
+      try {
+        const connection = new Connection(rpc, "confirmed");
+        const balance = await connection.getBalance(new PublicKey(fullWalletAddress));
+        return balance / 1e9;
+      } catch (error) {
+        console.error(`RPC ${rpc} failed:`, error);
+        continue; // Try next RPC
+      }
     }
+    
+    // All RPCs failed - warn but proceed
+    console.error("All RPC endpoints failed to fetch balance");
+    toast({
+      title: "Balance Check Skipped",
+      description: "Could not verify balance due to network issues. Proceeding with deployment.",
+    });
+    return 999; // Return high value to skip check, let transaction fail naturally if insufficient
   };
 
   const deployToken = async () => {
