@@ -2038,15 +2038,27 @@ export async function registerRoutes(
       if (wallet) {
         try {
           const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+          const TOKEN_2022_PROGRAM_ID = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
           const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
           const ownerPubkey = new PublicKey(wallet as string);
           
+          // Try standard Token Program first
           const [ata] = PublicKey.findProgramAddressSync(
             [ownerPubkey.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mintPubkey.toBuffer()],
             ASSOCIATED_TOKEN_PROGRAM_ID
           );
           
-          const ataInfo = await connection.getParsedAccountInfo(ata);
+          let ataInfo = await connection.getParsedAccountInfo(ata);
+          
+          // If not found, try Token-2022 Program
+          if (!ataInfo.value) {
+            const [ata2022] = PublicKey.findProgramAddressSync(
+              [ownerPubkey.toBuffer(), TOKEN_2022_PROGRAM_ID.toBuffer(), mintPubkey.toBuffer()],
+              ASSOCIATED_TOKEN_PROGRAM_ID
+            );
+            ataInfo = await connection.getParsedAccountInfo(ata2022);
+          }
+          
           if (ataInfo.value && 'parsed' in ataInfo.value.data) {
             balance = parseFloat(ataInfo.value.data.parsed.info.tokenAmount.uiAmount || 0);
           }
