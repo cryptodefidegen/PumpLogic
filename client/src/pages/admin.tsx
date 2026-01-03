@@ -792,52 +792,68 @@ export default function Admin() {
         </motion.div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-black/40 border border-white/10 p-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12 gap-1 h-auto w-full">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="features" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              Features
-            </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="deployments" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              Deploys
-            </TabsTrigger>
-            <TabsTrigger value="transactions" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              Txns
-            </TabsTrigger>
-            <TabsTrigger value="allocations" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              Allocs
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              Logs
-            </TabsTrigger>
-            <TabsTrigger value="blacklist" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              <Ban className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              Bans
-            </TabsTrigger>
-            <TabsTrigger value="badges" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              <Award className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              Badges
-            </TabsTrigger>
-            <TabsTrigger value="announcements" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              <Megaphone className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              Alerts
-            </TabsTrigger>
-            <TabsTrigger value="featured-tokens" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              Featured
-            </TabsTrigger>
-            <TabsTrigger value="rate-limits" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              <Gauge className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              Limits
-            </TabsTrigger>
-            <TabsTrigger value="whitelist" className="data-[state=active]:bg-primary data-[state=active]:text-black text-xs sm:text-sm px-2 py-1.5">
-              <UserCheck className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-              Whitelist
-            </TabsTrigger>
+          <div className="bg-black/40 border border-white/10 rounded-lg p-3">
+            <Select value={activeTab} onValueChange={setActiveTab}>
+              <SelectTrigger className="w-full bg-black/60 border-white/20" data-testid="select-admin-tab">
+                <SelectValue placeholder="Select section" />
+              </SelectTrigger>
+              <SelectContent className="bg-black/95 border-white/20">
+                <SelectItem value="overview">
+                  <span className="flex items-center gap-2">Overview</span>
+                </SelectItem>
+                <SelectItem value="features">
+                  <span className="flex items-center gap-2">Features</span>
+                </SelectItem>
+                <SelectItem value="users">
+                  <span className="flex items-center gap-2">Users</span>
+                </SelectItem>
+                <SelectItem value="deployments">
+                  <span className="flex items-center gap-2">Deployments</span>
+                </SelectItem>
+                <SelectItem value="transactions">
+                  <span className="flex items-center gap-2">Transactions</span>
+                </SelectItem>
+                <SelectItem value="allocations">
+                  <span className="flex items-center gap-2">Allocations</span>
+                </SelectItem>
+                <SelectItem value="logs">
+                  <span className="flex items-center gap-2">Logs</span>
+                </SelectItem>
+                <SelectItem value="blacklist">
+                  <span className="flex items-center gap-2"><Ban className="h-4 w-4" /> Bans</span>
+                </SelectItem>
+                <SelectItem value="badges">
+                  <span className="flex items-center gap-2"><Award className="h-4 w-4" /> Badges</span>
+                </SelectItem>
+                <SelectItem value="announcements">
+                  <span className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> Announcements</span>
+                </SelectItem>
+                <SelectItem value="featured-tokens">
+                  <span className="flex items-center gap-2"><Star className="h-4 w-4" /> Featured Tokens</span>
+                </SelectItem>
+                <SelectItem value="rate-limits">
+                  <span className="flex items-center gap-2"><Gauge className="h-4 w-4" /> Rate Limits</span>
+                </SelectItem>
+                <SelectItem value="whitelist">
+                  <span className="flex items-center gap-2"><UserCheck className="h-4 w-4" /> Whitelist</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <TabsList className="hidden">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="features">Features</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="deployments">Deployments</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="allocations">Allocations</TabsTrigger>
+            <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="blacklist">Bans</TabsTrigger>
+            <TabsTrigger value="badges">Badges</TabsTrigger>
+            <TabsTrigger value="announcements">Announcements</TabsTrigger>
+            <TabsTrigger value="featured-tokens">Featured Tokens</TabsTrigger>
+            <TabsTrigger value="rate-limits">Rate Limits</TabsTrigger>
+            <TabsTrigger value="whitelist">Whitelist</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
