@@ -362,24 +362,42 @@ export default function Deployer() {
 
       toast({ title: "Sending transaction...", description: "Broadcasting to Solana network" });
 
-      const connection = new Connection(SOLANA_RPC, "confirmed");
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      // Try multiple RPCs for transaction broadcast
+      let signature: string | null = null;
+      let lastError: Error | null = null;
       
-      const signature = await connection.sendRawTransaction(signedTx.serialize(), {
-        skipPreflight: false,
-        preflightCommitment: "confirmed",
-      });
+      for (const rpc of SOLANA_RPC_ENDPOINTS) {
+        try {
+          const connection = new Connection(rpc, "confirmed");
+          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+          
+          signature = await connection.sendRawTransaction(signedTx.serialize(), {
+            skipPreflight: true,
+            preflightCommitment: "confirmed",
+          });
 
-      toast({ title: "Confirming...", description: "Waiting for transaction confirmation" });
+          toast({ title: "Confirming...", description: "Waiting for transaction confirmation" });
 
-      const confirmation = await connection.confirmTransaction({
-        signature,
-        blockhash,
-        lastValidBlockHeight,
-      }, "confirmed");
+          const confirmation = await connection.confirmTransaction({
+            signature,
+            blockhash,
+            lastValidBlockHeight,
+          }, "confirmed");
 
-      if (confirmation.value.err) {
-        throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
+          if (confirmation.value.err) {
+            throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
+          }
+          
+          break; // Success, exit loop
+        } catch (error: any) {
+          console.error(`RPC ${rpc} failed for transaction:`, error);
+          lastError = error;
+          continue; // Try next RPC
+        }
+      }
+      
+      if (!signature) {
+        throw lastError || new Error("All RPC endpoints failed to send transaction");
       }
 
       const mintAddress = mintKeypair.publicKey.toBase58();
