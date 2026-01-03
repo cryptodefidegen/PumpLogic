@@ -115,11 +115,14 @@ Preferred communication style: Simple, everyday language.
 - **Features**:
   - One-click Pump.fun token deployment
   - Token metadata form: name, symbol, description, image upload
+  - Optional banner image upload (1500x500 recommended)
   - Optional social links: Twitter, Telegram, Website
   - Launch templates: Fair Launch (0 SOL), Standard (0.5 SOL), Meme Token (1 SOL)
   - Custom initial buy configuration
   - Live token preview card
   - Cost breakdown calculator
-  - Post-deploy success flow with links to Pump.fun, Solscan, Guard, Burn, Allocator
+  - Post-deploy success dialog with contract address, copy button, and quick links to Pump.fun, Solscan, Guard, Burn, Allocator
+  - Deployment history: persisted record of all tokens deployed by connected wallet
 - **API Integration**: Uses Pump.fun API for IPFS metadata upload and PumpPortal for transaction creation
-- **Implementation**: Client-side deployment with wallet transaction signing
+- **Database**: `deployment_records` table stores wallet address, mint address, signature, token name/symbol/description, and timestamp
+- **Implementation**: Client-side deployment with wallet transaction signing, server-side history persistence
