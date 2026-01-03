@@ -278,7 +278,9 @@ export default function Deployer() {
       formDataToSend.append("file", imageFile);
       formDataToSend.append("name", formData.name);
       formDataToSend.append("symbol", formData.symbol.toUpperCase());
-      const brandedDescription = formData.description + "\n\n" + "Deployed using PumpLogic Deployer. https://pumplogic.live/deployer";
+      const brandedDescription = `${formData.description.replace(/\r\n/g, '\n').replace(/\r/g, '\n')}
+
+Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
       formDataToSend.append("description", brandedDescription);
       formDataToSend.append("showName", formData.showName ? "true" : "false");
       if (bannerFile) formDataToSend.append("banner", bannerFile);
