@@ -1471,6 +1471,437 @@ export async function registerRoutes(
     }
   });
 
+  // ===== BLACKLIST MANAGEMENT =====
+  app.get("/api/admin/blacklist", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const blacklist = await storage.getBlacklist();
+      return res.json(blacklist);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/blacklist", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { walletAddress, reason, status, suspendedUntil } = req.body;
+      const entry = await storage.addToBlacklist({
+        walletAddress,
+        reason,
+        status: status || "banned",
+        suspendedUntil: suspendedUntil ? new Date(suspendedUntil) : null,
+        createdBy: adminWallet,
+      });
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: status === "suspended" ? "SUSPEND_WALLET" : "BAN_WALLET",
+        targetType: "wallet",
+        targetId: walletAddress,
+        details: reason || null,
+      });
+
+      return res.json(entry);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/admin/blacklist/:walletAddress", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { walletAddress } = req.params;
+      await storage.removeFromBlacklist(walletAddress);
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "UNBAN_WALLET",
+        targetType: "wallet",
+        targetId: walletAddress,
+      });
+
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== USER BADGES =====
+  app.get("/api/admin/badges", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const badges = await storage.getAllBadges();
+      return res.json(badges);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/badges", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { walletAddress, badgeType, expiresAt } = req.body;
+      const badge = await storage.grantBadge({
+        walletAddress,
+        badgeType,
+        grantedBy: adminWallet,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+      });
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "GRANT_BADGE",
+        targetType: "badge",
+        targetId: walletAddress,
+        details: badgeType,
+      });
+
+      return res.json(badge);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/admin/badges/:id", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { id } = req.params;
+      await storage.revokeBadge(id);
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "REVOKE_BADGE",
+        targetType: "badge",
+        targetId: id,
+      });
+
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== ANNOUNCEMENTS =====
+  app.get("/api/admin/announcements", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const allAnnouncements = await storage.getAllAnnouncements();
+      return res.json(allAnnouncements);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/announcements", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { title, message, type, isPinned, expiresAt } = req.body;
+      const announcement = await storage.createAnnouncement({
+        title,
+        message,
+        type: type || "info",
+        isActive: true,
+        isPinned: isPinned || false,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        createdBy: adminWallet,
+      });
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "CREATE_ANNOUNCEMENT",
+        targetType: "announcement",
+        targetId: announcement.id,
+        details: title,
+      });
+
+      return res.json(announcement);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/admin/announcements/:id", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const announcement = await storage.updateAnnouncement(id, updates);
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "UPDATE_ANNOUNCEMENT",
+        targetType: "announcement",
+        targetId: id,
+      });
+
+      return res.json(announcement);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/admin/announcements/:id", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { id } = req.params;
+      await storage.deleteAnnouncement(id);
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "DELETE_ANNOUNCEMENT",
+        targetType: "announcement",
+        targetId: id,
+      });
+
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== FEATURED TOKENS =====
+  app.get("/api/admin/featured-tokens", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const tokens = await storage.getFeaturedTokens();
+      return res.json(tokens);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/featured-tokens", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { mintAddress, tokenName, tokenSymbol, imageUri, isVerified, displayOrder } = req.body;
+      const token = await storage.addFeaturedToken({
+        mintAddress,
+        tokenName,
+        tokenSymbol,
+        imageUri,
+        isVerified: isVerified || false,
+        displayOrder: displayOrder || 0,
+        addedBy: adminWallet,
+      });
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "ADD_FEATURED_TOKEN",
+        targetType: "token",
+        targetId: mintAddress,
+        details: `${tokenName} (${tokenSymbol})`,
+      });
+
+      return res.json(token);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/admin/featured-tokens/:id", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const token = await storage.updateFeaturedToken(id, updates);
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "UPDATE_FEATURED_TOKEN",
+        targetType: "token",
+        targetId: id,
+      });
+
+      return res.json(token);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/admin/featured-tokens/:id", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { id } = req.params;
+      await storage.removeFeaturedToken(id);
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "REMOVE_FEATURED_TOKEN",
+        targetType: "token",
+        targetId: id,
+      });
+
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== RATE LIMITS =====
+  app.get("/api/admin/rate-limits", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const limits = await storage.getAllRateLimits();
+      return res.json(limits);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/rate-limits", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { walletAddress, maxRequestsPerMinute, maxDeploysPerDay, maxBurnsPerDay } = req.body;
+      const limit = await storage.setRateLimit({
+        walletAddress,
+        maxRequestsPerMinute: maxRequestsPerMinute || 60,
+        maxDeploysPerDay: maxDeploysPerDay || 10,
+        maxBurnsPerDay: maxBurnsPerDay || 50,
+        updatedBy: adminWallet,
+      });
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "SET_RATE_LIMIT",
+        targetType: "rate_limit",
+        targetId: walletAddress,
+        details: `${maxRequestsPerMinute} req/min, ${maxDeploysPerDay} deploys/day`,
+      });
+
+      return res.json(limit);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/admin/rate-limits/:walletAddress", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { walletAddress } = req.params;
+      await storage.removeRateLimit(walletAddress);
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "REMOVE_RATE_LIMIT",
+        targetType: "rate_limit",
+        targetId: walletAddress,
+      });
+
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ===== DAILY STATS / ANALYTICS =====
+  app.get("/api/admin/daily-stats", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { startDate, endDate } = req.query;
+      const start = (startDate as string) || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const end = (endDate as string) || new Date().toISOString().split('T')[0];
+      const stats = await storage.getDailyStats(start, end);
+      return res.json(stats);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Public endpoints for announcements and featured tokens (non-admin)
+  app.get("/api/announcements", async (req, res) => {
+    try {
+      const activeAnnouncements = await storage.getActiveAnnouncements();
+      return res.json(activeAnnouncements);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/featured-tokens", async (req, res) => {
+    try {
+      const tokens = await storage.getFeaturedTokens();
+      return res.json(tokens);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/user/badges/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      const badges = await storage.getUserBadges(walletAddress);
+      return res.json(badges);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/wallet/status/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      const isBlacklisted = await storage.isWalletBlacklisted(walletAddress);
+      const badges = await storage.getUserBadges(walletAddress);
+      return res.json({ isBlacklisted, badges });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
   // Public endpoint to check if a feature is enabled
   app.get("/api/features/:featureKey", async (req, res) => {
     try {
