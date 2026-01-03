@@ -52,6 +52,8 @@ const PaginationLink = ({
         variant: isActive ? "outline" : "ghost",
         size,
       }),
+      isActive && "border-primary text-primary bg-primary/10",
+      "hover:text-primary hover:bg-primary/10 transition-colors",
       className
     )}
     {...props}
@@ -66,7 +68,7 @@ const PaginationPrevious = ({
   <PaginationLink
     aria-label="Go to previous page"
     size="default"
-    className={cn("gap-1 pl-2.5", className)}
+    className={cn("gap-1 pl-2.5 hover:text-primary hover:bg-primary/10", className)}
     {...props}
   >
     <ChevronLeft className="h-4 w-4" />
@@ -82,7 +84,7 @@ const PaginationNext = ({
   <PaginationLink
     aria-label="Go to next page"
     size="default"
-    className={cn("gap-1 pr-2.5", className)}
+    className={cn("gap-1 pr-2.5 hover:text-primary hover:bg-primary/10", className)}
     {...props}
   >
     <span>Next</span>
