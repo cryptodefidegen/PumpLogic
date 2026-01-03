@@ -1993,7 +1993,9 @@ export async function registerRoutes(
       const toggle = await storage.getFeatureToggle(featureKey);
       
       if (!toggle) {
-        return res.json({ isEnabled: true });
+        // maintenance_mode defaults to OFF (false), all other features default to ON (true)
+        const defaultValue = featureKey === "maintenance_mode" ? false : true;
+        return res.json({ isEnabled: defaultValue });
       }
       
       return res.json({ isEnabled: toggle.isEnabled });

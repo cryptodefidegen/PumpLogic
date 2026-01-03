@@ -47,6 +47,39 @@ export function useFeatureFlag(featureKey: string): FeatureState {
 }
 
 export function useMaintenanceMode(): { isMaintenanceMode: boolean; isLoading: boolean } {
-  const { isEnabled, isLoading } = useFeatureFlag("maintenance_mode");
-  return { isMaintenanceMode: isEnabled, isLoading };
+  const [state, setState] = useState<{ isMaintenanceMode: boolean; isLoading: boolean }>({
+    isMaintenanceMode: false,
+    isLoading: true,
+  });
+
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        const response = await fetch("/api/features/maintenance_mode");
+        if (response.ok) {
+          const data = await response.json();
+          setState({
+            isMaintenanceMode: data.isEnabled === true,
+            isLoading: false,
+          });
+        } else {
+          // Default to OFF if fetch fails
+          setState({
+            isMaintenanceMode: false,
+            isLoading: false,
+          });
+        }
+      } catch (error) {
+        // Default to OFF on network errors
+        setState({
+          isMaintenanceMode: false,
+          isLoading: false,
+        });
+      }
+    };
+
+    checkMaintenance();
+  }, []);
+
+  return state;
 }
