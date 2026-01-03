@@ -535,14 +535,12 @@ export default function Deployer() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/30 flex items-center justify-between gap-4"
+            className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/30 flex items-start gap-3"
           >
-            <div className="flex items-start gap-3">
-              <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <strong className="text-primary block mb-1">PREVIEW MODE</strong>
-                <span className="text-white/80">Connect your wallet to deploy tokens. You can explore the interface and preview your token.</span>
-              </div>
+            <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <strong className="text-primary block mb-1">PREVIEW MODE</strong>
+              <span className="text-white/80">Connect your wallet to deploy tokens. You can explore the interface and preview your token.</span>
             </div>
           </motion.div>
         )}
