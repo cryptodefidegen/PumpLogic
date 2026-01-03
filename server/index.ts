@@ -10,8 +10,9 @@ import { startPriceAlertMonitor } from "./services/priceAlertMonitor";
 const app = express();
 const httpServer = createServer(app);
 
-if (process.env.NODE_ENV !== "production" && import.meta.dirname) {
-  app.use(express.static(path.resolve(import.meta.dirname, "..", "client", "public")));
+if (process.env.NODE_ENV !== "production") {
+  const dirname = typeof __dirname !== 'undefined' ? __dirname : new URL('.', import.meta.url).pathname;
+  app.use(express.static(path.resolve(dirname, "..", "client", "public")));
 }
 
 declare module "http" {
