@@ -131,17 +131,32 @@ Preferred communication style: Simple, everyday language.
 - **Location**: `/admin` route, restricted to admin wallet only
 - **Admin Wallet**: `9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8`
 - **Access Control**: Server-side verification via `x-wallet-address` header
-- **Features**:
-  - **Overview Tab**: Dashboard stats (total users, transactions, deployments, allocations)
-  - **Features Tab**: Feature toggle management (enable/disable platform features)
-  - **Users Tab**: View all registered wallet addresses with Solscan links
-  - **Deployments Tab**: View all token deployments with details and transaction links
-  - **Transactions Tab**: View all platform transactions with filtering
-  - **Allocations Tab**: View all user fee allocations
-  - **Logs Tab**: Admin action audit trail
+- **Tabs**:
+  - **Overview**: Dashboard stats (total users, transactions, deployments, allocations)
+  - **Features**: Feature toggle management (enable/disable platform features)
+  - **Users**: View all registered wallet addresses with Solscan links
+  - **Deployments**: View all token deployments with details and transaction links
+  - **Transactions**: View all platform transactions with filtering
+  - **Allocations**: View all user fee allocations
+  - **Logs**: Admin action audit trail
+  - **Blacklist**: Ban/suspend wallets with reasons and expiration dates
+  - **Badges**: Grant/revoke user badges (VIP, verified, early_adopter, whale)
+  - **Announcements**: Create platform announcements with types (info/warning/success/error)
+  - **Featured Tokens**: Curate featured tokens list with verification status
+  - **Rate Limits**: Set custom per-wallet rate limits
 - **Database Tables**:
   - `feature_toggles`: Feature on/off switches with admin tracking
   - `site_settings`: Key-value configuration store
   - `admin_logs`: Audit log of all admin actions
+  - `wallet_blacklist`: Banned/suspended wallets with status and expiration
+  - `user_badges`: User badges (VIP, verified, early_adopter, whale) with expiration
+  - `announcements`: Platform announcements with type, pinned status, and expiration
+  - `featured_tokens`: Curated token list with verification and display order
+  - `daily_stats`: Daily platform statistics tracking
+  - `rate_limits`: Custom per-wallet rate limit overrides
 - **Feature Flag Hook**: `useFeatureFlag(featureKey)` hook for checking feature status in components
+- **Public Endpoints**:
+  - `GET /api/announcements`: Active announcements for all users
+  - `GET /api/featured-tokens`: Featured tokens list for all users
+  - `GET /api/wallet/status/:walletAddress`: Check wallet ban/badge status
 - **API Endpoints**: All admin endpoints under `/api/admin/*` require admin wallet verification
