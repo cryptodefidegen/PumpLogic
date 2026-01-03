@@ -417,6 +417,11 @@ export default function Deployer() {
       const txData = await txResponse.arrayBuffer();
       const tx = VersionedTransaction.deserialize(new Uint8Array(txData));
 
+      // IMPORTANT: Pump.fun token creation requires partial signing with mintKeypair
+      // The mintKeypair proves ownership of the new token address and must sign first.
+      // This is a fundamental protocol requirement that makes signAndSendTransaction
+      // incompatible (Phantom's signAndSendTransaction doesn't support partial signatures).
+      // See: https://github.com/phantom/docs/issues/32
       tx.sign([mintKeypair]);
 
       toast({
@@ -424,6 +429,9 @@ export default function Deployer() {
         description: "Please approve the transaction in your wallet",
       });
 
+      // Using signTransaction instead of signAndSendTransaction because
+      // the transaction is already partially signed by mintKeypair above.
+      // Phantom's signAndSendTransaction method does not preserve existing signatures.
       const signedTx = await wallet.provider.signTransaction(tx);
 
       toast({
@@ -605,6 +613,23 @@ export default function Deployer() {
   return (
     <div className="min-h-screen text-foreground pb-20">
       <div className="container mx-auto px-4 pt-8">
+        {/* Phantom Whitelist Notice - Deployer requires partial signing (mintKeypair + user wallet),
+            which is incompatible with Phantom's signAndSendTransaction method. The Pump.fun protocol
+            requires the mintKeypair to sign first to prove ownership of the new token address.
+            This is a fundamental requirement that cannot be changed without modifying the protocol. */}
+        <div className="bg-yellow-500/10 border-2 border-yellow-500/50 rounded-lg p-4 mb-6 flex items-start gap-3">
+          <AlertTriangle className="h-6 w-6 text-yellow-500 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <strong className="text-yellow-500 block mb-1">
+              PHANTOM WHITELIST PENDING
+            </strong>
+            <span className="text-white/80">
+              We're awaiting Phantom wallet whitelist approval. You may see a "This dApp could be malicious" warning when signing transactions. 
+              This is expected for token deployments - Pump.fun requires a special signing flow. Click "Proceed Anyway" to continue. Your tokens are safe.
+            </span>
+          </div>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

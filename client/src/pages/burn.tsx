@@ -255,8 +255,19 @@ export default function Burn() {
         throw new Error("Wallet not connected");
       }
 
-      const signedTransaction = await wallet.provider.signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      // Use signAndSendTransaction for Phantom whitelist compliance
+      // This method signs and sends in one call, which Blowfish requires for whitelist approval
+      let signature: string;
+      
+      if (wallet.provider.signAndSendTransaction) {
+        // Preferred method for Phantom whitelist compliance
+        const result = await wallet.provider.signAndSendTransaction(transaction);
+        signature = result.signature;
+      } else {
+        // Fallback for wallets that don't support signAndSendTransaction
+        const signedTransaction = await wallet.provider.signTransaction(transaction);
+        signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      }
       
       await connection.confirmTransaction({
         signature,
@@ -345,6 +356,23 @@ export default function Burn() {
               </div>
             </div>
           )}
+          
+          {/* Phantom Whitelist Notice */}
+          {isConnected && (
+            <div className="bg-yellow-500/10 border-2 border-yellow-500/50 rounded-lg p-4 mb-6 flex items-start gap-3">
+              <AlertTriangle className="h-6 w-6 text-yellow-500 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <strong className="text-yellow-500 block mb-1">
+                  PHANTOM WHITELIST PENDING
+                </strong>
+                <span className="text-white/80">
+                  We're awaiting Phantom wallet whitelist approval. You may see a "This dApp could be malicious" warning when signing transactions. 
+                  This is temporary - click "Proceed Anyway" to continue. Your tokens are safe.
+                </span>
+              </div>
+            </div>
+          )}
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

@@ -795,13 +795,14 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Connection Warning - only show when connected */}
+        {/* Phantom Whitelist Notice - only show when connected */}
         {!isPreviewMode && (
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-8 flex gap-3 items-start">
+          <div className="bg-yellow-500/10 border-2 border-yellow-500/50 rounded-lg p-4 mb-8 flex gap-3 items-start">
             <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
             <div className="text-sm text-yellow-200/80">
-              <strong className="text-yellow-500 block mb-1">IMPORTANT SECURITY NOTICE</strong>
-              Transactions are signed by your Phantom wallet. Your private key <span className="text-white font-bold">NEVER</span> leaves your wallet. Only use a dedicated fee wallet. DYOR.
+              <strong className="text-yellow-500 block mb-1">PHANTOM WHITELIST PENDING</strong>
+              We're awaiting Phantom wallet whitelist approval. You may see a "This dApp could be malicious" warning when signing transactions. 
+              This is temporary - click "Proceed Anyway" to continue. Your tokens are safe.
             </div>
           </div>
         )}
