@@ -223,3 +223,56 @@ export const insertDeploymentRecordSchema = createInsertSchema(deploymentRecords
 });
 export type InsertDeploymentRecord = z.infer<typeof insertDeploymentRecordSchema>;
 export type DeploymentRecord = typeof deploymentRecords.$inferSelect;
+
+// Feature toggles for admin control
+export const featureToggles = pgTable("feature_toggles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  featureKey: text("feature_key").notNull().unique(),
+  featureName: text("feature_name").notNull(),
+  description: text("description"),
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  updatedBy: text("updated_by"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertFeatureToggleSchema = createInsertSchema(featureToggles).omit({
+  id: true,
+  updatedAt: true,
+});
+export type InsertFeatureToggle = z.infer<typeof insertFeatureToggleSchema>;
+export type FeatureToggle = typeof featureToggles.$inferSelect;
+
+// Site settings for admin configuration
+export const siteSettings = pgTable("site_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  settingKey: text("setting_key").notNull().unique(),
+  settingValue: text("setting_value"),
+  description: text("description"),
+  updatedBy: text("updated_by"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
+export type SiteSetting = typeof siteSettings.$inferSelect;
+
+// Admin action logs for audit trail
+export const adminLogs = pgTable("admin_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminAddress: text("admin_address").notNull(),
+  action: text("action").notNull(),
+  targetType: text("target_type"),
+  targetId: text("target_id"),
+  details: text("details"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAdminLogSchema = createInsertSchema(adminLogs).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAdminLog = z.infer<typeof insertAdminLogSchema>;
+export type AdminLog = typeof adminLogs.$inferSelect;

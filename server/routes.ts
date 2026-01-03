@@ -1194,6 +1194,299 @@ export async function registerRoutes(
     }
   });
 
+  // ===== ADMIN ROUTES =====
+  const ADMIN_WALLET = "9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8";
+
+  // Middleware to check admin access
+  const isAdmin = (walletAddress: string | undefined): boolean => {
+    return walletAddress === ADMIN_WALLET;
+  };
+
+  // Get admin dashboard stats
+  app.get("/api/admin/stats", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const [totalUsers, totalTransactions, allDeployments, allAllocations] = await Promise.all([
+        storage.getTotalUserCount(),
+        storage.getTotalTransactionCount(),
+        storage.getAllDeployments(),
+        storage.getAllAllocations(),
+      ]);
+
+      return res.json({
+        totalUsers,
+        totalTransactions,
+        totalDeployments: allDeployments.length,
+        totalAllocations: allAllocations.length,
+        recentDeployments: allDeployments.slice(0, 10),
+      });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get all users (admin only)
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const users = await storage.getAllUsers();
+      return res.json(users);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get all deployments (admin only)
+  app.get("/api/admin/deployments", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const deployments = await storage.getAllDeployments();
+      return res.json(deployments);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get all transactions (admin only)
+  app.get("/api/admin/transactions", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const transactions = await storage.getAllTransactions(limit);
+      return res.json(transactions);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get all allocations (admin only)
+  app.get("/api/admin/allocations", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const allocations = await storage.getAllAllocations();
+      return res.json(allocations);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get feature toggles (admin only)
+  app.get("/api/admin/features", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const features = await storage.getFeatureToggles();
+      return res.json(features);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update feature toggle (admin only)
+  app.post("/api/admin/features", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const { featureKey, featureName, description, isEnabled } = req.body;
+      
+      const toggle = await storage.upsertFeatureToggle({
+        featureKey,
+        featureName,
+        description,
+        isEnabled,
+        updatedBy: adminWallet,
+      });
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "UPDATE_FEATURE",
+        targetType: "feature_toggle",
+        targetId: featureKey,
+        details: `Set ${featureName} to ${isEnabled ? "enabled" : "disabled"}`,
+      });
+
+      return res.json(toggle);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Toggle feature (admin only)
+  app.patch("/api/admin/features/:featureKey", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const { featureKey } = req.params;
+      const { isEnabled } = req.body;
+      
+      const toggle = await storage.updateFeatureToggle(featureKey, isEnabled, adminWallet);
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "TOGGLE_FEATURE",
+        targetType: "feature_toggle",
+        targetId: featureKey,
+        details: `${isEnabled ? "Enabled" : "Disabled"} feature`,
+      });
+
+      return res.json(toggle);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get site settings (admin only)
+  app.get("/api/admin/settings", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const settings = await storage.getSiteSettings();
+      return res.json(settings);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Update site setting (admin only)
+  app.post("/api/admin/settings", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const { settingKey, settingValue, description } = req.body;
+      
+      const setting = await storage.upsertSiteSetting({
+        settingKey,
+        settingValue,
+        description,
+        updatedBy: adminWallet,
+      });
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "UPDATE_SETTING",
+        targetType: "site_setting",
+        targetId: settingKey,
+        details: `Updated ${settingKey}`,
+      });
+
+      return res.json(setting);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get admin logs (admin only)
+  app.get("/api/admin/logs", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const logs = await storage.getAdminLogs(limit);
+      return res.json(logs);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Initialize default feature toggles (admin only)
+  app.post("/api/admin/features/init", async (req, res) => {
+    try {
+      const adminWallet = req.headers["x-wallet-address"] as string;
+      if (!isAdmin(adminWallet)) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+
+      const defaultFeatures = [
+        { featureKey: "deployer", featureName: "Token Deployer", description: "One-click Pump.fun token deployment", isEnabled: true },
+        { featureKey: "allocator", featureName: "Fee Allocator", description: "4-channel fee distribution system", isEnabled: true },
+        { featureKey: "guard", featureName: "PumpLogic Guard", description: "Token scanner and whale alerts", isEnabled: true },
+        { featureKey: "burn", featureName: "Token Burner", description: "Manual SPL token burning", isEnabled: true },
+        { featureKey: "analytics", featureName: "Analytics Dashboard", description: "Token analytics and charts", isEnabled: true },
+        { featureKey: "telegram", featureName: "Telegram Notifications", description: "Telegram alert integration", isEnabled: true },
+        { featureKey: "maintenance_mode", featureName: "Maintenance Mode", description: "Show maintenance banner site-wide", isEnabled: false },
+      ];
+
+      const results = [];
+      for (const feature of defaultFeatures) {
+        const existing = await storage.getFeatureToggle(feature.featureKey);
+        if (!existing) {
+          const toggle = await storage.upsertFeatureToggle({
+            ...feature,
+            updatedBy: adminWallet,
+          });
+          results.push(toggle);
+        } else {
+          results.push(existing);
+        }
+      }
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "INIT_FEATURES",
+        targetType: "feature_toggle",
+        details: `Initialized ${results.length} feature toggles`,
+      });
+
+      return res.json(results);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Public endpoint to check if a feature is enabled
+  app.get("/api/features/:featureKey", async (req, res) => {
+    try {
+      const { featureKey } = req.params;
+      const toggle = await storage.getFeatureToggle(featureKey);
+      
+      if (!toggle) {
+        return res.json({ isEnabled: true });
+      }
+      
+      return res.json({ isEnabled: toggle.isEnabled });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
   // Token info endpoint for burn feature
   app.get("/api/token/:mint", async (req, res) => {
     try {

@@ -1,7 +1,7 @@
 import { db } from "../db/index";
-import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings, linkedWallets, priceAlerts, multiTokenSettings, deploymentRecords } from "@shared/schema";
-import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings, LinkedWallet, InsertLinkedWallet, PriceAlert, InsertPriceAlert, MultiTokenSettings, InsertMultiTokenSettings, DeploymentRecord, InsertDeploymentRecord } from "@shared/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings, linkedWallets, priceAlerts, multiTokenSettings, deploymentRecords, featureToggles, siteSettings, adminLogs } from "@shared/schema";
+import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings, LinkedWallet, InsertLinkedWallet, PriceAlert, InsertPriceAlert, MultiTokenSettings, InsertMultiTokenSettings, DeploymentRecord, InsertDeploymentRecord, FeatureToggle, InsertFeatureToggle, SiteSetting, InsertSiteSetting, AdminLog, InsertAdminLog } from "@shared/schema";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -65,7 +65,29 @@ export interface IStorage {
 
   // Deployment Records
   getDeploymentsByWallet(walletAddress: string): Promise<DeploymentRecord[]>;
+  getAllDeployments(): Promise<DeploymentRecord[]>;
   createDeploymentRecord(record: InsertDeploymentRecord): Promise<DeploymentRecord>;
+
+  // Feature Toggles
+  getFeatureToggles(): Promise<FeatureToggle[]>;
+  getFeatureToggle(featureKey: string): Promise<FeatureToggle | undefined>;
+  upsertFeatureToggle(toggle: InsertFeatureToggle): Promise<FeatureToggle>;
+  updateFeatureToggle(featureKey: string, isEnabled: boolean, updatedBy: string): Promise<FeatureToggle>;
+
+  // Site Settings
+  getSiteSettings(): Promise<SiteSetting[]>;
+  getSiteSetting(settingKey: string): Promise<SiteSetting | undefined>;
+  upsertSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting>;
+
+  // Admin Logs
+  getAdminLogs(limit?: number): Promise<AdminLog[]>;
+  createAdminLog(log: InsertAdminLog): Promise<AdminLog>;
+
+  // Admin Stats
+  getTotalUserCount(): Promise<number>;
+  getTotalTransactionCount(): Promise<number>;
+  getAllTransactions(limit?: number): Promise<Transaction[]>;
+  getAllAllocations(): Promise<Allocation[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -384,9 +406,123 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(deploymentRecords.createdAt));
   }
 
+  async getAllDeployments(): Promise<DeploymentRecord[]> {
+    return await db.select()
+      .from(deploymentRecords)
+      .orderBy(desc(deploymentRecords.createdAt));
+  }
+
   async createDeploymentRecord(record: InsertDeploymentRecord): Promise<DeploymentRecord> {
     const result = await db.insert(deploymentRecords).values(record).returning();
     return result[0];
+  }
+
+  // Feature Toggles
+  async getFeatureToggles(): Promise<FeatureToggle[]> {
+    return await db.select().from(featureToggles).orderBy(featureToggles.featureName);
+  }
+
+  async getFeatureToggle(featureKey: string): Promise<FeatureToggle | undefined> {
+    const result = await db.select().from(featureToggles).where(eq(featureToggles.featureKey, featureKey)).limit(1);
+    return result[0];
+  }
+
+  async upsertFeatureToggle(toggle: InsertFeatureToggle): Promise<FeatureToggle> {
+    const existing = await this.getFeatureToggle(toggle.featureKey);
+    
+    if (existing) {
+      const result = await db.update(featureToggles)
+        .set({
+          featureName: toggle.featureName,
+          description: toggle.description,
+          isEnabled: toggle.isEnabled,
+          updatedBy: toggle.updatedBy,
+          updatedAt: new Date(),
+        })
+        .where(eq(featureToggles.featureKey, toggle.featureKey))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(featureToggles).values(toggle).returning();
+      return result[0];
+    }
+  }
+
+  async updateFeatureToggle(featureKey: string, isEnabled: boolean, updatedBy: string): Promise<FeatureToggle> {
+    const result = await db.update(featureToggles)
+      .set({
+        isEnabled,
+        updatedBy,
+        updatedAt: new Date(),
+      })
+      .where(eq(featureToggles.featureKey, featureKey))
+      .returning();
+    return result[0];
+  }
+
+  // Site Settings
+  async getSiteSettings(): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings).orderBy(siteSettings.settingKey);
+  }
+
+  async getSiteSetting(settingKey: string): Promise<SiteSetting | undefined> {
+    const result = await db.select().from(siteSettings).where(eq(siteSettings.settingKey, settingKey)).limit(1);
+    return result[0];
+  }
+
+  async upsertSiteSetting(setting: InsertSiteSetting): Promise<SiteSetting> {
+    const existing = await this.getSiteSetting(setting.settingKey);
+    
+    if (existing) {
+      const result = await db.update(siteSettings)
+        .set({
+          settingValue: setting.settingValue,
+          description: setting.description,
+          updatedBy: setting.updatedBy,
+          updatedAt: new Date(),
+        })
+        .where(eq(siteSettings.settingKey, setting.settingKey))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(siteSettings).values(setting).returning();
+      return result[0];
+    }
+  }
+
+  // Admin Logs
+  async getAdminLogs(limit: number = 100): Promise<AdminLog[]> {
+    return await db.select()
+      .from(adminLogs)
+      .orderBy(desc(adminLogs.createdAt))
+      .limit(limit);
+  }
+
+  async createAdminLog(log: InsertAdminLog): Promise<AdminLog> {
+    const result = await db.insert(adminLogs).values(log).returning();
+    return result[0];
+  }
+
+  // Admin Stats
+  async getTotalUserCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(users);
+    return Number(result[0].count);
+  }
+
+  async getTotalTransactionCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(transactions);
+    return Number(result[0].count);
+  }
+
+  async getAllTransactions(limit: number = 100): Promise<Transaction[]> {
+    return await db.select()
+      .from(transactions)
+      .orderBy(desc(transactions.createdAt))
+      .limit(limit);
+  }
+
+  async getAllAllocations(): Promise<Allocation[]> {
+    return await db.select().from(allocations);
   }
 }
 
