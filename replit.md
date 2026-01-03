@@ -109,9 +109,9 @@ Preferred communication style: Simple, everyday language.
   - Enhanced UI with tooltips, animated transitions, two-column layout
 - **Implementation**: Uses native @solana/web3.js with manual SPL Token burn instruction (avoids Buffer polyfill issues)
 
-### PumpLogic Deployer (In Development)
+### PumpLogic Deployer
 - **Location**: `/deployer` route, available to all users
-- **Status**: In Development
+- **Status**: Live (Beta)
 - **Features**:
   - One-click Pump.fun token deployment
   - Token metadata form: name, symbol, description, image upload

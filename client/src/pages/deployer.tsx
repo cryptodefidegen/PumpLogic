@@ -163,47 +163,9 @@ export default function Deployer() {
     DeploymentRecord[]
   >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [isWhitelisted, setIsWhitelisted] = useState(false);
-  const [isCheckingWhitelist, setIsCheckingWhitelist] = useState(true);
 
   const isPreviewMode = !isConnected;
   const isAdmin = fullWalletAddress === ADMIN_WALLET;
-
-  // Check if wallet is whitelisted for deployer
-  useEffect(() => {
-    async function checkWhitelist() {
-      if (!fullWalletAddress) {
-        setIsWhitelisted(false);
-        setIsCheckingWhitelist(false);
-        return;
-      }
-
-      // Admin always has access
-      if (fullWalletAddress === ADMIN_WALLET) {
-        setIsWhitelisted(true);
-        setIsCheckingWhitelist(false);
-        return;
-      }
-
-      setIsCheckingWhitelist(true);
-      try {
-        const response = await fetch(`/api/feature-whitelist/check/${fullWalletAddress}/deployer`);
-        if (response.ok) {
-          const data = await response.json();
-          setIsWhitelisted(data.isWhitelisted === true);
-        } else {
-          setIsWhitelisted(false);
-        }
-      } catch (error) {
-        console.error("Error checking whitelist:", error);
-        setIsWhitelisted(false);
-      } finally {
-        setIsCheckingWhitelist(false);
-      }
-    }
-
-    checkWhitelist();
-  }, [fullWalletAddress]);
 
   // Fetch deployment history when wallet connects
   useEffect(() => {
@@ -600,62 +562,6 @@ export default function Deployer() {
 
   const totalCost = DEPLOYMENT_COST_SOL + (parseFloat(initialBuy) || 0);
 
-  // Show loading state while checking whitelist
-  if (isCheckingWhitelist) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-primary animate-pulse">Loading...</div>
-      </div>
-    );
-  }
-
-  // Show restricted access for non-whitelisted users
-  if (!isWhitelisted) {
-    return (
-      <div className="min-h-screen text-foreground pb-20">
-        <div className="container mx-auto px-4 pt-8">
-          <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex items-start gap-3">
-            <Shield className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <strong className="text-primary block mb-1">
-                ACCESS RESTRICTED
-              </strong>
-              <span className="text-white/80">
-                The PumpLogic Deployer is currently in private beta. Only
-                whitelisted wallets can access this feature.
-              </span>
-            </div>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8"
-          >
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Rocket className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
-                  Pump<span className="text-primary">Logic</span> Deployer
-                </h1>
-                <Badge
-                  variant="outline"
-                  className="border-yellow-500/50 text-yellow-500 text-xs"
-                >
-                  IN DEV
-                </Badge>
-              </div>
-              <p className="text-muted-foreground">
-                Launch your Pump.fun token in seconds. Fill in the details,
-                choose a template, and deploy directly to Solana.
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen text-foreground pb-20">
       <div className="container mx-auto px-4 pt-8">
@@ -689,9 +595,9 @@ export default function Deployer() {
               </h1>
               <Badge
                 variant="outline"
-                className="border-yellow-500/50 text-yellow-500 text-xs"
+                className="border-primary/50 text-primary text-xs"
               >
-                IN DEV
+                BETA
               </Badge>
             </div>
             <p className="text-muted-foreground">
