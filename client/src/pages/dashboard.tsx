@@ -760,18 +760,12 @@ export default function Dashboard() {
         
         {/* Preview Mode Warning Banner */}
         {isPreviewMode && (
-          <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="flex gap-3 items-start">
-              <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <strong className="text-primary block mb-1">PREVIEW MODE</strong>
-                <span className="text-white/80">You're viewing the dashboard in preview mode. Connect your Phantom wallet to save settings and execute transactions.</span>
-              </div>
+          <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex items-start gap-3">
+            <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <strong className="text-primary block mb-1">PREVIEW MODE</strong>
+              <span className="text-white/80">You're viewing the dashboard in preview mode. Connect your Phantom wallet to save settings and execute transactions.</span>
             </div>
-            <Button onClick={connect} className="bg-primary text-black hover:bg-primary/90 shrink-0" data-testid="button-connect-dashboard">
-              <Wallet className="mr-2 h-4 w-4" />
-              Connect Wallet
-            </Button>
           </div>
         )}
 

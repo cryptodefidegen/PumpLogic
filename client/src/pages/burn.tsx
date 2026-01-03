@@ -333,28 +333,16 @@ export default function Burn() {
       <div className="min-h-screen pb-12">
         <div className="container mx-auto px-4 pt-8">
           {isPreviewMode && (
-            <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="flex gap-3 items-start">
-                <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                <div className="text-sm">
-                  <strong className="text-primary block mb-1">PREVIEW MODE</strong>
-                  <span className="text-white/80">
-                    {!isConnected 
-                      ? "You're viewing the burn feature in preview mode. Connect your Phantom wallet to burn tokens."
-                      : "Token Burn is currently in beta. Only whitelisted addresses can execute burns."}
-                  </span>
-                </div>
+            <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex items-start gap-3">
+              <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <strong className="text-primary block mb-1">PREVIEW MODE</strong>
+                <span className="text-white/80">
+                  {!isConnected 
+                    ? "You're viewing the burn feature in preview mode. Connect your Phantom wallet to burn tokens."
+                    : "Token Burn is currently in beta. Only whitelisted addresses can execute burns."}
+                </span>
               </div>
-              {!isConnected && (
-                <Button 
-                  onClick={() => connect()}
-                  className="bg-primary text-black hover:bg-primary/90 shrink-0" 
-                  data-testid="button-connect-preview-burn"
-                >
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Connect Wallet
-                </Button>
-              )}
             </div>
           )}
           <motion.div
