@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, Copy, Target } from "lucide-react";
+import { ArrowRight, Zap, TrendingUp, RefreshCw, Coins, Copy, Target, Rocket, Shield, Flame, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
@@ -39,7 +39,7 @@ export default function Home() {
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Manage fee routing, monitor risks, track analytics, and automate your token strategy - all in one platform.
+            Deploy tokens, manage fee routing, monitor risks, burn tokens, and track analytics - all in one powerful platform.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
@@ -93,8 +93,8 @@ export default function Home() {
           
           <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto border-t border-white/5 mt-12">
             <div>
-              <div className="text-3xl font-bold font-mono text-white">4</div>
-              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Distribution Paths</div>
+              <div className="text-3xl font-bold font-mono text-white">5</div>
+              <div className="text-sm text-muted-foreground uppercase tracking-widest mt-1">Powerful Tools</div>
             </div>
             <div>
               <div className="text-3xl font-bold font-mono text-white">100%</div>
@@ -113,34 +113,50 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Features Section */}
+      {/* Toolkit Section */}
       <section className="py-24 bg-black/50 border-y border-white/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-sm font-mono text-primary uppercase tracking-widest mb-2">The Process</h2>
-            <h3 className="text-3xl md:text-4xl font-bold font-display text-white">Four allocation categories</h3>
+            <h2 className="text-sm font-mono text-primary uppercase tracking-widest mb-2">The Toolkit</h2>
+            <h3 className="text-3xl md:text-4xl font-bold font-display text-white">Everything you need to succeed</h3>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             <FeatureCard 
-              icon={<TrendingUp className="h-8 w-8 text-primary" />}
-              title="Market Making"
-              desc="Allocate funds to enhance trading depth and maintain healthy order books."
+              icon={<Rocket className="h-8 w-8 text-primary" />}
+              title="Token Deployer"
+              desc="Launch your Pump.fun token in seconds with custom metadata, banners, and social links."
+              link="/deployer"
             />
             <FeatureCard 
-              icon={<RefreshCw className="h-8 w-8 text-secondary" />}
-              title="Buyback"
-              desc="Repurchase tokens from the market to support price and reduce supply."
+              icon={<Coins className="h-8 w-8 text-secondary" />}
+              title="Fee Allocator"
+              desc="Route token fees into market making, buybacks, liquidity, and creator revenue automatically."
+              link="/app"
             />
             <FeatureCard 
-              icon={<Zap className="h-8 w-8 text-blue-400" />}
-              title="Liquidity Pool"
-              desc="Strengthen your token's liquidity by contributing to decentralized pools."
+              icon={<Shield className="h-8 w-8 text-blue-400" />}
+              title="Guard"
+              desc="Scan tokens for rug-pull risks, monitor whale activity, and track alerts in real-time."
+              link="/guard"
             />
             <FeatureCard 
-              icon={<Coins className="h-8 w-8 text-yellow-400" />}
-              title="Creator Revenue"
-              desc="Receive a portion of fees to support ongoing project development."
+              icon={<Flame className="h-8 w-8 text-orange-400" />}
+              title="Token Burner"
+              desc="Burn SPL tokens with full transparency. See burn impact and track your burn history."
+              link="/burn"
+            />
+            <FeatureCard 
+              icon={<BarChart3 className="h-8 w-8 text-yellow-400" />}
+              title="Analytics"
+              desc="Track your portfolio performance, view transaction history, and monitor token metrics."
+              link="/analytics"
+            />
+            <FeatureCard 
+              icon={<TrendingUp className="h-8 w-8 text-purple-400" />}
+              title="AI Optimization"
+              desc="Get AI-powered recommendations to optimize your fee allocation strategy."
+              link="/app"
             />
           </div>
         </div>
@@ -151,8 +167,8 @@ export default function Home() {
         <div className="max-w-4xl mx-auto bg-gradient-to-br from-primary/10 to-secondary/10 border border-white/10 rounded-3xl p-12 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent"></div>
           
-          <h2 className="text-4xl font-bold font-display mb-6">Take control of your fees</h2>
-          <p className="text-xl text-muted-foreground mb-8">Connect your wallet and start optimizing your token's fee distribution today.</p>
+          <h2 className="text-4xl font-bold font-display mb-6">Ready to launch?</h2>
+          <p className="text-xl text-muted-foreground mb-8">Connect your wallet and access the complete DeFi toolkit for Solana creators.</p>
           
           <Link href="/app">
             <Button size="lg" className="h-14 px-8 text-lg bg-primary text-black hover:bg-primary/90 rounded-full font-bold shadow-[0_0_20px_rgba(0,255,157,0.3)]">
@@ -168,7 +184,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
               <span className="text-white font-display font-bold">Pump<span className="text-primary">Logic</span></span>
-              <span className="text-muted-foreground text-sm">- Smart Fee Routing for Solana</span>
+              <span className="text-muted-foreground text-sm">- The Complete DeFi Toolkit for Solana</span>
             </div>
             <div className="flex items-center gap-6">
               <a 
@@ -192,7 +208,7 @@ export default function Home() {
             </div>
           </div>
           <div className="text-center mt-8 text-xs text-muted-foreground">
-            Automate fee distribution, analyze tokens, and protect your investments on Solana. Use at your own risk. DYOR.
+            Deploy tokens, automate fee distribution, analyze risks, and burn tokens on Solana. Use at your own risk. DYOR.
           </div>
         </div>
       </footer>
@@ -200,14 +216,19 @@ export default function Home() {
   );
 }
 
-function FeatureCard({ icon, title, desc }: { icon: any, title: string, desc: string }) {
-  return (
-    <div className="bg-card/50 border border-white/5 p-6 rounded-xl hover:border-primary/50 transition-colors group">
+function FeatureCard({ icon, title, desc, link }: { icon: any, title: string, desc: string, link?: string }) {
+  const content = (
+    <div className="bg-card/50 border border-white/5 p-6 rounded-xl hover:border-primary/50 transition-colors group cursor-pointer h-full">
       <div className="mb-4 bg-white/5 w-14 h-14 rounded-lg flex items-center justify-center group-hover:bg-white/10 transition-colors">
         {icon}
       </div>
-      <h4 className="text-xl font-bold font-display mb-2 text-white">{title}</h4>
+      <h4 className="text-xl font-bold font-display mb-2 text-white group-hover:text-primary transition-colors">{title}</h4>
       <p className="text-muted-foreground leading-relaxed">{desc}</p>
     </div>
   );
+  
+  if (link) {
+    return <Link href={link}>{content}</Link>;
+  }
+  return content;
 }
