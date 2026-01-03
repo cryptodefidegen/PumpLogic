@@ -1,7 +1,7 @@
 import { db } from "../db/index";
-import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings, linkedWallets, priceAlerts, multiTokenSettings, deploymentRecords, featureToggles, siteSettings, adminLogs } from "@shared/schema";
-import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings, LinkedWallet, InsertLinkedWallet, PriceAlert, InsertPriceAlert, MultiTokenSettings, InsertMultiTokenSettings, DeploymentRecord, InsertDeploymentRecord, FeatureToggle, InsertFeatureToggle, SiteSetting, InsertSiteSetting, AdminLog, InsertAdminLog } from "@shared/schema";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings, linkedWallets, priceAlerts, multiTokenSettings, deploymentRecords, featureToggles, siteSettings, adminLogs, walletBlacklist, userBadges, announcements, featuredTokens, dailyStats, rateLimits } from "@shared/schema";
+import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings, LinkedWallet, InsertLinkedWallet, PriceAlert, InsertPriceAlert, MultiTokenSettings, InsertMultiTokenSettings, DeploymentRecord, InsertDeploymentRecord, FeatureToggle, InsertFeatureToggle, SiteSetting, InsertSiteSetting, AdminLog, InsertAdminLog, WalletBlacklist, InsertWalletBlacklist, UserBadge, InsertUserBadge, Announcement, InsertAnnouncement, FeaturedToken, InsertFeaturedToken, DailyStats, InsertDailyStats, RateLimit, InsertRateLimit } from "@shared/schema";
+import { eq, desc, and, sql, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -88,6 +88,42 @@ export interface IStorage {
   getTotalTransactionCount(): Promise<number>;
   getAllTransactions(limit?: number): Promise<Transaction[]>;
   getAllAllocations(): Promise<Allocation[]>;
+
+  // Wallet Blacklist
+  getBlacklist(): Promise<WalletBlacklist[]>;
+  getBlacklistEntry(walletAddress: string): Promise<WalletBlacklist | undefined>;
+  addToBlacklist(entry: InsertWalletBlacklist): Promise<WalletBlacklist>;
+  removeFromBlacklist(walletAddress: string): Promise<void>;
+  isWalletBlacklisted(walletAddress: string): Promise<boolean>;
+
+  // User Badges
+  getUserBadges(walletAddress: string): Promise<UserBadge[]>;
+  getAllBadges(): Promise<UserBadge[]>;
+  grantBadge(badge: InsertUserBadge): Promise<UserBadge>;
+  revokeBadge(id: string): Promise<void>;
+
+  // Announcements
+  getActiveAnnouncements(): Promise<Announcement[]>;
+  getAllAnnouncements(): Promise<Announcement[]>;
+  createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement>;
+  updateAnnouncement(id: string, updates: Partial<Announcement>): Promise<Announcement>;
+  deleteAnnouncement(id: string): Promise<void>;
+
+  // Featured Tokens
+  getFeaturedTokens(): Promise<FeaturedToken[]>;
+  addFeaturedToken(token: InsertFeaturedToken): Promise<FeaturedToken>;
+  updateFeaturedToken(id: string, updates: Partial<FeaturedToken>): Promise<FeaturedToken>;
+  removeFeaturedToken(id: string): Promise<void>;
+
+  // Daily Stats
+  getDailyStats(startDate: string, endDate: string): Promise<DailyStats[]>;
+  upsertDailyStats(stats: InsertDailyStats): Promise<DailyStats>;
+
+  // Rate Limits
+  getRateLimit(walletAddress: string): Promise<RateLimit | undefined>;
+  getAllRateLimits(): Promise<RateLimit[]>;
+  setRateLimit(limit: InsertRateLimit): Promise<RateLimit>;
+  removeRateLimit(walletAddress: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -523,6 +559,171 @@ export class DatabaseStorage implements IStorage {
 
   async getAllAllocations(): Promise<Allocation[]> {
     return await db.select().from(allocations);
+  }
+
+  // Wallet Blacklist
+  async getBlacklist(): Promise<WalletBlacklist[]> {
+    return await db.select().from(walletBlacklist).orderBy(desc(walletBlacklist.createdAt));
+  }
+
+  async getBlacklistEntry(walletAddress: string): Promise<WalletBlacklist | undefined> {
+    const result = await db.select().from(walletBlacklist).where(eq(walletBlacklist.walletAddress, walletAddress)).limit(1);
+    return result[0];
+  }
+
+  async addToBlacklist(entry: InsertWalletBlacklist): Promise<WalletBlacklist> {
+    const result = await db.insert(walletBlacklist).values(entry).returning();
+    return result[0];
+  }
+
+  async removeFromBlacklist(walletAddress: string): Promise<void> {
+    await db.delete(walletBlacklist).where(eq(walletBlacklist.walletAddress, walletAddress));
+  }
+
+  async isWalletBlacklisted(walletAddress: string): Promise<boolean> {
+    const entry = await this.getBlacklistEntry(walletAddress);
+    if (!entry) return false;
+    if (entry.status === "banned") return true;
+    if (entry.status === "suspended" && entry.suspendedUntil) {
+      return new Date() < new Date(entry.suspendedUntil);
+    }
+    return false;
+  }
+
+  // User Badges
+  async getUserBadges(walletAddress: string): Promise<UserBadge[]> {
+    return await db.select().from(userBadges).where(eq(userBadges.walletAddress, walletAddress));
+  }
+
+  async getAllBadges(): Promise<UserBadge[]> {
+    return await db.select().from(userBadges).orderBy(desc(userBadges.createdAt));
+  }
+
+  async grantBadge(badge: InsertUserBadge): Promise<UserBadge> {
+    const result = await db.insert(userBadges).values(badge).returning();
+    return result[0];
+  }
+
+  async revokeBadge(id: string): Promise<void> {
+    await db.delete(userBadges).where(eq(userBadges.id, id));
+  }
+
+  // Announcements
+  async getActiveAnnouncements(): Promise<Announcement[]> {
+    return await db.select()
+      .from(announcements)
+      .where(eq(announcements.isActive, true))
+      .orderBy(desc(announcements.isPinned), desc(announcements.createdAt));
+  }
+
+  async getAllAnnouncements(): Promise<Announcement[]> {
+    return await db.select().from(announcements).orderBy(desc(announcements.createdAt));
+  }
+
+  async createAnnouncement(announcement: InsertAnnouncement): Promise<Announcement> {
+    const result = await db.insert(announcements).values(announcement).returning();
+    return result[0];
+  }
+
+  async updateAnnouncement(id: string, updates: Partial<Announcement>): Promise<Announcement> {
+    const result = await db.update(announcements)
+      .set(updates)
+      .where(eq(announcements.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteAnnouncement(id: string): Promise<void> {
+    await db.delete(announcements).where(eq(announcements.id, id));
+  }
+
+  // Featured Tokens
+  async getFeaturedTokens(): Promise<FeaturedToken[]> {
+    return await db.select().from(featuredTokens).orderBy(featuredTokens.displayOrder);
+  }
+
+  async addFeaturedToken(token: InsertFeaturedToken): Promise<FeaturedToken> {
+    const result = await db.insert(featuredTokens).values(token).returning();
+    return result[0];
+  }
+
+  async updateFeaturedToken(id: string, updates: Partial<FeaturedToken>): Promise<FeaturedToken> {
+    const result = await db.update(featuredTokens)
+      .set(updates)
+      .where(eq(featuredTokens.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async removeFeaturedToken(id: string): Promise<void> {
+    await db.delete(featuredTokens).where(eq(featuredTokens.id, id));
+  }
+
+  // Daily Stats
+  async getDailyStats(startDate: string, endDate: string): Promise<DailyStats[]> {
+    return await db.select()
+      .from(dailyStats)
+      .where(and(
+        gte(dailyStats.date, startDate),
+        lte(dailyStats.date, endDate)
+      ))
+      .orderBy(dailyStats.date);
+  }
+
+  async upsertDailyStats(stats: InsertDailyStats): Promise<DailyStats> {
+    const existing = await db.select().from(dailyStats).where(eq(dailyStats.date, stats.date)).limit(1);
+    
+    if (existing[0]) {
+      const result = await db.update(dailyStats)
+        .set({
+          newUsers: stats.newUsers,
+          totalTransactions: stats.totalTransactions,
+          totalDeployments: stats.totalDeployments,
+          totalBurns: stats.totalBurns,
+          totalVolume: stats.totalVolume,
+        })
+        .where(eq(dailyStats.date, stats.date))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(dailyStats).values(stats).returning();
+      return result[0];
+    }
+  }
+
+  // Rate Limits
+  async getRateLimit(walletAddress: string): Promise<RateLimit | undefined> {
+    const result = await db.select().from(rateLimits).where(eq(rateLimits.walletAddress, walletAddress)).limit(1);
+    return result[0];
+  }
+
+  async getAllRateLimits(): Promise<RateLimit[]> {
+    return await db.select().from(rateLimits);
+  }
+
+  async setRateLimit(limit: InsertRateLimit): Promise<RateLimit> {
+    const existing = await this.getRateLimit(limit.walletAddress);
+    
+    if (existing) {
+      const result = await db.update(rateLimits)
+        .set({
+          maxRequestsPerMinute: limit.maxRequestsPerMinute,
+          maxDeploysPerDay: limit.maxDeploysPerDay,
+          maxBurnsPerDay: limit.maxBurnsPerDay,
+          updatedBy: limit.updatedBy,
+          updatedAt: new Date(),
+        })
+        .where(eq(rateLimits.walletAddress, limit.walletAddress))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(rateLimits).values(limit).returning();
+      return result[0];
+    }
+  }
+
+  async removeRateLimit(walletAddress: string): Promise<void> {
+    await db.delete(rateLimits).where(eq(rateLimits.walletAddress, walletAddress));
   }
 }
 

@@ -276,3 +276,115 @@ export const insertAdminLogSchema = createInsertSchema(adminLogs).omit({
 });
 export type InsertAdminLog = z.infer<typeof insertAdminLogSchema>;
 export type AdminLog = typeof adminLogs.$inferSelect;
+
+// Wallet blacklist for banning/suspending users
+export const walletBlacklist = pgTable("wallet_blacklist", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: text("wallet_address").notNull().unique(),
+  reason: text("reason"),
+  status: text("status").notNull().default("banned"), // 'banned' | 'suspended'
+  suspendedUntil: timestamp("suspended_until"),
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertWalletBlacklistSchema = createInsertSchema(walletBlacklist).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertWalletBlacklist = z.infer<typeof insertWalletBlacklistSchema>;
+export type WalletBlacklist = typeof walletBlacklist.$inferSelect;
+
+// User badges (VIP, verified, etc.)
+export const userBadges = pgTable("user_badges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: text("wallet_address").notNull(),
+  badgeType: text("badge_type").notNull(), // 'vip' | 'verified' | 'early_adopter' | 'whale'
+  grantedBy: text("granted_by").notNull(),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserBadgeSchema = createInsertSchema(userBadges).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertUserBadge = z.infer<typeof insertUserBadgeSchema>;
+export type UserBadge = typeof userBadges.$inferSelect;
+
+// Platform announcements
+export const announcements = pgTable("announcements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull().default("info"), // 'info' | 'warning' | 'success' | 'error'
+  isActive: boolean("is_active").notNull().default(true),
+  isPinned: boolean("is_pinned").notNull().default(false),
+  expiresAt: timestamp("expires_at"),
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
+export type Announcement = typeof announcements.$inferSelect;
+
+// Featured tokens
+export const featuredTokens = pgTable("featured_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  mintAddress: text("mint_address").notNull().unique(),
+  tokenName: text("token_name").notNull(),
+  tokenSymbol: text("token_symbol").notNull(),
+  imageUri: text("image_uri"),
+  isVerified: boolean("is_verified").notNull().default(false),
+  displayOrder: integer("display_order").notNull().default(0),
+  addedBy: text("added_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertFeaturedTokenSchema = createInsertSchema(featuredTokens).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertFeaturedToken = z.infer<typeof insertFeaturedTokenSchema>;
+export type FeaturedToken = typeof featuredTokens.$inferSelect;
+
+// Daily platform stats for analytics charts
+export const dailyStats = pgTable("daily_stats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: text("date").notNull().unique(), // YYYY-MM-DD format
+  newUsers: integer("new_users").notNull().default(0),
+  totalTransactions: integer("total_transactions").notNull().default(0),
+  totalDeployments: integer("total_deployments").notNull().default(0),
+  totalBurns: integer("total_burns").notNull().default(0),
+  totalVolume: text("total_volume").default("0"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertDailyStatsSchema = createInsertSchema(dailyStats).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertDailyStats = z.infer<typeof insertDailyStatsSchema>;
+export type DailyStats = typeof dailyStats.$inferSelect;
+
+// Rate limiting configuration per wallet
+export const rateLimits = pgTable("rate_limits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: text("wallet_address").notNull().unique(),
+  maxRequestsPerMinute: integer("max_requests_per_minute").notNull().default(60),
+  maxDeploysPerDay: integer("max_deploys_per_day").notNull().default(10),
+  maxBurnsPerDay: integer("max_burns_per_day").notNull().default(50),
+  updatedBy: text("updated_by").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertRateLimitSchema = createInsertSchema(rateLimits).omit({
+  id: true,
+  updatedAt: true,
+});
+export type InsertRateLimit = z.infer<typeof insertRateLimitSchema>;
+export type RateLimit = typeof rateLimits.$inferSelect;
