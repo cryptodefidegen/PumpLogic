@@ -670,8 +670,8 @@ export default function Admin() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black flex items-center justify-center">
-        <Card className="w-full max-w-md bg-black/60 border-red-500/30">
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md bg-black/60 border-red-500/30 backdrop-blur-sm">
           <CardHeader className="text-center">
             <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <CardTitle className="text-2xl text-red-500">Access Denied</CardTitle>
@@ -691,14 +691,14 @@ export default function Admin() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black">
+    <div className="min-h-screen text-foreground pb-20">
       <div className="container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
