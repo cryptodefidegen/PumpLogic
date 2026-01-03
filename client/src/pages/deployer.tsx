@@ -345,7 +345,9 @@ export default function Deployer() {
       toast({ title: "Sending transaction...", description: "Broadcasting to Solana network" });
 
       // Use backend proxy for reliable transaction broadcast
-      const serializedTx = Buffer.from(signedTx.serialize()).toString("base64");
+      // Convert Uint8Array to base64 without using Buffer (browser-compatible)
+      const serializedBytes = signedTx.serialize();
+      const serializedTx = btoa(String.fromCharCode(...serializedBytes));
       
       const sendResponse = await fetch("/api/deployer/send-tx", {
         method: "POST",
