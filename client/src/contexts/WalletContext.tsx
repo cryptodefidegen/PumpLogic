@@ -29,6 +29,8 @@ interface WalletContextType {
   connectedWallet: string | null;
   showWalletModal: boolean;
   setShowWalletModal: (show: boolean) => void;
+  solBalance: number | null;
+  refreshBalance: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -71,6 +73,33 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [availableWallets, setAvailableWallets] = useState<WalletProvider[]>([]);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const [solBalance, setSolBalance] = useState<number | null>(null);
+
+  const refreshBalance = async () => {
+    if (!fullWalletAddress) {
+      setSolBalance(null);
+      return;
+    }
+    try {
+      const response = await fetch(`/api/solana/balance/${fullWalletAddress}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSolBalance(data.balance);
+      }
+    } catch (error) {
+      console.error("Failed to fetch balance:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (fullWalletAddress) {
+      refreshBalance();
+      const interval = setInterval(refreshBalance, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setSolBalance(null);
+    }
+  }, [fullWalletAddress]);
 
   useEffect(() => {
     const detectWallets = () => {
@@ -183,6 +212,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       connectedWallet,
       showWalletModal,
       setShowWalletModal,
+      solBalance,
+      refreshBalance,
     }}>
       {children}
     </WalletContext.Provider>

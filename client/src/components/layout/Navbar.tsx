@@ -14,7 +14,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [location] = useLocation();
-  const { isConnected, walletAddress, user, connect, disconnect, availableWallets, connectedWallet, setShowWalletModal } = useWallet();
+  const { isConnected, walletAddress, user, connect, disconnect, availableWallets, connectedWallet, setShowWalletModal, solBalance } = useWallet();
   const { toast } = useToast();
   const { provider, toggleProvider } = useApiProvider();
   
@@ -178,6 +178,12 @@ export function Navbar() {
               </span>
             </button>
           )}
+          {isConnected && solBalance !== null && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 bg-black/40 text-xs font-mono" data-testid="text-sol-balance">
+              <span className="text-primary font-bold">{solBalance.toFixed(4)}</span>
+              <span className="text-muted-foreground">SOL</span>
+            </div>
+          )}
           <Button 
             variant={isConnected ? "outline" : "default"} 
             className={cn("font-mono text-xs", isConnected ? "border-primary text-primary hover:bg-primary/10" : "bg-primary text-black hover:bg-primary/90")}
@@ -257,6 +263,12 @@ export function Navbar() {
                 <span className="text-sm">Telegram</span>
               </a>
             </div>
+            {isConnected && solBalance !== null && (
+              <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-lg border border-white/20 bg-black/40 text-sm font-mono">
+                <span className="text-primary font-bold">{solBalance.toFixed(4)}</span>
+                <span className="text-muted-foreground">SOL</span>
+              </div>
+            )}
             <Button 
               className="w-full bg-primary text-black" 
               onClick={() => { handleWalletClick(); setIsOpen(false); }}
