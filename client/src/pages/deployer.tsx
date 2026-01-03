@@ -374,7 +374,10 @@ export default function Deployer() {
       const confirmData = await confirmResponse.json();
       
       if (!confirmData.confirmed) {
-        throw new Error(confirmData.error || "Transaction confirmation failed");
+        const errorMessage = typeof confirmData.error === 'object' 
+          ? JSON.stringify(confirmData.error) 
+          : confirmData.error || "Transaction confirmation failed";
+        throw new Error(errorMessage);
       }
 
       const mintAddress = mintKeypair.publicKey.toBase58();
@@ -418,15 +421,16 @@ export default function Deployer() {
       });
 
     } catch (error: any) {
-      console.error("Deployment failed:", error);
+      const errorMsg = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error)) || "Deployment failed";
+      console.error("Deployment failed:", errorMsg);
       setDeploymentResult({
         success: false,
-        error: error.message || "Deployment failed",
+        error: errorMsg,
       });
       toast({
         variant: "destructive",
         title: "Deployment Failed",
-        description: error.message || "Failed to deploy token. Please try again.",
+        description: errorMsg,
       });
     } finally {
       setIsDeploying(false);
