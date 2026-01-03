@@ -2127,6 +2127,7 @@ export async function registerRoutes(
 
       const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
       if (!HELIUS_API_KEY) {
+        console.error("HELIUS_API_KEY not found in environment");
         return res.status(500).json({ error: "Helius API key not configured" });
       }
 
