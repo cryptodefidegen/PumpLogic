@@ -462,11 +462,19 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
 
   const totalCost = DEPLOYMENT_COST_SOL + (parseFloat(initialBuy) || 0);
 
-  // Show restricted access for connected but non-whitelisted users
-  if (isConnected && !isWhitelisted) {
+  // Show restricted access for preview mode and non-whitelisted users
+  if (!isWhitelisted) {
     return (
       <div className="min-h-screen text-foreground pb-20">
         <div className="container mx-auto px-4 pt-8">
+          <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex items-start gap-3">
+            <Shield className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <strong className="text-primary block mb-1">ACCESS RESTRICTED</strong>
+              <span className="text-white/80">The PumpLogic Deployer is currently in private beta. Only whitelisted wallets can access this feature.</span>
+            </div>
+          </div>
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -487,23 +495,6 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
               </p>
             </div>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/30 flex items-center justify-between gap-4"
-          >
-            <div className="flex items-start gap-3">
-              <Shield className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <strong className="text-primary block mb-1">ACCESS RESTRICTED</strong>
-                <span className="text-white/80">The PumpLogic Deployer is currently in private beta. Only whitelisted wallets can access this feature.</span>
-              </div>
-            </div>
-            <Badge variant="outline" className="border-primary/50 text-primary shrink-0">
-              Coming Soon
-            </Badge>
-          </motion.div>
         </div>
       </div>
     );
@@ -512,16 +503,6 @@ Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
   return (
     <div className="min-h-screen text-foreground pb-20">
       <div className="container mx-auto px-4 pt-8">
-        {isPreviewMode && (
-          <div className="bg-primary/10 border-2 border-primary/50 rounded-lg p-4 mb-8 flex items-start gap-3">
-            <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <strong className="text-primary block mb-1">PREVIEW MODE</strong>
-              <span className="text-white/80">Connect your wallet to deploy tokens. You can explore the interface and preview your token.</span>
-            </div>
-          </div>
-        )}
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
