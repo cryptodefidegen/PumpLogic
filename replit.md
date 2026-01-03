@@ -126,3 +126,22 @@ Preferred communication style: Simple, everyday language.
 - **API Integration**: Uses Pump.fun API for IPFS metadata upload and PumpPortal for transaction creation
 - **Database**: `deployment_records` table stores wallet address, mint address, signature, token name/symbol/description, and timestamp
 - **Implementation**: Client-side deployment with wallet transaction signing, server-side history persistence
+
+### Admin Panel
+- **Location**: `/admin` route, restricted to admin wallet only
+- **Admin Wallet**: `9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8`
+- **Access Control**: Server-side verification via `x-wallet-address` header
+- **Features**:
+  - **Overview Tab**: Dashboard stats (total users, transactions, deployments, allocations)
+  - **Features Tab**: Feature toggle management (enable/disable platform features)
+  - **Users Tab**: View all registered wallet addresses with Solscan links
+  - **Deployments Tab**: View all token deployments with details and transaction links
+  - **Transactions Tab**: View all platform transactions with filtering
+  - **Allocations Tab**: View all user fee allocations
+  - **Logs Tab**: Admin action audit trail
+- **Database Tables**:
+  - `feature_toggles`: Feature on/off switches with admin tracking
+  - `site_settings`: Key-value configuration store
+  - `admin_logs`: Audit log of all admin actions
+- **Feature Flag Hook**: `useFeatureFlag(featureKey)` hook for checking feature status in components
+- **API Endpoints**: All admin endpoints under `/api/admin/*` require admin wallet verification
