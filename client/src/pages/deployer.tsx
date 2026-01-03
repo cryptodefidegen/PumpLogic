@@ -103,6 +103,9 @@ const templates: DeploymentTemplate[] = [
 
 const DEPLOYMENT_COST_SOL = 0.02;
 
+// Whitelisted addresses that can access the deployer
+const DEPLOYER_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
+
 export default function Deployer() {
   const { toast } = useToast();
   const { isConnected, fullWalletAddress, connectedWallet, availableWallets } = useWallet();
@@ -132,6 +135,7 @@ export default function Deployer() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const isPreviewMode = !isConnected;
+  const isWhitelisted = fullWalletAddress && DEPLOYER_WHITELIST.includes(fullWalletAddress);
 
   // Fetch deployment history when wallet connects
   useEffect(() => {
@@ -455,6 +459,34 @@ export default function Deployer() {
   };
 
   const totalCost = DEPLOYMENT_COST_SOL + (parseFloat(initialBuy) || 0);
+
+  // Show restricted access for connected but non-whitelisted users
+  if (isConnected && !isWhitelisted) {
+    return (
+      <div className="min-h-screen text-foreground pb-20">
+        <div className="container mx-auto px-4 pt-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center min-h-[60vh] text-center"
+          >
+            <div className="bg-black/40 border border-white/10 rounded-xl p-8 max-w-md">
+              <Shield className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+              <h1 className="text-2xl font-display font-bold text-white mb-2">
+                Access Restricted
+              </h1>
+              <p className="text-muted-foreground mb-4">
+                The PumpLogic Deployer is currently in private beta. Only whitelisted wallets can access this feature.
+              </p>
+              <Badge variant="outline" className="border-yellow-500/50 text-yellow-500">
+                Coming Soon
+              </Badge>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-foreground pb-20">
