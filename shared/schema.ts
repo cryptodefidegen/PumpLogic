@@ -202,3 +202,24 @@ export const insertMultiTokenSettingsSchema = createInsertSchema(multiTokenSetti
 });
 export type InsertMultiTokenSettings = z.infer<typeof insertMultiTokenSettingsSchema>;
 export type MultiTokenSettings = typeof multiTokenSettings.$inferSelect;
+
+// Deployment records - tracks tokens deployed via PumpLogic Deployer
+export const deploymentRecords = pgTable("deployment_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: text("wallet_address").notNull(),
+  mintAddress: text("mint_address").notNull(),
+  signature: text("signature").notNull(),
+  tokenName: text("token_name").notNull(),
+  tokenSymbol: text("token_symbol").notNull(),
+  tokenDescription: text("token_description"),
+  imageUri: text("image_uri"),
+  initialBuy: text("initial_buy"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertDeploymentRecordSchema = createInsertSchema(deploymentRecords).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertDeploymentRecord = z.infer<typeof insertDeploymentRecordSchema>;
+export type DeploymentRecord = typeof deploymentRecords.$inferSelect;

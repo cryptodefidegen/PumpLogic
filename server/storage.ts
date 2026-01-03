@@ -1,6 +1,6 @@
 import { db } from "../db/index";
-import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings, linkedWallets, priceAlerts, multiTokenSettings } from "@shared/schema";
-import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings, LinkedWallet, InsertLinkedWallet, PriceAlert, InsertPriceAlert, MultiTokenSettings, InsertMultiTokenSettings } from "@shared/schema";
+import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings, linkedWallets, priceAlerts, multiTokenSettings, deploymentRecords } from "@shared/schema";
+import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings, LinkedWallet, InsertLinkedWallet, PriceAlert, InsertPriceAlert, MultiTokenSettings, InsertMultiTokenSettings, DeploymentRecord, InsertDeploymentRecord } from "@shared/schema";
 import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
@@ -62,6 +62,10 @@ export interface IStorage {
   updateMultiTokenSettings(id: string, settings: Partial<MultiTokenSettings>): Promise<MultiTokenSettings>;
   deleteMultiTokenSettings(id: string): Promise<void>;
   setActiveToken(userId: string, tokenId: string): Promise<void>;
+
+  // Deployment Records
+  getDeploymentsByWallet(walletAddress: string): Promise<DeploymentRecord[]>;
+  createDeploymentRecord(record: InsertDeploymentRecord): Promise<DeploymentRecord>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -370,6 +374,19 @@ export class DatabaseStorage implements IStorage {
     await db.update(multiTokenSettings)
       .set({ isActive: true })
       .where(eq(multiTokenSettings.id, tokenId));
+  }
+
+  // Deployment Records
+  async getDeploymentsByWallet(walletAddress: string): Promise<DeploymentRecord[]> {
+    return await db.select()
+      .from(deploymentRecords)
+      .where(eq(deploymentRecords.walletAddress, walletAddress))
+      .orderBy(desc(deploymentRecords.createdAt));
+  }
+
+  async createDeploymentRecord(record: InsertDeploymentRecord): Promise<DeploymentRecord> {
+    const result = await db.insert(deploymentRecords).values(record).returning();
+    return result[0];
   }
 }
 
