@@ -1202,6 +1202,8 @@ export default function Deployer() {
             </Card>
           </motion.div>
         )}
+          </div>
+        </motion.div>
       </div>
 
       {/* Confirmation Dialog */}
