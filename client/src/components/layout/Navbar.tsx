@@ -1,11 +1,17 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText, ToggleLeft, ToggleRight, Rocket, Home } from "lucide-react";
+import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText, ToggleLeft, ToggleRight, Rocket, Home, ChevronDown, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@/contexts/WalletContext";
 import { useToast } from "@/hooks/use-toast";
 import { useApiProvider } from "@/contexts/ApiProviderContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import logoImage from "@assets/generated_images/pump_logic_logo.png";
 
 const API_TOGGLE_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
@@ -73,7 +79,7 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6">
           <Link 
             href="/" 
             className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/" ? "text-primary" : "text-muted-foreground")}
@@ -81,42 +87,52 @@ export function Navbar() {
             <Home className="h-4 w-4" />
             Home
           </Link>
-          <Link 
-            href="/deployer" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/deployer" ? "text-primary" : "text-muted-foreground")}
-          >
-            <Rocket className="h-4 w-4" />
-            Deployer
-            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500">IN DEV</span>
-          </Link>
-          <Link 
-            href="/app" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/app" ? "text-primary" : "text-muted-foreground")}
-          >
-            <Sliders className="h-4 w-4" />
-            Allocator
-          </Link>
-          <Link 
-            href="/analytics" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/analytics" ? "text-primary" : "text-muted-foreground")}
-          >
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </Link>
-          <Link 
-            href="/guard" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/guard" ? "text-primary" : "text-muted-foreground")}
-          >
-            <Shield className="h-4 w-4" />
-            Guard
-          </Link>
-          <Link 
-            href="/burn" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/burn" ? "text-primary" : "text-muted-foreground")}
-          >
-            <Flame className="h-4 w-4" />
-            Burn
-          </Link>
+          
+          {/* Products Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger className={cn(
+              "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5 outline-none",
+              ["/deployer", "/app", "/analytics", "/guard", "/burn"].includes(location) ? "text-primary" : "text-muted-foreground"
+            )}>
+              <Package className="h-4 w-4" />
+              Products
+              <ChevronDown className="h-3 w-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-black/95 border-white/10 backdrop-blur-xl">
+              <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 focus:text-primary">
+                <Link href="/deployer" className="flex items-center gap-2 w-full">
+                  <Rocket className="h-4 w-4" />
+                  Deployer
+                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500 ml-auto">IN DEV</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 focus:text-primary">
+                <Link href="/app" className="flex items-center gap-2 w-full">
+                  <Sliders className="h-4 w-4" />
+                  Allocator
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 focus:text-primary">
+                <Link href="/analytics" className="flex items-center gap-2 w-full">
+                  <BarChart3 className="h-4 w-4" />
+                  Analytics
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 focus:text-primary">
+                <Link href="/guard" className="flex items-center gap-2 w-full">
+                  <Shield className="h-4 w-4" />
+                  Guard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 focus:text-primary">
+                <Link href="/burn" className="flex items-center gap-2 w-full">
+                  <Flame className="h-4 w-4" />
+                  Burn
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Link 
             href="/roadmap" 
             className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/roadmap" ? "text-primary" : "text-muted-foreground")}
@@ -214,35 +230,48 @@ export function Navbar() {
               <Home className="h-4 w-4" />
               Home
             </Link>
-            <Link href="/deployer" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <Rocket className="h-4 w-4" />
-              Deployer
-              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500">IN DEV</span>
-            </Link>
-            <Link href="/app" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <Sliders className="h-4 w-4" />
-              Allocator
-            </Link>
-            <Link href="/analytics" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </Link>
-            <Link href="/guard" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <Shield className="h-4 w-4" />
-              Guard
-            </Link>
-            <Link href="/burn" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <Flame className="h-4 w-4" />
-              Burn
-            </Link>
-            <Link href="/roadmap" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <Target className="h-4 w-4" />
-              Roadmap
-            </Link>
-            <Link href="/docs" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
-              <FileText className="h-4 w-4" />
-              Docs
-            </Link>
+            
+            {/* Products Section */}
+            <div className="pt-2 border-t border-white/10">
+              <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2 flex items-center gap-2">
+                <Package className="h-3 w-3" />
+                Products
+              </div>
+              <div className="flex flex-col gap-3 pl-2">
+                <Link href="/deployer" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                  <Rocket className="h-4 w-4" />
+                  Deployer
+                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500">IN DEV</span>
+                </Link>
+                <Link href="/app" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                  <Sliders className="h-4 w-4" />
+                  Allocator
+                </Link>
+                <Link href="/analytics" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                  <BarChart3 className="h-4 w-4" />
+                  Analytics
+                </Link>
+                <Link href="/guard" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                  <Shield className="h-4 w-4" />
+                  Guard
+                </Link>
+                <Link href="/burn" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                  <Flame className="h-4 w-4" />
+                  Burn
+                </Link>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-white/10 flex flex-col gap-3">
+              <Link href="/roadmap" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                <Target className="h-4 w-4" />
+                Roadmap
+              </Link>
+              <Link href="/docs" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                <FileText className="h-4 w-4" />
+                Docs
+              </Link>
+            </div>
             <div className="flex items-center gap-4 pt-2 border-t border-white/10">
               <a 
                 href="https://x.com/i/communities/2004770032832929819" 
