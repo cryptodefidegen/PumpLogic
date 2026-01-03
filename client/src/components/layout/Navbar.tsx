@@ -105,7 +105,6 @@ export function Navbar() {
                 <Link href="/deployer" className="flex items-center gap-2 w-full">
                   <Rocket className="h-4 w-4" />
                   Deployer
-                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500 ml-auto">IN DEV</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 focus:text-primary">
@@ -253,7 +252,6 @@ export function Navbar() {
                 <Link href="/deployer" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
                   <Rocket className="h-4 w-4" />
                   Deployer
-                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500">IN DEV</span>
                 </Link>
                 <Link href="/app" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
                   <Sliders className="h-4 w-4" />

@@ -514,7 +514,6 @@ export default function Docs() {
               <span className="flex items-center gap-3">
                 <Rocket className="h-5 w-5 text-primary" />
                 PumpLogic Deployer
-                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-yellow-500/20 border border-yellow-500/50 rounded-full text-yellow-500">IN DEV</span>
               </span>
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground space-y-6 pb-6">
@@ -608,7 +607,7 @@ export default function Docs() {
               </div>
 
               <p className="text-xs text-muted-foreground">
-                PumpLogic Deployer is currently in development. Token deployment requires SOL for network fees and optional initial buy.
+                PumpLogic Deployer is now live. Token deployment requires SOL for network fees and optional initial buy.
               </p>
             </AccordionContent>
           </AccordionItem>

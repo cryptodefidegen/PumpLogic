@@ -71,10 +71,10 @@ const phases = [
   {
     id: 5,
     title: "PumpLogic Deployer",
-    status: "in_progress",
+    status: "live",
     icon: Rocket,
     eta: "Q1 2025",
-    progress: 75,
+    progress: 100,
     description: "Launch Pump.fun tokens directly from PumpLogic",
     features: [
       "One-click token deployment",
