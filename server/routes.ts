@@ -2112,5 +2112,101 @@ export async function registerRoutes(
     }
   });
 
+  // Token holders endpoint using Helius API
+  app.get("/api/token/:mint/holders", async (req, res) => {
+    try {
+      const { mint } = req.params;
+      const limit = parseInt(req.query.limit as string) || 20;
+      
+      if (!mint) {
+        return res.status(400).json({ error: "Mint address is required" });
+      }
+
+      const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
+      if (!HELIUS_API_KEY) {
+        return res.status(500).json({ error: "Helius API key not configured" });
+      }
+
+      // Fetch token accounts from Helius
+      const response = await fetch(`https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: "1",
+          method: "getTokenAccounts",
+          params: {
+            mint: mint,
+            limit: 1000
+          }
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.error) {
+        console.error("Helius API error:", data.error);
+        return res.status(500).json({ error: "Failed to fetch token holders" });
+      }
+
+      const tokenAccounts = data.result?.token_accounts || [];
+      
+      // Get total supply for percentage calculation
+      const { Connection, PublicKey } = await import("@solana/web3.js");
+      const SOLANA_RPC = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
+      const connection = new Connection(SOLANA_RPC, "confirmed");
+      
+      const mintPubkey = new PublicKey(mint);
+      const mintInfo = await connection.getParsedAccountInfo(mintPubkey);
+      
+      let totalSupply = 0;
+      let decimals = 0;
+      
+      if (mintInfo.value && 'parsed' in mintInfo.value.data) {
+        const mintParsed = mintInfo.value.data.parsed;
+        decimals = mintParsed.info.decimals;
+        totalSupply = parseFloat(mintParsed.info.supply) / Math.pow(10, decimals);
+      }
+
+      // Aggregate balances by owner (some owners may have multiple token accounts)
+      const holderMap: Record<string, number> = {};
+      for (const account of tokenAccounts) {
+        const owner = account.owner;
+        const amount = account.amount / Math.pow(10, decimals);
+        holderMap[owner] = (holderMap[owner] || 0) + amount;
+      }
+
+      // Sort by balance descending and take top holders
+      const sortedHolders = Object.entries(holderMap)
+        .map(([address, balance]) => ({
+          address,
+          balance,
+          percentage: totalSupply > 0 ? (balance / totalSupply) * 100 : 0
+        }))
+        .sort((a, b) => b.balance - a.balance)
+        .slice(0, limit);
+
+      // Calculate concentration metrics
+      const top10Total = sortedHolders.slice(0, 10).reduce((sum, h) => sum + h.percentage, 0);
+      const top20Total = sortedHolders.slice(0, 20).reduce((sum, h) => sum + h.percentage, 0);
+      const totalHolders = Object.keys(holderMap).length;
+
+      return res.json({
+        mint,
+        totalSupply,
+        totalHolders,
+        holders: sortedHolders,
+        concentration: {
+          top10Percentage: top10Total,
+          top20Percentage: top20Total,
+          isHighlyConcentrated: top10Total > 50
+        }
+      });
+    } catch (error: any) {
+      console.error("Token holders error:", error);
+      return res.status(500).json({ error: error.message || "Failed to fetch token holders" });
+    }
+  });
+
   return httpServer;
 }

@@ -111,6 +111,24 @@ interface WatchlistToken {
   addedAt: Date;
 }
 
+interface TokenHolder {
+  address: string;
+  balance: number;
+  percentage: number;
+}
+
+interface HoldersData {
+  mint: string;
+  totalSupply: number;
+  totalHolders: number;
+  holders: TokenHolder[];
+  concentration: {
+    top10Percentage: number;
+    top20Percentage: number;
+    isHighlyConcentrated: boolean;
+  };
+}
+
 interface WhaleAlert {
   id: string;
   type: 'buy' | 'sell' | 'transfer';
@@ -167,6 +185,8 @@ export default function Guard() {
   const [tokenAddress, setTokenAddress] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<TokenAnalysis | null>(null);
+  const [holdersData, setHoldersData] = useState<HoldersData | null>(null);
+  const [isLoadingHolders, setIsLoadingHolders] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [watchlistInput, setWatchlistInput] = useState("");
   const [watchlist, setWatchlist] = useState<WatchlistToken[]>([]);
@@ -246,6 +266,22 @@ export default function Guard() {
       fetchWhaleAlerts();
     }
   }, [activeTab, provider]);
+
+  const fetchHolders = async (mintAddress: string) => {
+    setIsLoadingHolders(true);
+    setHoldersData(null);
+    try {
+      const response = await fetch(`/api/token/${mintAddress}/holders?limit=20`);
+      if (response.ok) {
+        const data = await response.json();
+        setHoldersData(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch holders:", err);
+    } finally {
+      setIsLoadingHolders(false);
+    }
+  };
 
   const scanFromWatchlist = async (address: string) => {
     setTokenAddress(address);
@@ -362,6 +398,9 @@ export default function Guard() {
         pairAddress,
         dexId,
       });
+      
+      // Fetch holders data in parallel
+      fetchHolders(address);
     } catch (err: any) {
       setError(err.message || "Failed to analyze token");
     } finally {
@@ -538,6 +577,9 @@ export default function Guard() {
       };
       
       setAnalysis(tokenAnalysis);
+      
+      // Fetch holders data in parallel
+      fetchHolders(tokenAddress);
     } catch (err: any) {
       setError(err.message || "Failed to analyze token");
     } finally {
@@ -803,6 +845,140 @@ export default function Guard() {
                         </Badge>
                       </div>
                     ))}
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-black/40 border-white/10">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-white text-lg flex items-center gap-2">
+                        <Users className="h-5 w-5 text-primary" />
+                        Top Holders
+                      </CardTitle>
+                      {holdersData && (
+                        <Badge variant="outline" className="border-white/20">
+                          {holdersData.totalHolders.toLocaleString()} holders
+                        </Badge>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingHolders ? (
+                      <div className="flex items-center justify-center py-8">
+                        <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+                        <span className="ml-2 text-muted-foreground">Loading holders...</span>
+                      </div>
+                    ) : holdersData ? (
+                      <div className="space-y-4">
+                        {holdersData.concentration && (
+                          <div className={cn(
+                            "p-4 rounded-lg border",
+                            holdersData.concentration.isHighlyConcentrated 
+                              ? "bg-red-500/10 border-red-500/30" 
+                              : "bg-green-500/10 border-green-500/30"
+                          )}>
+                            <div className="flex items-center gap-2 mb-2">
+                              {holdersData.concentration.isHighlyConcentrated ? (
+                                <AlertTriangle className="h-5 w-5 text-red-500" />
+                              ) : (
+                                <CheckCircle className="h-5 w-5 text-green-500" />
+                              )}
+                              <span className={cn(
+                                "font-semibold",
+                                holdersData.concentration.isHighlyConcentrated ? "text-red-500" : "text-green-500"
+                              )}>
+                                {holdersData.concentration.isHighlyConcentrated ? "High Concentration Risk" : "Healthy Distribution"}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">Top 10 hold</p>
+                                <p className={cn(
+                                  "font-bold text-lg",
+                                  holdersData.concentration.top10Percentage > 50 ? "text-red-500" : "text-green-500"
+                                )}>
+                                  {holdersData.concentration.top10Percentage.toFixed(1)}%
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Top 20 hold</p>
+                                <p className={cn(
+                                  "font-bold text-lg",
+                                  holdersData.concentration.top20Percentage > 70 ? "text-yellow-500" : "text-green-500"
+                                )}>
+                                  {holdersData.concentration.top20Percentage.toFixed(1)}%
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b border-white/10">
+                                <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground">#</th>
+                                <th className="text-left py-2 px-2 text-xs font-medium text-muted-foreground">Wallet</th>
+                                <th className="text-right py-2 px-2 text-xs font-medium text-muted-foreground">Balance</th>
+                                <th className="text-right py-2 px-2 text-xs font-medium text-muted-foreground">%</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {holdersData.holders.slice(0, 10).map((holder, index) => (
+                                <tr key={holder.address} className="border-b border-white/5 hover:bg-white/5">
+                                  <td className="py-2 px-2 text-sm text-muted-foreground">{index + 1}</td>
+                                  <td className="py-2 px-2">
+                                    <div className="flex items-center gap-2">
+                                      <a 
+                                        href={`https://solscan.io/account/${holder.address}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-mono text-xs text-primary hover:underline"
+                                      >
+                                        {holder.address.slice(0, 4)}...{holder.address.slice(-4)}
+                                      </a>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => copyToClipboard(holder.address, "Address")}
+                                        className="h-6 w-6 p-0 hover:bg-white/10"
+                                      >
+                                        <Copy className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                  <td className="py-2 px-2 text-right font-mono text-xs text-white">
+                                    {holder.balance >= 1000000 
+                                      ? `${(holder.balance / 1000000).toFixed(2)}M`
+                                      : holder.balance >= 1000 
+                                        ? `${(holder.balance / 1000).toFixed(2)}K`
+                                        : holder.balance.toFixed(2)
+                                    }
+                                  </td>
+                                  <td className="py-2 px-2 text-right">
+                                    <Badge 
+                                      variant="outline" 
+                                      className={cn(
+                                        "text-xs",
+                                        holder.percentage > 10 ? "border-red-500/50 text-red-500" :
+                                        holder.percentage > 5 ? "border-yellow-500/50 text-yellow-500" :
+                                        "border-green-500/50 text-green-500"
+                                      )}
+                                    >
+                                      {holder.percentage.toFixed(2)}%
+                                    </Badge>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-center py-4">
+                        Holder data will appear after token analysis
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </>
