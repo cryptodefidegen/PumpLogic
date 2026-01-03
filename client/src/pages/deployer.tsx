@@ -468,19 +468,35 @@ export default function Deployer() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center min-h-[60vh] text-center"
+            className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8"
           >
-            <div className="bg-black/40 border border-white/10 rounded-xl p-8 max-w-md">
-              <Shield className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-display font-bold text-white mb-2">
-                Access Restricted
-              </h1>
-              <p className="text-muted-foreground mb-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <Rocket className="h-8 w-8 text-primary" />
+                <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
+                  Pump<span className="text-primary">Logic</span> Deployer
+                </h1>
+                <Badge variant="outline" className="border-yellow-500/50 text-yellow-500 text-xs">
+                  IN DEV
+                </Badge>
+              </div>
+              <p className="text-muted-foreground">
+                Launch your Pump.fun token in seconds. Fill in the details, choose a template, and deploy directly to Solana.
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-3"
+          >
+            <Shield className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-yellow-500 font-medium">Access Restricted</p>
+              <p className="text-sm text-muted-foreground">
                 The PumpLogic Deployer is currently in private beta. Only whitelisted wallets can access this feature.
               </p>
-              <Badge variant="outline" className="border-yellow-500/50 text-yellow-500">
-                Coming Soon
-              </Badge>
             </div>
           </motion.div>
         </div>
