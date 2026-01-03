@@ -1025,16 +1025,18 @@ export default function Guard() {
                                         ))}
                                       </Pie>
                                       <Tooltip 
-                                        contentStyle={{ 
-                                          backgroundColor: 'rgba(0,0,0,0.9)', 
-                                          border: '1px solid rgba(255,255,255,0.1)',
-                                          borderRadius: '8px',
-                                          fontSize: '12px',
-                                          color: '#fff'
+                                        content={({ active, payload }) => {
+                                          if (active && payload && payload.length) {
+                                            const data = payload[0];
+                                            return (
+                                              <div className="bg-black/95 border border-white/20 rounded-lg px-3 py-2 text-sm">
+                                                <p className="text-white font-medium">{data.name}</p>
+                                                <p className="text-primary">{Number(data.value).toFixed(2)}%</p>
+                                              </div>
+                                            );
+                                          }
+                                          return null;
                                         }}
-                                        labelStyle={{ color: '#fff', marginBottom: '4px' }}
-                                        itemStyle={{ color: '#fff' }}
-                                        formatter={(value: number, name: string) => [`${value.toFixed(2)}%`, name]}
                                       />
                                     </PieChart>
                                   </ResponsiveContainer>
