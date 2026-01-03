@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText, ToggleLeft, ToggleRight, Rocket, Home, ChevronDown, Package } from "lucide-react";
+import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText, ToggleLeft, ToggleRight, Rocket, Home, ChevronDown, Package, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import logoImage from "@assets/generated_images/pump_logic_logo.png";
 
+const ADMIN_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 const API_TOGGLE_WHITELIST = ["9mRTLVQXjF2Fj9TkzUzmA7Jk22kAAq5Ssx4KykQQHxn8"];
 
 export function Navbar() {
@@ -25,6 +26,7 @@ export function Navbar() {
   const { provider, toggleProvider } = useApiProvider();
   
   const canToggleApi = user?.walletAddress && API_TOGGLE_WHITELIST.includes(user.walletAddress);
+  const isAdmin = user?.walletAddress && ADMIN_WHITELIST.includes(user.walletAddress);
 
   const toggleMenu = () => setIsOpen(!isOpen);
   
@@ -147,6 +149,16 @@ export function Navbar() {
             <FileText className="h-4 w-4" />
             Docs
           </Link>
+          {isAdmin && (
+            <Link 
+              href="/admin" 
+              className={cn("text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/admin" ? "text-primary" : "text-muted-foreground")}
+              data-testid="link-admin"
+            >
+              <Settings className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
           <div className="flex items-center gap-3 ml-2 border-l border-white/10 pl-4">
             <a 
               href="https://x.com/i/communities/2004770032832929819" 
@@ -271,6 +283,12 @@ export function Navbar() {
                 <FileText className="h-4 w-4" />
                 Docs
               </Link>
+              {isAdmin && (
+                <Link href="/admin" className="text-sm font-medium text-primary hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+                  <Settings className="h-4 w-4" />
+                  Admin Panel
+                </Link>
+              )}
             </div>
             <div className="flex items-center gap-4 pt-2 border-t border-white/10">
               <a 

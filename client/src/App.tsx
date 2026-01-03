@@ -18,6 +18,7 @@ import { Navbar } from "@/components/layout/Navbar";
 
 const Burn = lazy(() => import("@/pages/burn"));
 const Deployer = lazy(() => import("@/pages/deployer"));
+const Admin = lazy(() => import("@/pages/admin"));
 import { WalletModal } from "@/components/WalletModal";
 
 function Router() {
@@ -41,6 +42,13 @@ function Router() {
         {() => (
           <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
             <Deployer />
+          </Suspense>
+        )}
+      </Route>
+      <Route path="/admin">
+        {() => (
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
+            <Admin />
           </Suspense>
         )}
       </Route>
