@@ -277,6 +277,22 @@ export const insertAdminLogSchema = createInsertSchema(adminLogs).omit({
 export type InsertAdminLog = z.infer<typeof insertAdminLogSchema>;
 export type AdminLog = typeof adminLogs.$inferSelect;
 
+// Feature whitelist - grants specific wallets access to features during maintenance
+export const featureWhitelist = pgTable("feature_whitelist", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: text("wallet_address").notNull(),
+  featureKey: text("feature_key").notNull(),
+  addedBy: text("added_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertFeatureWhitelistSchema = createInsertSchema(featureWhitelist).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertFeatureWhitelist = z.infer<typeof insertFeatureWhitelistSchema>;
+export type FeatureWhitelist = typeof featureWhitelist.$inferSelect;
+
 // Wallet blacklist for banning/suspending users
 export const walletBlacklist = pgTable("wallet_blacklist", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
