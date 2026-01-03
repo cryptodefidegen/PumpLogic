@@ -887,7 +887,7 @@ export default function Guard() {
                                 ? "bg-red-500/10 border-red-500/30" 
                                 : "bg-green-500/10 border-green-500/30"
                             )}>
-                              <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center gap-2 mb-3">
                                 {holdersData.concentration.isHighlyConcentrated ? (
                                   <AlertTriangle className="h-5 w-5 text-red-500" />
                                 ) : (
@@ -900,9 +900,9 @@ export default function Guard() {
                                   {holdersData.concentration.isHighlyConcentrated ? "High Concentration Risk" : "Healthy Distribution"}
                                 </span>
                               </div>
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                  <p className="text-muted-foreground">Top 10 hold</p>
+                              <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                                <div className="p-2 rounded bg-black/30">
+                                  <p className="text-muted-foreground text-xs">Top 10 hold</p>
                                   <p className={cn(
                                     "font-bold text-lg",
                                     holdersData.concentration.top10Percentage > 50 ? "text-red-500" : "text-green-500"
@@ -910,8 +910,8 @@ export default function Guard() {
                                     {holdersData.concentration.top10Percentage.toFixed(1)}%
                                   </p>
                                 </div>
-                                <div>
-                                  <p className="text-muted-foreground">Top 20 hold</p>
+                                <div className="p-2 rounded bg-black/30">
+                                  <p className="text-muted-foreground text-xs">Top 20 hold</p>
                                   <p className={cn(
                                     "font-bold text-lg",
                                     holdersData.concentration.top20Percentage > 70 ? "text-yellow-500" : "text-green-500"
@@ -920,6 +920,61 @@ export default function Guard() {
                                   </p>
                                 </div>
                               </div>
+                              
+                              {(() => {
+                                const top1 = holdersData.holders[0]?.percentage || 0;
+                                const whaleCount = holdersData.holders.filter(h => h.percentage >= 5).length;
+                                const microHolders = holdersData.holders.filter(h => h.percentage < 0.1).length;
+                                const remainingPercent = Math.max(0, 100 - holdersData.concentration.top10Percentage);
+                                
+                                return (
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-muted-foreground">Largest holder</span>
+                                      <span className={cn(
+                                        "font-medium",
+                                        top1 > 20 ? "text-red-500" : top1 > 10 ? "text-yellow-500" : "text-green-500"
+                                      )}>
+                                        {top1.toFixed(2)}% {top1 > 20 ? "(Danger)" : top1 > 10 ? "(Caution)" : "(Safe)"}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-muted-foreground">Whales (5%+)</span>
+                                      <span className={cn(
+                                        "font-medium",
+                                        whaleCount > 5 ? "text-red-500" : whaleCount > 2 ? "text-yellow-500" : "text-green-500"
+                                      )}>
+                                        {whaleCount} wallet{whaleCount !== 1 ? 's' : ''}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-muted-foreground">Community share</span>
+                                      <span className={cn(
+                                        "font-medium",
+                                        remainingPercent < 30 ? "text-red-500" : remainingPercent < 50 ? "text-yellow-500" : "text-green-500"
+                                      )}>
+                                        {remainingPercent.toFixed(1)}%
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs">
+                                      <span className="text-muted-foreground">Total holders</span>
+                                      <span className="font-medium text-white">{holdersData.totalHolders.toLocaleString()}</span>
+                                    </div>
+                                    
+                                    {holdersData.concentration.isHighlyConcentrated && (
+                                      <div className="mt-3 pt-2 border-t border-red-500/20">
+                                        <p className="text-xs text-red-400">
+                                          ⚠️ {top1 > 20 
+                                            ? "Single wallet controls over 20% - high dump risk" 
+                                            : whaleCount > 3 
+                                              ? `${whaleCount} whales hold significant supply - coordinated selling possible`
+                                              : "Top 10 wallets control majority - price easily manipulated"}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           )}
 
