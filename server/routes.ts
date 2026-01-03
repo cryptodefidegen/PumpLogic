@@ -1862,6 +1862,90 @@ export async function registerRoutes(
     }
   });
 
+  // ===== FEATURE WHITELIST =====
+  app.get("/api/admin/feature-whitelist", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const whitelist = await storage.getFeatureWhitelist();
+      return res.json(whitelist);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/feature-whitelist", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { walletAddress, featureKey } = req.body;
+      if (!walletAddress || !featureKey) {
+        return res.status(400).json({ error: "walletAddress and featureKey are required" });
+      }
+
+      const existing = await storage.isWalletWhitelisted(walletAddress, featureKey);
+      if (existing) {
+        return res.status(400).json({ error: "Wallet is already whitelisted for this feature" });
+      }
+
+      const entry = await storage.addToFeatureWhitelist({
+        walletAddress,
+        featureKey,
+        addedBy: adminWallet,
+      });
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "ADD_FEATURE_WHITELIST",
+        targetType: "feature_whitelist",
+        targetId: walletAddress,
+        details: `Whitelisted for feature: ${featureKey}`,
+      });
+
+      return res.json(entry);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/admin/feature-whitelist/:walletAddress/:featureKey", async (req, res) => {
+    const adminWallet = req.headers["x-wallet-address"] as string;
+    if (adminWallet !== ADMIN_WALLET) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+    try {
+      const { walletAddress, featureKey } = req.params;
+      await storage.removeFromFeatureWhitelist(walletAddress, featureKey);
+
+      await storage.createAdminLog({
+        adminAddress: adminWallet,
+        action: "REMOVE_FEATURE_WHITELIST",
+        targetType: "feature_whitelist",
+        targetId: walletAddress,
+        details: `Removed from feature: ${featureKey}`,
+      });
+
+      return res.json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Public endpoint to check if wallet is whitelisted for a feature
+  app.get("/api/feature-whitelist/check/:walletAddress/:featureKey", async (req, res) => {
+    try {
+      const { walletAddress, featureKey } = req.params;
+      const isWhitelisted = await storage.isWalletWhitelisted(walletAddress, featureKey);
+      return res.json({ isWhitelisted });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
   // Public endpoints for announcements and featured tokens (non-admin)
   app.get("/api/announcements", async (req, res) => {
     try {
