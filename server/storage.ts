@@ -1,6 +1,6 @@
 import { db } from "../db/index";
-import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings, linkedWallets, priceAlerts, multiTokenSettings, deploymentRecords, featureToggles, siteSettings, adminLogs, walletBlacklist, userBadges, announcements, featuredTokens, dailyStats, rateLimits } from "@shared/schema";
-import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings, LinkedWallet, InsertLinkedWallet, PriceAlert, InsertPriceAlert, MultiTokenSettings, InsertMultiTokenSettings, DeploymentRecord, InsertDeploymentRecord, FeatureToggle, InsertFeatureToggle, SiteSetting, InsertSiteSetting, AdminLog, InsertAdminLog, WalletBlacklist, InsertWalletBlacklist, UserBadge, InsertUserBadge, Announcement, InsertAnnouncement, FeaturedToken, InsertFeaturedToken, DailyStats, InsertDailyStats, RateLimit, InsertRateLimit } from "@shared/schema";
+import { users, allocations, transactions, automationConfigs, destinationWallets, allocationPresets, telegramSettings, tokenSettings, linkedWallets, priceAlerts, multiTokenSettings, deploymentRecords, featureToggles, siteSettings, adminLogs, walletBlacklist, userBadges, announcements, featuredTokens, dailyStats, rateLimits, featureWhitelist } from "@shared/schema";
+import type { User, InsertUser, Allocation, InsertAllocation, Transaction, InsertTransaction, AutomationConfig, InsertAutomationConfig, DestinationWallets, InsertDestinationWallets, AllocationPreset, InsertAllocationPreset, TelegramSettings, InsertTelegramSettings, TokenSettings, InsertTokenSettings, LinkedWallet, InsertLinkedWallet, PriceAlert, InsertPriceAlert, MultiTokenSettings, InsertMultiTokenSettings, DeploymentRecord, InsertDeploymentRecord, FeatureToggle, InsertFeatureToggle, SiteSetting, InsertSiteSetting, AdminLog, InsertAdminLog, WalletBlacklist, InsertWalletBlacklist, UserBadge, InsertUserBadge, Announcement, InsertAnnouncement, FeaturedToken, InsertFeaturedToken, DailyStats, InsertDailyStats, RateLimit, InsertRateLimit, FeatureWhitelist, InsertFeatureWhitelist } from "@shared/schema";
 import { eq, desc, and, sql, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
@@ -124,6 +124,13 @@ export interface IStorage {
   getAllRateLimits(): Promise<RateLimit[]>;
   setRateLimit(limit: InsertRateLimit): Promise<RateLimit>;
   removeRateLimit(walletAddress: string): Promise<void>;
+
+  // Feature Whitelist
+  getFeatureWhitelist(): Promise<FeatureWhitelist[]>;
+  getFeatureWhitelistByFeature(featureKey: string): Promise<FeatureWhitelist[]>;
+  isWalletWhitelisted(walletAddress: string, featureKey: string): Promise<boolean>;
+  addToFeatureWhitelist(entry: InsertFeatureWhitelist): Promise<FeatureWhitelist>;
+  removeFromFeatureWhitelist(walletAddress: string, featureKey: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -724,6 +731,39 @@ export class DatabaseStorage implements IStorage {
 
   async removeRateLimit(walletAddress: string): Promise<void> {
     await db.delete(rateLimits).where(eq(rateLimits.walletAddress, walletAddress));
+  }
+
+  // Feature Whitelist
+  async getFeatureWhitelist(): Promise<FeatureWhitelist[]> {
+    return await db.select().from(featureWhitelist).orderBy(desc(featureWhitelist.createdAt));
+  }
+
+  async getFeatureWhitelistByFeature(featureKey: string): Promise<FeatureWhitelist[]> {
+    return await db.select().from(featureWhitelist).where(eq(featureWhitelist.featureKey, featureKey));
+  }
+
+  async isWalletWhitelisted(walletAddress: string, featureKey: string): Promise<boolean> {
+    const result = await db.select().from(featureWhitelist).where(
+      and(
+        eq(featureWhitelist.walletAddress, walletAddress),
+        eq(featureWhitelist.featureKey, featureKey)
+      )
+    ).limit(1);
+    return result.length > 0;
+  }
+
+  async addToFeatureWhitelist(entry: InsertFeatureWhitelist): Promise<FeatureWhitelist> {
+    const result = await db.insert(featureWhitelist).values(entry).returning();
+    return result[0];
+  }
+
+  async removeFromFeatureWhitelist(walletAddress: string, featureKey: string): Promise<void> {
+    await db.delete(featureWhitelist).where(
+      and(
+        eq(featureWhitelist.walletAddress, walletAddress),
+        eq(featureWhitelist.featureKey, featureKey)
+      )
+    );
   }
 }
 
