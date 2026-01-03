@@ -43,7 +43,7 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-            <Link href="/app">
+            <Link href="/deployer">
               <Button size="lg" className="h-14 px-8 text-lg bg-primary text-black hover:bg-primary/90 rounded-full font-bold">
                 Get Started <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -170,9 +170,9 @@ export default function Home() {
           <h2 className="text-4xl font-bold font-display mb-6">Ready to launch?</h2>
           <p className="text-xl text-muted-foreground mb-8">Connect your wallet and access the complete DeFi toolkit for Solana creators.</p>
           
-          <Link href="/app">
+          <Link href="/deployer">
             <Button size="lg" className="h-14 px-8 text-lg bg-primary text-black hover:bg-primary/90 rounded-full font-bold shadow-[0_0_20px_rgba(0,255,157,0.3)]">
-              Open Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+              Launch a Token <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>
