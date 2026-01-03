@@ -602,20 +602,37 @@ export default function Deployer() {
     );
   }
 
+  const [showHistory, setShowHistory] = useState(false);
+
   return (
-    <div className="min-h-screen text-foreground pb-20">
-      <div className="container mx-auto px-4 pt-8">
+    <div className="min-h-screen text-foreground pb-8">
+      <div className="container mx-auto px-4 pt-6">
+        {/* Square Canvas Wrapper */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8"
+          className="max-w-[1080px] mx-auto"
         >
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Rocket className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl md:text-4xl font-display font-bold text-white">
-                Pump<span className="text-primary">Logic</span> Deployer
-              </h1>
+          {/* Main Square Content Area */}
+          <div className="bg-gradient-to-br from-black/60 to-black/40 border border-white/10 rounded-2xl p-6 relative overflow-hidden">
+            {/* Subtle gradient frame */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+            
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <Rocket className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-display font-bold text-white">
+                    Pump<span className="text-primary">Logic</span> Deployer
+                  </h1>
+                  <p className="text-xs text-muted-foreground">
+                    Launch your Pump.fun token in seconds
+                  </p>
+                </div>
+              </div>
               <Badge
                 variant="outline"
                 className="border-yellow-500/50 text-yellow-500 text-xs"
@@ -623,18 +640,13 @@ export default function Deployer() {
                 IN DEV
               </Badge>
             </div>
-            <p className="text-muted-foreground">
-              Launch your Pump.fun token in seconds. Fill in the details, choose
-              a template, and deploy directly to Solana.
-            </p>
-          </div>
-        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Token Details Card */}
-            <Card className="bg-black/40 border-white/10">
+            {/* Two Column Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-5">
+              {/* Left Column - Form */}
+              <div className="space-y-4">
+                {/* Token Details Card */}
+                <Card className="bg-black/60 border-white/10">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary" />
