@@ -9,10 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@/contexts/WalletContext";
 import { 
-  Rocket, Loader2, AlertTriangle, Wallet, ExternalLink, 
+  Rocket, Loader2, ExternalLink, AlertTriangle,
   Info, Upload, Image, Twitter, MessageCircle, Globe,
   Sparkles, Zap, Users, Shield, CheckCircle2, Copy,
-  ArrowRight, RefreshCw, Flame, BarChart3, X, History, Clock
+  ArrowRight, RefreshCw, Flame, BarChart3, X, History, Clock, Wallet
 } from "lucide-react";
 import { VersionedTransaction, Keypair } from "@solana/web3.js";
 import {
@@ -535,14 +535,14 @@ export default function Deployer() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-3"
+            className="mb-6 p-4 rounded-lg bg-primary/5 border border-primary/30 flex items-center justify-between gap-4"
           >
-            <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-yellow-500 font-medium">Preview Mode</p>
-              <p className="text-sm text-muted-foreground">
-                Connect your wallet to deploy tokens. You can explore the interface and preview your token.
-              </p>
+            <div className="flex items-start gap-3">
+              <Wallet className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <strong className="text-primary block mb-1">PREVIEW MODE</strong>
+                <span className="text-white/80">Connect your wallet to deploy tokens. You can explore the interface and preview your token.</span>
+              </div>
             </div>
           </motion.div>
         )}
