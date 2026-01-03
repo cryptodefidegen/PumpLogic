@@ -82,7 +82,7 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           <Link 
             href="/" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/" ? "text-primary" : "text-muted-foreground")}
+            className={cn("text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/" ? "text-primary" : "text-muted-foreground")}
           >
             <Home className="h-4 w-4" />
             Home
@@ -91,7 +91,7 @@ export function Navbar() {
           {/* Products Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger className={cn(
-              "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5 outline-none",
+              "text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5 outline-none",
               ["/deployer", "/app", "/analytics", "/guard", "/burn"].includes(location) ? "text-primary" : "text-muted-foreground"
             )}>
               <Package className="h-4 w-4" />
@@ -135,14 +135,14 @@ export function Navbar() {
 
           <Link 
             href="/roadmap" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/roadmap" ? "text-primary" : "text-muted-foreground")}
+            className={cn("text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/roadmap" ? "text-primary" : "text-muted-foreground")}
           >
             <Target className="h-4 w-4" />
             Roadmap
           </Link>
           <Link 
             href="/docs" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/docs" ? "text-primary" : "text-muted-foreground")}
+            className={cn("text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/docs" ? "text-primary" : "text-muted-foreground")}
           >
             <FileText className="h-4 w-4" />
             Docs
