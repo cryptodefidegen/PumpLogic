@@ -761,6 +761,50 @@ export async function registerRoutes(
     }
   });
 
+  // ===== DEPLOYMENT RECORDS =====
+
+  // Get deployment history by wallet address
+  app.get("/api/deployments/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      if (!walletAddress || walletAddress.length < 32) {
+        return res.status(400).json({ error: "Valid wallet address is required" });
+      }
+
+      const deployments = await storage.getDeploymentsByWallet(walletAddress);
+      return res.json(deployments);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Record a new deployment
+  app.post("/api/deployments", async (req, res) => {
+    try {
+      const { walletAddress, mintAddress, signature, tokenName, tokenSymbol, tokenDescription, imageUri, initialBuy } = req.body;
+      
+      if (!walletAddress || !mintAddress || !signature || !tokenName || !tokenSymbol) {
+        return res.status(400).json({ error: "Missing required fields: walletAddress, mintAddress, signature, tokenName, tokenSymbol" });
+      }
+
+      const deployment = await storage.createDeploymentRecord({
+        walletAddress,
+        mintAddress,
+        signature,
+        tokenName,
+        tokenSymbol,
+        tokenDescription: tokenDescription || null,
+        imageUri: imageUri || null,
+        initialBuy: initialBuy || null,
+      });
+      
+      return res.json(deployment);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
   // Analytics endpoint - get real data for analytics page
   app.get("/api/analytics/:userId", async (req, res) => {
     try {
