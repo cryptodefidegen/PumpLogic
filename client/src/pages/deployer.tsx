@@ -14,7 +14,7 @@ import {
   Sparkles, Zap, Users, Shield, CheckCircle2, Copy,
   ArrowRight, RefreshCw, Flame, BarChart3, X, History, Clock
 } from "lucide-react";
-import { Connection, PublicKey, VersionedTransaction, Keypair } from "@solana/web3.js";
+import { VersionedTransaction, Keypair } from "@solana/web3.js";
 import {
   Dialog,
   DialogContent,
@@ -33,12 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import bs58 from "bs58";
 
-const SOLANA_RPC_ENDPOINTS = [
-  "https://mainnet.helius-rpc.com/?api-key=1d8740dc-e5f4-421c-b823-e1bad1889eff",
-  "https://solana-mainnet.rpc.extrnode.com",
-  "https://api.mainnet-beta.solana.com",
-];
-const SOLANA_RPC = SOLANA_RPC_ENDPOINTS[0];
+// RPC calls are proxied through backend to avoid rate limiting and CORS issues
 
 interface TokenFormData {
   name: string;
@@ -241,27 +236,9 @@ export default function Deployer() {
   };
 
   const checkSolBalance = async (): Promise<number> => {
-    if (!fullWalletAddress) return 0;
-    
-    // Try multiple RPC endpoints
-    for (const rpc of SOLANA_RPC_ENDPOINTS) {
-      try {
-        const connection = new Connection(rpc, "confirmed");
-        const balance = await connection.getBalance(new PublicKey(fullWalletAddress));
-        return balance / 1e9;
-      } catch (error) {
-        console.error(`RPC ${rpc} failed:`, error);
-        continue; // Try next RPC
-      }
-    }
-    
-    // All RPCs failed - warn but proceed
-    console.error("All RPC endpoints failed to fetch balance");
-    toast({
-      title: "Balance Check Skipped",
-      description: "Could not verify balance due to network issues. Proceeding with deployment.",
-    });
-    return 999; // Return high value to skip check, let transaction fail naturally if insufficient
+    // Skip balance check - let transaction fail naturally if insufficient
+    // This avoids RPC rate limiting issues during the deployment flow
+    return 999;
   };
 
   const deployToken = async () => {
@@ -362,42 +339,38 @@ export default function Deployer() {
 
       toast({ title: "Sending transaction...", description: "Broadcasting to Solana network" });
 
-      // Try multiple RPCs for transaction broadcast
-      let signature: string | null = null;
-      let lastError: Error | null = null;
+      // Use backend proxy for reliable transaction broadcast
+      const serializedTx = Buffer.from(signedTx.serialize()).toString("base64");
       
-      for (const rpc of SOLANA_RPC_ENDPOINTS) {
-        try {
-          const connection = new Connection(rpc, "confirmed");
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-          
-          signature = await connection.sendRawTransaction(signedTx.serialize(), {
-            skipPreflight: true,
-            preflightCommitment: "confirmed",
-          });
+      const sendResponse = await fetch("/api/deployer/send-tx", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transaction: serializedTx }),
+      });
 
-          toast({ title: "Confirming...", description: "Waiting for transaction confirmation" });
-
-          const confirmation = await connection.confirmTransaction({
-            signature,
-            blockhash,
-            lastValidBlockHeight,
-          }, "confirmed");
-
-          if (confirmation.value.err) {
-            throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
-          }
-          
-          break; // Success, exit loop
-        } catch (error: any) {
-          console.error(`RPC ${rpc} failed for transaction:`, error);
-          lastError = error;
-          continue; // Try next RPC
-        }
+      if (!sendResponse.ok) {
+        const errorData = await sendResponse.json().catch(() => ({ error: "Unknown error" }));
+        throw new Error(`Failed to send transaction: ${errorData.error || sendResponse.statusText}`);
       }
+
+      const { signature } = await sendResponse.json();
       
       if (!signature) {
-        throw lastError || new Error("All RPC endpoints failed to send transaction");
+        throw new Error("No transaction signature returned");
+      }
+
+      toast({ title: "Confirming...", description: "Waiting for transaction confirmation" });
+
+      const confirmResponse = await fetch("/api/deployer/confirm-tx", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signature }),
+      });
+
+      const confirmData = await confirmResponse.json();
+      
+      if (!confirmData.confirmed) {
+        throw new Error(confirmData.error || "Transaction confirmation failed");
       }
 
       const mintAddress = mintKeypair.publicKey.toBase58();

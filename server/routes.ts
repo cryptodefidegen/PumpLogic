@@ -861,6 +861,115 @@ export async function registerRoutes(
     }
   });
 
+  // Solana RPC endpoints for reliable access
+  const SOLANA_RPC_URLS = [
+    "https://api.mainnet-beta.solana.com",
+    "https://solana-mainnet.rpc.extrnode.com",
+  ];
+
+  // Helper to make RPC call with fallback
+  async function solanaRpcCall(method: string, params: any[] = []) {
+    for (const rpcUrl of SOLANA_RPC_URLS) {
+      try {
+        const response = await fetch(rpcUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method,
+            params,
+          }),
+        });
+
+        if (!response.ok) {
+          console.error(`RPC ${rpcUrl} HTTP error:`, response.status);
+          continue;
+        }
+
+        const data = await response.json();
+        if (data.error) {
+          console.error(`RPC ${rpcUrl} error:`, data.error);
+          continue;
+        }
+
+        return data.result;
+      } catch (error) {
+        console.error(`RPC ${rpcUrl} failed:`, error);
+        continue;
+      }
+    }
+    throw new Error("All Solana RPC endpoints failed");
+  }
+
+  // Get latest blockhash
+  app.get("/api/deployer/blockhash", async (_req, res) => {
+    try {
+      const result = await solanaRpcCall("getLatestBlockhash", [{ commitment: "confirmed" }]);
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Blockhash error:", error);
+      return res.status(500).json({ error: error.message || "Failed to get blockhash" });
+    }
+  });
+
+  // Send raw transaction
+  app.post("/api/deployer/send-tx", async (req, res) => {
+    try {
+      const { transaction } = req.body;
+      if (!transaction) {
+        return res.status(400).json({ error: "Transaction data is required" });
+      }
+
+      const result = await solanaRpcCall("sendTransaction", [
+        transaction,
+        { skipPreflight: true, preflightCommitment: "confirmed", encoding: "base64" },
+      ]);
+      
+      return res.json({ signature: result });
+    } catch (error: any) {
+      console.error("Send transaction error:", error);
+      return res.status(500).json({ error: error.message || "Failed to send transaction" });
+    }
+  });
+
+  // Confirm transaction
+  app.post("/api/deployer/confirm-tx", async (req, res) => {
+    try {
+      const { signature } = req.body;
+      if (!signature) {
+        return res.status(400).json({ error: "Signature is required" });
+      }
+
+      // Poll for confirmation
+      const maxAttempts = 30;
+      for (let i = 0; i < maxAttempts; i++) {
+        try {
+          const result = await solanaRpcCall("getSignatureStatuses", [[signature]]);
+          const status = result?.value?.[0];
+          
+          if (status) {
+            if (status.err) {
+              return res.json({ confirmed: false, error: status.err });
+            }
+            if (status.confirmationStatus === "confirmed" || status.confirmationStatus === "finalized") {
+              return res.json({ confirmed: true, status: status.confirmationStatus });
+            }
+          }
+        } catch (e) {
+          // Ignore errors during polling
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
+      return res.json({ confirmed: false, error: "Timeout waiting for confirmation" });
+    } catch (error: any) {
+      console.error("Confirm transaction error:", error);
+      return res.status(500).json({ error: error.message || "Failed to confirm transaction" });
+    }
+  });
+
   // Record a new deployment
   app.post("/api/deployments", async (req, res) => {
     try {
