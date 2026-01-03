@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { 
   Shield, 
   AlertTriangle, 
@@ -31,7 +32,8 @@ import {
   Copy,
   Filter,
   ArrowUpDown,
-  Plus
+  Plus,
+  Link2
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -117,6 +119,12 @@ interface TokenHolder {
   percentage: number;
 }
 
+interface BundleInfo {
+  wallets: string[];
+  totalPercentage: number;
+  signature?: string;
+}
+
 interface HoldersData {
   mint: string;
   totalSupply: number;
@@ -127,6 +135,7 @@ interface HoldersData {
     top20Percentage: number;
     isHighlyConcentrated: boolean;
   };
+  bundles?: BundleInfo[];
 }
 
 interface WhaleAlert {
@@ -870,45 +879,157 @@ export default function Guard() {
                       </div>
                     ) : holdersData ? (
                       <div className="space-y-4">
-                        {holdersData.concentration && (
-                          <div className={cn(
-                            "p-4 rounded-lg border",
-                            holdersData.concentration.isHighlyConcentrated 
-                              ? "bg-red-500/10 border-red-500/30" 
-                              : "bg-green-500/10 border-green-500/30"
-                          )}>
-                            <div className="flex items-center gap-2 mb-2">
-                              {holdersData.concentration.isHighlyConcentrated ? (
-                                <AlertTriangle className="h-5 w-5 text-red-500" />
-                              ) : (
-                                <CheckCircle className="h-5 w-5 text-green-500" />
-                              )}
-                              <span className={cn(
-                                "font-semibold",
-                                holdersData.concentration.isHighlyConcentrated ? "text-red-500" : "text-green-500"
-                              )}>
-                                {holdersData.concentration.isHighlyConcentrated ? "High Concentration Risk" : "Healthy Distribution"}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {holdersData.concentration && (
+                            <div className={cn(
+                              "p-4 rounded-lg border",
+                              holdersData.concentration.isHighlyConcentrated 
+                                ? "bg-red-500/10 border-red-500/30" 
+                                : "bg-green-500/10 border-green-500/30"
+                            )}>
+                              <div className="flex items-center gap-2 mb-2">
+                                {holdersData.concentration.isHighlyConcentrated ? (
+                                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                                ) : (
+                                  <CheckCircle className="h-5 w-5 text-green-500" />
+                                )}
+                                <span className={cn(
+                                  "font-semibold",
+                                  holdersData.concentration.isHighlyConcentrated ? "text-red-500" : "text-green-500"
+                                )}>
+                                  {holdersData.concentration.isHighlyConcentrated ? "High Concentration Risk" : "Healthy Distribution"}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p className="text-muted-foreground">Top 10 hold</p>
+                                  <p className={cn(
+                                    "font-bold text-lg",
+                                    holdersData.concentration.top10Percentage > 50 ? "text-red-500" : "text-green-500"
+                                  )}>
+                                    {holdersData.concentration.top10Percentage.toFixed(1)}%
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">Top 20 hold</p>
+                                  <p className={cn(
+                                    "font-bold text-lg",
+                                    holdersData.concentration.top20Percentage > 70 ? "text-yellow-500" : "text-green-500"
+                                  )}>
+                                    {holdersData.concentration.top20Percentage.toFixed(1)}%
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="p-4 rounded-lg border border-white/10 bg-black/20">
+                            <p className="text-sm font-medium text-white mb-2 flex items-center gap-2">
+                              <BarChart3 className="h-4 w-4 text-primary" />
+                              Holder Distribution
+                            </p>
+                            <div className="h-[150px]">
+                              <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                  <Pie
+                                    data={(() => {
+                                      const top10Total = holdersData.holders.slice(0, 10).reduce((sum, h) => sum + h.percentage, 0);
+                                      const othersTotal = 100 - top10Total;
+                                      const chartData = holdersData.holders.slice(0, 5).map((h, i) => ({
+                                        name: `#${i + 1}`,
+                                        value: h.percentage,
+                                        address: h.address
+                                      }));
+                                      const top5Total = chartData.reduce((sum, d) => sum + d.value, 0);
+                                      if (holdersData.holders.length > 5) {
+                                        chartData.push({
+                                          name: '#6-10',
+                                          value: top10Total - top5Total,
+                                          address: ''
+                                        });
+                                      }
+                                      if (othersTotal > 0) {
+                                        chartData.push({
+                                          name: 'Others',
+                                          value: othersTotal,
+                                          address: ''
+                                        });
+                                      }
+                                      return chartData;
+                                    })()}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={35}
+                                    outerRadius={55}
+                                    paddingAngle={2}
+                                    dataKey="value"
+                                  >
+                                    {holdersData.holders.slice(0, 7).map((_, index) => (
+                                      <Cell 
+                                        key={`cell-${index}`} 
+                                        fill={[
+                                          '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#64748b'
+                                        ][index]}
+                                      />
+                                    ))}
+                                  </Pie>
+                                  <Tooltip 
+                                    contentStyle={{ 
+                                      backgroundColor: 'rgba(0,0,0,0.9)', 
+                                      border: '1px solid rgba(255,255,255,0.1)',
+                                      borderRadius: '8px',
+                                      fontSize: '12px'
+                                    }}
+                                    formatter={(value: number) => [`${value.toFixed(2)}%`, 'Holding']}
+                                  />
+                                </PieChart>
+                              </ResponsiveContainer>
+                            </div>
+                          </div>
+                        </div>
+
+                        {holdersData.bundles && holdersData.bundles.length > 0 && (
+                          <div className="p-4 rounded-lg border border-orange-500/30 bg-orange-500/10">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Link2 className="h-5 w-5 text-orange-500" />
+                              <span className="font-semibold text-orange-500">
+                                Bundle Detection: {holdersData.bundles.length} potential bundle{holdersData.bundles.length > 1 ? 's' : ''} found
                               </span>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <p className="text-muted-foreground">Top 10 hold</p>
-                                <p className={cn(
-                                  "font-bold text-lg",
-                                  holdersData.concentration.top10Percentage > 50 ? "text-red-500" : "text-green-500"
-                                )}>
-                                  {holdersData.concentration.top10Percentage.toFixed(1)}%
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Top 20 hold</p>
-                                <p className={cn(
-                                  "font-bold text-lg",
-                                  holdersData.concentration.top20Percentage > 70 ? "text-yellow-500" : "text-green-500"
-                                )}>
-                                  {holdersData.concentration.top20Percentage.toFixed(1)}%
-                                </p>
-                              </div>
+                            <p className="text-xs text-muted-foreground mb-3">
+                              Wallets that received tokens in the same transaction or block may indicate coordinated buying
+                            </p>
+                            <div className="space-y-2">
+                              {holdersData.bundles.slice(0, 3).map((bundle: any, bundleIndex: number) => (
+                                <div key={bundleIndex} className="p-2 rounded bg-black/40 border border-white/5">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-xs text-orange-400 font-medium">
+                                      Bundle #{bundleIndex + 1} - {bundle.wallets.length} wallets
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {bundle.totalPercentage.toFixed(2)}% combined
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {bundle.wallets.slice(0, 5).map((wallet: string, i: number) => (
+                                      <a
+                                        key={i}
+                                        href={`https://solscan.io/account/${wallet}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs font-mono text-primary hover:underline"
+                                      >
+                                        {wallet.slice(0, 4)}...{wallet.slice(-4)}
+                                      </a>
+                                    ))}
+                                    {bundle.wallets.length > 5 && (
+                                      <span className="text-xs text-muted-foreground">
+                                        +{bundle.wallets.length - 5} more
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         )}

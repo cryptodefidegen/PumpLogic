@@ -2191,6 +2191,95 @@ export async function registerRoutes(
       const top20Total = sortedHolders.slice(0, 20).reduce((sum, h) => sum + h.percentage, 0);
       const totalHolders = Object.keys(holderMap).length;
 
+      // Bundle detection: Find wallets with very similar holdings (indicates coordinated buying)
+      // This uses a heuristic: wallets with identical or near-identical token amounts
+      // likely bought through the same bundle/bot
+      const bundles: { wallets: string[]; totalPercentage: number; signature?: string }[] = [];
+      
+      try {
+        if (totalSupply > 0 && tokenAccounts.length > 0) {
+          // Group token accounts by exact balance (in raw units, before decimals)
+          // Bundlers often distribute exact same amounts to multiple wallets
+          const balanceToWallets: Record<string, { wallet: string; balance: number }[]> = {};
+          
+          for (const account of tokenAccounts) {
+            const owner = account.owner;
+            const rawAmount = account.amount; // Raw amount before decimal conversion
+            const amountKey = String(rawAmount);
+            
+            if (!balanceToWallets[amountKey]) {
+              balanceToWallets[amountKey] = [];
+            }
+            balanceToWallets[amountKey].push({ 
+              wallet: owner, 
+              balance: rawAmount / Math.pow(10, decimals) 
+            });
+          }
+          
+          // Find groups of 3+ wallets with identical balances
+          for (const [, wallets] of Object.entries(balanceToWallets)) {
+            if (wallets.length >= 3) {
+              // Calculate combined holdings
+              const totalBalance = wallets.reduce((sum, w) => sum + w.balance, 0);
+              const totalPercentage = (totalBalance / totalSupply) * 100;
+              
+              // Only report significant bundles (holding at least 0.5% combined)
+              if (totalPercentage >= 0.5) {
+                bundles.push({
+                  wallets: wallets.map(w => w.wallet),
+                  totalPercentage
+                });
+              }
+            }
+          }
+          
+          // Also detect near-identical balances (within 0.01% of each other)
+          // This catches bundles with small variations
+          const sortedAccounts = [...tokenAccounts]
+            .map(a => ({ owner: a.owner, amount: a.amount / Math.pow(10, decimals) }))
+            .sort((a, b) => b.amount - a.amount);
+          
+          let clusterStart = 0;
+          for (let i = 1; i <= sortedAccounts.length; i++) {
+            const prev = sortedAccounts[i - 1];
+            const curr = sortedAccounts[i];
+            
+            // Check if current balance differs by more than 0.1% from cluster average
+            const clusterEnd = !curr || (prev.amount > 0 && Math.abs(curr.amount - prev.amount) / prev.amount > 0.001);
+            
+            if (clusterEnd) {
+              const clusterSize = i - clusterStart;
+              if (clusterSize >= 3) {
+                const clusterWallets = sortedAccounts.slice(clusterStart, i);
+                const totalBalance = clusterWallets.reduce((sum, w) => sum + w.amount, 0);
+                const totalPercentage = (totalBalance / totalSupply) * 100;
+                
+                // Avoid duplicates from exact balance detection
+                const walletSet = clusterWallets.map(w => w.owner);
+                const isDuplicate = bundles.some(b => 
+                  b.wallets.length === walletSet.length && 
+                  b.wallets.every(w => walletSet.includes(w))
+                );
+                
+                if (!isDuplicate && totalPercentage >= 0.5) {
+                  bundles.push({
+                    wallets: walletSet,
+                    totalPercentage
+                  });
+                }
+              }
+              clusterStart = i;
+            }
+          }
+          
+          // Sort bundles by total percentage descending and deduplicate
+          bundles.sort((a, b) => b.totalPercentage - a.totalPercentage);
+        }
+      } catch (bundleError) {
+        console.error("Bundle detection error (non-fatal):", bundleError);
+        // Continue without bundle data
+      }
+
       return res.json({
         mint,
         totalSupply,
@@ -2200,7 +2289,8 @@ export async function registerRoutes(
           top10Percentage: top10Total,
           top20Percentage: top20Total,
           isHighlyConcentrated: top10Total > 50
-        }
+        },
+        bundles: bundles.slice(0, 5) // Return top 5 bundles
       });
     } catch (error: any) {
       console.error("Token holders error:", error);
