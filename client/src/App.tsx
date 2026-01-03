@@ -15,6 +15,7 @@ import Analytics from "@/pages/analytics";
 import Guard from "@/pages/guard";
 import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/layout/Navbar";
+import { MaintenanceGuard } from "@/components/MaintenanceGuard";
 
 const Burn = lazy(() => import("@/pages/burn"));
 const Deployer = lazy(() => import("@/pages/deployer"));
@@ -25,24 +26,46 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/app" component={Dashboard} />
+      <Route path="/app">
+        {() => (
+          <MaintenanceGuard>
+            <Dashboard />
+          </MaintenanceGuard>
+        )}
+      </Route>
       <Route path="/docs" component={Docs} />
       <Route path="/docs/telegram" component={TelegramDocs} />
       <Route path="/roadmap" component={Roadmap} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/guard" component={Guard} />
+      <Route path="/analytics">
+        {() => (
+          <MaintenanceGuard>
+            <Analytics />
+          </MaintenanceGuard>
+        )}
+      </Route>
+      <Route path="/guard">
+        {() => (
+          <MaintenanceGuard>
+            <Guard />
+          </MaintenanceGuard>
+        )}
+      </Route>
       <Route path="/burn">
         {() => (
-          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
-            <Burn />
-          </Suspense>
+          <MaintenanceGuard>
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
+              <Burn />
+            </Suspense>
+          </MaintenanceGuard>
         )}
       </Route>
       <Route path="/deployer">
         {() => (
-          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
-            <Deployer />
-          </Suspense>
+          <MaintenanceGuard>
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-primary">Loading...</div></div>}>
+              <Deployer />
+            </Suspense>
+          </MaintenanceGuard>
         )}
       </Route>
       <Route path="/admin">
