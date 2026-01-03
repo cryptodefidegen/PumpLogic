@@ -878,42 +878,42 @@ export default function Guard() {
                         <span className="ml-2 text-muted-foreground">Loading holders...</span>
                       </div>
                     ) : holdersData ? (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
                           {holdersData.concentration && (
                             <div className={cn(
-                              "p-4 rounded-lg border",
+                              "p-3 rounded-lg border",
                               holdersData.concentration.isHighlyConcentrated 
                                 ? "bg-red-500/10 border-red-500/30" 
                                 : "bg-green-500/10 border-green-500/30"
                             )}>
-                              <div className="flex items-center gap-2 mb-3">
+                              <div className="flex items-center gap-1.5 mb-2">
                                 {holdersData.concentration.isHighlyConcentrated ? (
-                                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                                  <AlertTriangle className="h-4 w-4 text-red-500" />
                                 ) : (
-                                  <CheckCircle className="h-5 w-5 text-green-500" />
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
                                 )}
                                 <span className={cn(
-                                  "font-semibold",
+                                  "font-semibold text-sm",
                                   holdersData.concentration.isHighlyConcentrated ? "text-red-500" : "text-green-500"
                                 )}>
-                                  {holdersData.concentration.isHighlyConcentrated ? "High Concentration Risk" : "Healthy Distribution"}
+                                  {holdersData.concentration.isHighlyConcentrated ? "High Risk" : "Healthy"}
                                 </span>
                               </div>
-                              <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                                <div className="p-2 rounded bg-black/30">
-                                  <p className="text-muted-foreground text-xs">Top 10 hold</p>
+                              <div className="grid grid-cols-2 gap-1.5 text-xs mb-2">
+                                <div className="p-1.5 rounded bg-black/30">
+                                  <p className="text-muted-foreground text-[10px]">Top 10</p>
                                   <p className={cn(
-                                    "font-bold text-lg",
+                                    "font-bold",
                                     holdersData.concentration.top10Percentage > 50 ? "text-red-500" : "text-green-500"
                                   )}>
                                     {holdersData.concentration.top10Percentage.toFixed(1)}%
                                   </p>
                                 </div>
-                                <div className="p-2 rounded bg-black/30">
-                                  <p className="text-muted-foreground text-xs">Top 20 hold</p>
+                                <div className="p-1.5 rounded bg-black/30">
+                                  <p className="text-muted-foreground text-[10px]">Top 20</p>
                                   <p className={cn(
-                                    "font-bold text-lg",
+                                    "font-bold",
                                     holdersData.concentration.top20Percentage > 70 ? "text-yellow-500" : "text-green-500"
                                   )}>
                                     {holdersData.concentration.top20Percentage.toFixed(1)}%
@@ -927,27 +927,27 @@ export default function Guard() {
                                 const remainingPercent = Math.max(0, 100 - holdersData.concentration.top10Percentage);
                                 
                                 return (
-                                  <div className="space-y-2">
-                                    <div className="flex justify-between items-center text-xs">
-                                      <span className="text-muted-foreground">Largest holder</span>
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between items-center text-[10px]">
+                                      <span className="text-muted-foreground">Largest</span>
                                       <span className={cn(
                                         "font-medium",
                                         top1 > 20 ? "text-red-500" : top1 > 10 ? "text-yellow-500" : "text-green-500"
                                       )}>
-                                        {top1.toFixed(2)}% {top1 > 20 ? "(Danger)" : top1 > 10 ? "(Caution)" : "(Safe)"}
+                                        {top1.toFixed(1)}%
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center text-xs">
-                                      <span className="text-muted-foreground">Whales (5%+)</span>
+                                    <div className="flex justify-between items-center text-[10px]">
+                                      <span className="text-muted-foreground">Whales</span>
                                       <span className={cn(
                                         "font-medium",
                                         whaleCount > 5 ? "text-red-500" : whaleCount > 2 ? "text-yellow-500" : "text-green-500"
                                       )}>
-                                        {whaleCount} wallet{whaleCount !== 1 ? 's' : ''}
+                                        {whaleCount}
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center text-xs">
-                                      <span className="text-muted-foreground">Community share</span>
+                                    <div className="flex justify-between items-center text-[10px]">
+                                      <span className="text-muted-foreground">Community</span>
                                       <span className={cn(
                                         "font-medium",
                                         remainingPercent < 30 ? "text-red-500" : remainingPercent < 50 ? "text-yellow-500" : "text-green-500"
@@ -955,34 +955,18 @@ export default function Guard() {
                                         {remainingPercent.toFixed(1)}%
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center text-xs">
-                                      <span className="text-muted-foreground">Total holders</span>
-                                      <span className="font-medium text-white">{holdersData.totalHolders.toLocaleString()}</span>
-                                    </div>
-                                    
-                                    {holdersData.concentration.isHighlyConcentrated && (
-                                      <div className="mt-3 pt-2 border-t border-red-500/20">
-                                        <p className="text-xs text-red-400">
-                                          ⚠️ {top1 > 20 
-                                            ? "Single wallet controls over 20% - high dump risk" 
-                                            : whaleCount > 3 
-                                              ? `${whaleCount} whales hold significant supply - coordinated selling possible`
-                                              : "Top 10 wallets control majority - price easily manipulated"}
-                                        </p>
-                                      </div>
-                                    )}
                                   </div>
                                 );
                               })()}
                             </div>
                           )}
 
-                          <div className="p-4 rounded-lg border border-white/10 bg-black/20">
-                            <p className="text-sm font-medium text-white mb-2 flex items-center gap-2">
-                              <BarChart3 className="h-4 w-4 text-primary" />
-                              Holder Distribution
+                          <div className="p-3 rounded-lg border border-white/10 bg-black/20">
+                            <p className="text-xs font-medium text-white mb-1 flex items-center gap-1.5">
+                              <BarChart3 className="h-3 w-3 text-primary" />
+                              Distribution
                             </p>
-                            <div className="h-[150px]">
+                            <div className="h-[100px]">
                               {(() => {
                                 const top10Total = holdersData.holders.slice(0, 10).reduce((sum, h) => sum + h.percentage, 0);
                                 const othersTotal = Math.max(0, 100 - top10Total);
