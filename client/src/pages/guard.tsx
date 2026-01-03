@@ -924,7 +924,6 @@ export default function Guard() {
                               {(() => {
                                 const top1 = holdersData.holders[0]?.percentage || 0;
                                 const whaleCount = holdersData.holders.filter(h => h.percentage >= 5).length;
-                                const microHolders = holdersData.holders.filter(h => h.percentage < 0.1).length;
                                 const remainingPercent = Math.max(0, 100 - holdersData.concentration.top10Percentage);
                                 
                                 return (
@@ -1030,9 +1029,12 @@ export default function Guard() {
                                           backgroundColor: 'rgba(0,0,0,0.9)', 
                                           border: '1px solid rgba(255,255,255,0.1)',
                                           borderRadius: '8px',
-                                          fontSize: '12px'
+                                          fontSize: '12px',
+                                          color: '#fff'
                                         }}
-                                        formatter={(value: number) => [`${value.toFixed(2)}%`, 'Holding']}
+                                        labelStyle={{ color: '#fff', marginBottom: '4px' }}
+                                        itemStyle={{ color: '#fff' }}
+                                        formatter={(value: number, name: string) => [`${value.toFixed(2)}%`, name]}
                                       />
                                     </PieChart>
                                   </ResponsiveContainer>
@@ -1042,17 +1044,32 @@ export default function Guard() {
                           </div>
                         </div>
 
-                        {holdersData.bundles && holdersData.bundles.length > 0 && (
-                          <div className="p-4 rounded-lg border border-orange-500/30 bg-orange-500/10">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Link2 className="h-5 w-5 text-orange-500" />
-                              <span className="font-semibold text-orange-500">
-                                Bundle Detection: {holdersData.bundles.length} potential bundle{holdersData.bundles.length > 1 ? 's' : ''} found
-                              </span>
-                            </div>
-                            <p className="text-xs text-muted-foreground mb-3">
-                              Wallets that received tokens in the same transaction or block may indicate coordinated buying
-                            </p>
+                        <div className={cn(
+                          "p-4 rounded-lg border",
+                          holdersData.bundles && holdersData.bundles.length > 0 
+                            ? "border-orange-500/30 bg-orange-500/10" 
+                            : "border-green-500/30 bg-green-500/10"
+                        )}>
+                          <div className="flex items-center gap-2 mb-3">
+                            <Link2 className={cn(
+                              "h-5 w-5",
+                              holdersData.bundles && holdersData.bundles.length > 0 ? "text-orange-500" : "text-green-500"
+                            )} />
+                            <span className={cn(
+                              "font-semibold",
+                              holdersData.bundles && holdersData.bundles.length > 0 ? "text-orange-500" : "text-green-500"
+                            )}>
+                              {holdersData.bundles && holdersData.bundles.length > 0 
+                                ? `Bundle Detection: ${holdersData.bundles.length} potential bundle${holdersData.bundles.length > 1 ? 's' : ''} found`
+                                : "Bundle Detection: No suspicious bundles detected"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            {holdersData.bundles && holdersData.bundles.length > 0 
+                              ? "Wallets with matching or near-identical balances may indicate coordinated buying"
+                              : "No groups of wallets found with identical token amounts (potential bundled purchases)"}
+                          </p>
+                          {holdersData.bundles && holdersData.bundles.length > 0 && (
                             <div className="space-y-2">
                               {holdersData.bundles.slice(0, 3).map((bundle: any, bundleIndex: number) => (
                                 <div key={bundleIndex} className="p-2 rounded bg-black/40 border border-white/5">
@@ -1085,8 +1102,8 @@ export default function Guard() {
                                 </div>
                               ))}
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
 
                         <div className="overflow-x-auto">
                           <table className="w-full">
