@@ -278,7 +278,9 @@ export default function Deployer() {
       formDataToSend.append("file", imageFile);
       formDataToSend.append("name", formData.name);
       formDataToSend.append("symbol", formData.symbol.toUpperCase());
-      const brandedDescription = `${formData.description} | Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
+      const brandedDescription = `${formData.description}
+
+Deployed using PumpLogic Deployer. https://pumplogic.live/deployer`;
       formDataToSend.append("description", brandedDescription);
       formDataToSend.append("showName", formData.showName ? "true" : "false");
       if (bannerFile) formDataToSend.append("banner", bannerFile);
@@ -344,9 +346,7 @@ export default function Deployer() {
       toast({ title: "Sending transaction...", description: "Broadcasting to Solana network" });
 
       // Use backend proxy for reliable transaction broadcast
-      // Convert Uint8Array to base64 without using Buffer (browser-compatible)
-      const serializedBytes = signedTx.serialize();
-      const serializedTx = btoa(String.fromCharCode(...serializedBytes));
+      const serializedTx = Buffer.from(signedTx.serialize()).toString("base64");
       
       const sendResponse = await fetch("/api/deployer/send-tx", {
         method: "POST",
@@ -376,10 +376,7 @@ export default function Deployer() {
       const confirmData = await confirmResponse.json();
       
       if (!confirmData.confirmed) {
-        const errorMessage = typeof confirmData.error === 'object' 
-          ? JSON.stringify(confirmData.error) 
-          : confirmData.error || "Transaction confirmation failed";
-        throw new Error(errorMessage);
+        throw new Error(confirmData.error || "Transaction confirmation failed");
       }
 
       const mintAddress = mintKeypair.publicKey.toBase58();
@@ -423,16 +420,15 @@ export default function Deployer() {
       });
 
     } catch (error: any) {
-      const errorMsg = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error)) || "Deployment failed";
-      console.error("Deployment failed:", errorMsg);
+      console.error("Deployment failed:", error);
       setDeploymentResult({
         success: false,
-        error: errorMsg,
+        error: error.message || "Deployment failed",
       });
       toast({
         variant: "destructive",
         title: "Deployment Failed",
-        description: errorMsg,
+        description: error.message || "Failed to deploy token. Please try again.",
       });
     } finally {
       setIsDeploying(false);

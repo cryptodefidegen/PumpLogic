@@ -812,11 +812,7 @@ export async function registerRoutes(
       // Add text fields from request body
       if (req.body.name) formData.append('name', req.body.name);
       if (req.body.symbol) formData.append('symbol', req.body.symbol);
-      if (req.body.description) {
-        // Sanitize description: remove carriage returns that Pump.fun rejects
-        const cleanDescription = req.body.description.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-        formData.append('description', cleanDescription);
-      }
+      if (req.body.description) formData.append('description', req.body.description);
       if (req.body.showName) formData.append('showName', req.body.showName);
       if (req.body.twitter) formData.append('twitter', req.body.twitter);
       if (req.body.telegram) formData.append('telegram', req.body.telegram);
