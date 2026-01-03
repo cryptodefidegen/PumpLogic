@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText, ToggleLeft, ToggleRight, Rocket } from "lucide-react";
+import { Wallet, Menu, X, Loader2, Target, BarChart3, Shield, Sliders, Flame, FileText, ToggleLeft, ToggleRight, Rocket, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -76,8 +76,9 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-8">
           <Link 
             href="/" 
-            className={cn("text-sm font-medium transition-colors hover:text-primary", location === "/" ? "text-primary" : "text-muted-foreground")}
+            className={cn("text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5", location === "/" ? "text-primary" : "text-muted-foreground")}
           >
+            <Home className="h-4 w-4" />
             Home
           </Link>
           <Link 
@@ -203,7 +204,8 @@ export function Navbar() {
       {isOpen && (
         <div className="md:hidden border-b border-white/5 bg-black/95 backdrop-blur-xl">
           <div className="container px-4 py-4 flex flex-col gap-4">
-            <Link href="/" className="text-sm font-medium text-white hover:text-primary" onClick={() => setIsOpen(false)}>
+            <Link href="/" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
+              <Home className="h-4 w-4" />
               Home
             </Link>
             <Link href="/deployer" className="text-sm font-medium text-white hover:text-primary flex items-center gap-2" onClick={() => setIsOpen(false)}>
