@@ -287,34 +287,17 @@ export default function Burn() {
         throw new Error("Wallet not connected");
       }
 
-      // Use signAndSendTransaction for Phantom whitelist compliance
-      // This method signs and sends in one call, which Blowfish requires for whitelist approval
-      let signature: string;
-      
-      if (wallet.provider.signAndSendTransaction) {
-        // Preferred method for Phantom whitelist compliance
-        const result = await wallet.provider.signAndSendTransaction(transaction);
-        signature = result.signature;
-      } else {
-        // Fallback for wallets that don't support signAndSendTransaction
-        const signedTransaction = await wallet.provider.signTransaction(transaction);
-        // Send via server-side RPC
-        const sendResponse = await fetch("/api/deployer/send-tx", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            transaction: Buffer.from(signedTransaction.serialize()).toString("base64")
-          }),
-        });
-        if (!sendResponse.ok) {
-          const error = await sendResponse.json();
-          throw new Error(error.error || "Failed to send transaction");
-        }
-        const sendResult = await sendResponse.json();
-        signature = sendResult.signature;
+      // Exclusively use signAndSendTransaction for Phantom/Blowfish compliance
+      // This method signs and sends in one call with an UNSIGNED transaction
+      // Required to avoid "malicious dApp" warnings from Blowfish security
+      if (!wallet.provider.signAndSendTransaction) {
+        throw new Error("Your wallet doesn't support secure transaction signing. Please use Phantom, Solflare, or Backpack.");
       }
       
-      // Confirm via server-side RPC
+      const result = await wallet.provider.signAndSendTransaction(transaction);
+      const signature = result.signature;
+      
+      // Confirm transaction was processed
       const confirmResponse = await fetch("/api/deployer/confirm-tx", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
