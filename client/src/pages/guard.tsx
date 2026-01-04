@@ -831,11 +831,11 @@ export default function Guard() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="w-full h-[400px] rounded-b-lg overflow-hidden">
+                    <div className="w-full h-[380px] rounded-b-lg overflow-hidden">
                       <iframe
                         src={`https://dexscreener.com/solana/${analysis.address}?embed=1&theme=dark&trades=0&info=0`}
                         className="w-full border-0"
-                        style={{ height: '440px', marginBottom: '-40px' }}
+                        style={{ height: '450px', marginBottom: '-70px' }}
                         title="Price Chart"
                         loading="lazy"
                       />
