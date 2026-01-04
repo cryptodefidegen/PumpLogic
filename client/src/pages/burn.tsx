@@ -870,7 +870,7 @@ export default function Burn() {
 
         {/* Success Dialog */}
         <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-          <DialogContent className="bg-[#0a0a0a] border-white/10 max-w-md z-[100]" style={{ backgroundColor: '#0a0a0a' }}>
+          <DialogContent className="bg-[#0a0a0a] border-white/10 max-w-md" style={{ backgroundColor: '#0a0a0a' }}>
             <DialogHeader>
               <DialogTitle className="text-white flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
