@@ -986,12 +986,12 @@ export default function Guard() {
                             </div>
                           )}
 
-                          <div className="p-3 rounded-lg border border-white/10 bg-black/20">
+                          <div className="p-3 rounded-lg border border-white/10 bg-black/20 flex flex-col">
                             <p className="text-xs font-medium text-white mb-1 flex items-center gap-1.5">
                               <BarChart3 className="h-3 w-3 text-primary" />
                               Distribution
                             </p>
-                            <div className="h-[100px]">
+                            <div className="flex-1 min-h-[120px] aspect-square mx-auto w-full max-w-[140px]">
                               {(() => {
                                 const top10Total = holdersData.holders.slice(0, 10).reduce((sum, h) => sum + h.percentage, 0);
                                 const othersTotal = Math.max(0, 100 - top10Total);
