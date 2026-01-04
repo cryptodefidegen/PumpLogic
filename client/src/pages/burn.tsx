@@ -121,6 +121,8 @@ export default function Burn() {
     mintAuthority: null,
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [burnResult, setBurnResult] = useState<{ signature: string; amount: number; symbol: string | null } | null>(null);
   const [burnHistory, setBurnHistory] = useState<BurnRecord[]>([]);
 
   const isPreviewMode = !isConnected;
@@ -314,23 +316,9 @@ export default function Burn() {
       };
       setBurnHistory(prev => [newBurnRecord, ...prev]);
 
-      toast({
-        title: "Burn Successful!",
-        description: (
-          <div className="flex flex-col gap-2">
-            <span>Burned {amount.toLocaleString()} {tokenMetadata.symbol || 'tokens'}</span>
-            <a 
-              href={`https://solscan.io/tx/${signature}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary underline flex items-center gap-1"
-            >
-              View on Solscan <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
-        ),
-        className: "bg-primary text-black font-bold"
-      });
+      // Show success dialog
+      setBurnResult({ signature, amount, symbol: tokenMetadata.symbol });
+      setShowSuccessDialog(true);
 
       if (tokenBalance !== null) {
         setTokenBalance(tokenBalance - amount);
@@ -875,6 +863,143 @@ export default function Burn() {
               >
                 <Flame className="mr-2 h-4 w-4" />
                 Confirm Burn
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Success Dialog */}
+        <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+          <DialogContent className="bg-black/95 border-white/10 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-white flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                Tokens Burned Successfully!
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                {tokenMetadata.image && (
+                  <img
+                    src={tokenMetadata.image}
+                    alt="Token"
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                )}
+                <div>
+                  <p className="text-white font-bold">
+                    {burnResult?.amount.toLocaleString()} {burnResult?.symbol || 'tokens'}
+                  </p>
+                  <p className="text-orange-400 text-sm">Permanently removed from circulation</p>
+                </div>
+              </div>
+
+              {burnResult?.signature && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs">
+                    Transaction Signature
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 p-2 rounded bg-black/40 border border-white/10 text-xs text-primary font-mono truncate">
+                      {burnResult.signature}
+                    </code>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="border-white/20 shrink-0"
+                      onClick={() => {
+                        navigator.clipboard.writeText(burnResult.signature);
+                        toast({ title: "Copied", description: "Signature copied to clipboard" });
+                      }}
+                      data-testid="button-copy-signature"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  href={`https://solscan.io/tx/${burnResult?.signature}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+                  data-testid="link-solscan-tx"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span className="text-sm">View on Solscan</span>
+                </a>
+                <a
+                  href={`https://solscan.io/token/${tokenAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+                  data-testid="link-solscan-token"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span className="text-sm">View Token</span>
+                </a>
+              </div>
+
+              <div className="pt-4 border-t border-white/10">
+                <p className="text-xs text-muted-foreground mb-3">
+                  Continue with PumpLogic tools:
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <a
+                    href={`/guard?token=${tokenAddress}`}
+                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black/40 border border-white/10 hover:border-primary/50 transition-colors"
+                    data-testid="link-guard"
+                  >
+                    <Shield className="h-5 w-5 text-primary" />
+                    <span className="text-xs text-white">Guard</span>
+                  </a>
+                  <a
+                    href="/deployer"
+                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black/40 border border-white/10 hover:border-primary/50 transition-colors"
+                    data-testid="link-deployer"
+                  >
+                    <Flame className="h-5 w-5 text-primary" />
+                    <span className="text-xs text-white">Deployer</span>
+                  </a>
+                  <a
+                    href="/app"
+                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black/40 border border-white/10 hover:border-primary/50 transition-colors"
+                    data-testid="link-allocator"
+                  >
+                    <DollarSign className="h-5 w-5 text-primary" />
+                    <span className="text-xs text-white">Allocator</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  setShowSuccessDialog(false);
+                  setTokenAddress("");
+                  setTokenBalance(null);
+                  setTokenMetadata({
+                    name: null,
+                    symbol: null,
+                    image: null,
+                    totalSupply: null,
+                    price: null,
+                    fdv: null,
+                    priceChange24h: null,
+                    freezeAuthority: null,
+                    mintAuthority: null,
+                  });
+                }}
+                variant="outline"
+                className="border-white/20"
+                data-testid="button-burn-another"
+              >
+                <Flame className="mr-2 h-4 w-4" />
+                Burn Another Token
               </Button>
             </DialogFooter>
           </DialogContent>
