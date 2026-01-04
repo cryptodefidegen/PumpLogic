@@ -30,6 +30,7 @@ import {
 
 
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const TOKEN_2022_PROGRAM_ID = new PublicKey("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
 // Use server-side RPC proxy to avoid rate limits
 async function getBlockhash(): Promise<{ blockhash: string; lastValidBlockHeight: number }> {
@@ -52,6 +53,8 @@ interface TokenMetadata {
   priceChange24h: number | null;
   freezeAuthority: string | null;
   mintAuthority: string | null;
+  tokenProgram: string | null;
+  tokenAccountAddress: string | null;
 }
 
 interface BurnRecord {
@@ -66,7 +69,8 @@ function createBurnInstruction(
   tokenAccount: PublicKey,
   mint: PublicKey,
   owner: PublicKey,
-  amount: bigint
+  amount: bigint,
+  programId: PublicKey = TOKEN_PROGRAM_ID
 ): TransactionInstruction {
   const data = new Uint8Array(9);
   data[0] = 8;
@@ -82,7 +86,7 @@ function createBurnInstruction(
       { pubkey: mint, isSigner: false, isWritable: true },
       { pubkey: owner, isSigner: true, isWritable: false },
     ],
-    programId: TOKEN_PROGRAM_ID,
+    programId,
     data: data as unknown as Buffer,
   });
 }
@@ -119,6 +123,8 @@ export default function Burn() {
     priceChange24h: null,
     freezeAuthority: null,
     mintAuthority: null,
+    tokenProgram: null,
+    tokenAccountAddress: null,
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -148,6 +154,8 @@ export default function Burn() {
       priceChange24h: null,
       freezeAuthority: null,
       mintAuthority: null,
+      tokenProgram: null,
+      tokenAccountAddress: null,
     });
 
     try {
@@ -172,6 +180,8 @@ export default function Burn() {
         priceChange24h: data.priceChange24h,
         freezeAuthority: data.freezeAuthority,
         mintAuthority: data.mintAuthority,
+        tokenProgram: data.tokenProgram,
+        tokenAccountAddress: data.tokenAccountAddress,
       });
 
       if (data.balance > 0) {
@@ -239,7 +249,16 @@ export default function Burn() {
       const mintPubkey = new PublicKey(tokenAddress);
       const ownerPubkey = new PublicKey(fullWalletAddress!);
       
-      const ata = await getAssociatedTokenAddress(mintPubkey, ownerPubkey);
+      // Use token account from server (handles both Token Program and Token-2022)
+      if (!tokenMetadata.tokenAccountAddress) {
+        throw new Error("Token account not found. Please reload token info.");
+      }
+      const ata = new PublicKey(tokenMetadata.tokenAccountAddress);
+      
+      // Use correct program ID based on the token
+      const programId = tokenMetadata.tokenProgram === "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb" 
+        ? TOKEN_2022_PROGRAM_ID 
+        : TOKEN_PROGRAM_ID;
       
       const parsedAmount = parseFloat(burnAmount);
       const multiplier = BigInt(10 ** tokenDecimals);
@@ -252,7 +271,8 @@ export default function Burn() {
         ata,
         mintPubkey,
         ownerPubkey,
-        burnAmountRaw
+        burnAmountRaw,
+        programId
       );
 
       const transaction = new Transaction().add(burnInstruction);
@@ -955,6 +975,8 @@ export default function Burn() {
                     priceChange24h: null,
                     freezeAuthority: null,
                     mintAuthority: null,
+                    tokenProgram: null,
+                    tokenAccountAddress: null,
                   });
                 }}
                 className="flex-1 bg-primary text-black hover:bg-primary/90"
