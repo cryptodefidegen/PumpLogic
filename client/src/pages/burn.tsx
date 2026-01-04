@@ -873,115 +873,78 @@ export default function Burn() {
           <DialogContent className="bg-[#0a0a0a] border-white/10 max-w-md" style={{ backgroundColor: '#0a0a0a' }}>
             <DialogHeader>
               <DialogTitle className="text-white flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                Tokens Burned Successfully!
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+                Burn Complete
               </DialogTitle>
+              <DialogDescription className="text-gray-400">
+                Your tokens have been permanently removed from circulation.
+              </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-4">
-              <div className="flex items-center gap-4 p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-                {tokenMetadata.image && (
-                  <img
-                    src={tokenMetadata.image}
-                    alt="Token"
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                )}
-                <div>
-                  <p className="text-white font-bold">
-                    {burnResult?.amount.toLocaleString()} {burnResult?.symbol || 'tokens'}
-                  </p>
-                  <p className="text-green-400 text-sm">Permanently removed from circulation</p>
+            <div className="space-y-4 py-2">
+              <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                <div className="flex items-center gap-2 text-green-400 font-medium mb-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Success
                 </div>
-              </div>
-
-              {burnResult?.signature && (
-                <div className="space-y-2">
-                  <Label className="text-gray-400 text-xs">
-                    Transaction Signature
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 p-2 rounded bg-black border border-white/10 text-xs text-primary font-mono truncate">
-                      {burnResult.signature}
-                    </code>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="border-white/20 shrink-0 bg-transparent hover:bg-white/10"
-                      onClick={() => {
-                        navigator.clipboard.writeText(burnResult.signature);
-                        toast({ title: "Copied", description: "Signature copied to clipboard" });
-                      }}
-                      data-testid="button-copy-signature"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-2">
-                <a
-                  href={`https://solscan.io/tx/${burnResult?.signature}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-black border border-white/10 text-white hover:bg-white/10 transition-colors"
-                  data-testid="link-solscan-tx"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span className="text-sm">View on Solscan</span>
-                </a>
-                <a
-                  href={`https://solscan.io/token/${tokenAddress}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-black border border-white/10 text-white hover:bg-white/10 transition-colors"
-                  data-testid="link-solscan-token"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span className="text-sm">View Token</span>
-                </a>
-              </div>
-
-              <div className="pt-4 border-t border-white/10">
-                <p className="text-xs text-gray-400 mb-3">
-                  Continue with PumpLogic tools:
+                <p className="text-sm text-gray-300">
+                  The burn transaction was confirmed on the Solana blockchain. The tokens are now permanently destroyed.
                 </p>
-                <div className="grid grid-cols-3 gap-2">
-                  <a
-                    href={`/guard?token=${tokenAddress}`}
-                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black border border-white/10 hover:border-primary/50 transition-colors"
-                    data-testid="link-guard"
-                  >
-                    <Shield className="h-5 w-5 text-primary" />
-                    <span className="text-xs text-white">Guard</span>
-                  </a>
-                  <a
-                    href="/deployer"
-                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black border border-white/10 hover:border-primary/50 transition-colors"
-                    data-testid="link-deployer"
-                  >
-                    <Flame className="h-5 w-5 text-primary" />
-                    <span className="text-xs text-white">Deployer</span>
-                  </a>
-                  <a
-                    href="/app"
-                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black border border-white/10 hover:border-primary/50 transition-colors"
-                    data-testid="link-allocator"
-                  >
-                    <DollarSign className="h-5 w-5 text-primary" />
-                    <span className="text-xs text-white">Allocator</span>
-                  </a>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                  <span className="text-gray-400">Token</span>
+                  <span className="text-white font-medium">{burnResult?.symbol || tokenAddress.slice(0, 8) + '...'}</span>
                 </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                  <span className="text-gray-400">Amount Burned</span>
+                  <span className="text-white font-bold text-lg">{burnResult?.amount.toLocaleString()}</span>
+                </div>
+                {burnValueUsd !== null && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                    <span className="text-gray-400">USD Value</span>
+                    <span className="text-white font-medium">${burnValueUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+                {supplyPercentage !== null && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                    <span className="text-gray-400">% of Total Supply</span>
+                    <span className="text-white font-medium">{supplyPercentage < 0.01 ? '<0.01' : supplyPercentage.toFixed(4)}%</span>
+                  </div>
+                )}
+                {burnResult?.signature && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                    <span className="text-gray-400">Transaction</span>
+                    <a
+                      href={`https://solscan.io/tx/${burnResult.signature}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center gap-1"
+                      data-testid="link-solscan-tx"
+                    >
+                      View on Solscan <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowSuccessDialog(false)}
+                className="flex-1 border-white/20 bg-transparent hover:bg-white/10"
+                data-testid="button-close-success"
+              >
+                Close
+              </Button>
               <Button
                 onClick={() => {
                   setShowSuccessDialog(false);
                   setTokenAddress("");
                   setTokenBalance(null);
+                  setBurnAmount("");
                   setTokenMetadata({
                     name: null,
                     symbol: null,
@@ -994,12 +957,11 @@ export default function Burn() {
                     mintAuthority: null,
                   });
                 }}
-                variant="outline"
-                className="border-white/20 bg-transparent hover:bg-white/10 w-full"
+                className="flex-1 bg-primary text-black hover:bg-primary/90"
                 data-testid="button-burn-another"
               >
                 <Flame className="mr-2 h-4 w-4" />
-                Burn Another Token
+                Burn More
               </Button>
             </DialogFooter>
           </DialogContent>
