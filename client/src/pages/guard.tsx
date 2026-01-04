@@ -819,6 +819,30 @@ export default function Guard() {
                 </div>
 
                 <Card className="bg-black/40 border-white/10">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-white text-lg flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-primary" />
+                        Price Chart
+                      </CardTitle>
+                      <Badge variant="outline" className="border-white/20 text-xs">
+                        {provider === 'voidscreener' ? 'VoidScreener Data' : 'DexScreener'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="w-full h-[300px] rounded-b-lg overflow-hidden">
+                      <iframe
+                        src={`https://dexscreener.com/solana/${analysis.address}?embed=1&theme=dark&trades=0&info=0`}
+                        className="w-full h-full border-0"
+                        title="Price Chart"
+                        loading="lazy"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-black/40 border-white/10">
                   <CardHeader>
                     <CardTitle className="text-white text-lg">Risk Factors</CardTitle>
                   </CardHeader>
