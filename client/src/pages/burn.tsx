@@ -12,7 +12,7 @@ import {
   Info, TrendingDown, DollarSign, Percent, Shield, CheckCircle2,
   Clock, Copy, X
 } from "lucide-react";
-import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import { PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
 import {
   Dialog,
   DialogContent,
@@ -29,8 +29,18 @@ import {
 } from "@/components/ui/tooltip";
 
 
-const SOLANA_RPC = "https://api.mainnet-beta.solana.com";
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+
+// Use server-side RPC proxy to avoid rate limits
+async function getBlockhash(): Promise<{ blockhash: string; lastValidBlockHeight: number }> {
+  const response = await fetch("/api/deployer/blockhash");
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: "Failed to get blockhash" }));
+    throw new Error(error.error || "Failed to get blockhash");
+  }
+  const data = await response.json();
+  return { blockhash: data.value.blockhash, lastValidBlockHeight: data.value.lastValidBlockHeight };
+}
 
 interface TokenMetadata {
   name: string | null;
@@ -224,7 +234,6 @@ export default function Burn() {
     setIsBurning(true);
 
     try {
-      const connection = new Connection(SOLANA_RPC);
       const mintPubkey = new PublicKey(tokenAddress);
       const ownerPubkey = new PublicKey(fullWalletAddress!);
       
@@ -246,7 +255,8 @@ export default function Burn() {
 
       const transaction = new Transaction().add(burnInstruction);
       
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+      // Get blockhash from server-side Helius RPC
+      const { blockhash, lastValidBlockHeight } = await getBlockhash();
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = ownerPubkey;
 
@@ -266,14 +276,32 @@ export default function Burn() {
       } else {
         // Fallback for wallets that don't support signAndSendTransaction
         const signedTransaction = await wallet.provider.signTransaction(transaction);
-        signature = await connection.sendRawTransaction(signedTransaction.serialize());
+        // Send via server-side RPC
+        const sendResponse = await fetch("/api/deployer/send-tx", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            transaction: Buffer.from(signedTransaction.serialize()).toString("base64")
+          }),
+        });
+        if (!sendResponse.ok) {
+          const error = await sendResponse.json();
+          throw new Error(error.error || "Failed to send transaction");
+        }
+        const sendResult = await sendResponse.json();
+        signature = sendResult.signature;
       }
       
-      await connection.confirmTransaction({
-        signature,
-        blockhash,
-        lastValidBlockHeight
-      }, "confirmed");
+      // Confirm via server-side RPC
+      const confirmResponse = await fetch("/api/deployer/confirm-tx", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signature }),
+      });
+      const confirmResult = await confirmResponse.json();
+      if (!confirmResult.confirmed) {
+        console.warn("Transaction confirmation warning:", confirmResult.error);
+      }
 
       const amount = parseFloat(burnAmount);
 
