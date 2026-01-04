@@ -870,7 +870,7 @@ export default function Burn() {
 
         {/* Success Dialog */}
         <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-          <DialogContent className="bg-black/95 border-white/10 max-w-md">
+          <DialogContent className="!bg-[#0a0a0a] !border-white/10 max-w-md">
             <DialogHeader>
               <DialogTitle className="text-white flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -879,7 +879,7 @@ export default function Burn() {
             </DialogHeader>
 
             <div className="space-y-4 py-4">
-              <div className="flex items-center gap-4 p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-green-500/10 border border-green-500/20">
                 {tokenMetadata.image && (
                   <img
                     src={tokenMetadata.image}
@@ -891,23 +891,23 @@ export default function Burn() {
                   <p className="text-white font-bold">
                     {burnResult?.amount.toLocaleString()} {burnResult?.symbol || 'tokens'}
                   </p>
-                  <p className="text-orange-400 text-sm">Permanently removed from circulation</p>
+                  <p className="text-green-400 text-sm">Permanently removed from circulation</p>
                 </div>
               </div>
 
               {burnResult?.signature && (
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground text-xs">
+                  <Label className="text-gray-400 text-xs">
                     Transaction Signature
                   </Label>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 p-2 rounded bg-black/40 border border-white/10 text-xs text-primary font-mono truncate">
+                    <code className="flex-1 p-2 rounded bg-black border border-white/10 text-xs text-primary font-mono truncate">
                       {burnResult.signature}
                     </code>
                     <Button
                       size="icon"
                       variant="outline"
-                      className="border-white/20 shrink-0"
+                      className="border-white/20 shrink-0 bg-transparent hover:bg-white/10"
                       onClick={() => {
                         navigator.clipboard.writeText(burnResult.signature);
                         toast({ title: "Copied", description: "Signature copied to clipboard" });
@@ -925,7 +925,7 @@ export default function Burn() {
                   href={`https://solscan.io/tx/${burnResult?.signature}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-black border border-white/10 text-white hover:bg-white/10 transition-colors"
                   data-testid="link-solscan-tx"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -935,7 +935,7 @@ export default function Burn() {
                   href={`https://solscan.io/token/${tokenAddress}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+                  className="flex items-center justify-center gap-2 p-3 rounded-lg bg-black border border-white/10 text-white hover:bg-white/10 transition-colors"
                   data-testid="link-solscan-token"
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -944,13 +944,13 @@ export default function Burn() {
               </div>
 
               <div className="pt-4 border-t border-white/10">
-                <p className="text-xs text-muted-foreground mb-3">
+                <p className="text-xs text-gray-400 mb-3">
                   Continue with PumpLogic tools:
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   <a
                     href={`/guard?token=${tokenAddress}`}
-                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black/40 border border-white/10 hover:border-primary/50 transition-colors"
+                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black border border-white/10 hover:border-primary/50 transition-colors"
                     data-testid="link-guard"
                   >
                     <Shield className="h-5 w-5 text-primary" />
@@ -958,7 +958,7 @@ export default function Burn() {
                   </a>
                   <a
                     href="/deployer"
-                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black/40 border border-white/10 hover:border-primary/50 transition-colors"
+                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black border border-white/10 hover:border-primary/50 transition-colors"
                     data-testid="link-deployer"
                   >
                     <Flame className="h-5 w-5 text-primary" />
@@ -966,7 +966,7 @@ export default function Burn() {
                   </a>
                   <a
                     href="/app"
-                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black/40 border border-white/10 hover:border-primary/50 transition-colors"
+                    className="flex flex-col items-center gap-1 p-3 rounded-lg bg-black border border-white/10 hover:border-primary/50 transition-colors"
                     data-testid="link-allocator"
                   >
                     <DollarSign className="h-5 w-5 text-primary" />
@@ -995,7 +995,7 @@ export default function Burn() {
                   });
                 }}
                 variant="outline"
-                className="border-white/20"
+                className="border-white/20 bg-transparent hover:bg-white/10 w-full"
                 data-testid="button-burn-another"
               >
                 <Flame className="mr-2 h-4 w-4" />
